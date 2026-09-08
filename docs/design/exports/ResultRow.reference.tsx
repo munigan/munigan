@@ -34,4 +34,3 @@ export const ResultRowReference = () => (
       </div>
     </div>
   );
-
