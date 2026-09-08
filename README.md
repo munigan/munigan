@@ -2,7 +2,7 @@
 
 Anonymous Top Gear for level-80 Wrath 3.3.5a characters. Import equipped and carried-bag items, select owned copies, lock slots, and compare complete combinations with the native Poli93 simulator. Gems and enchants stay attached to their original copies.
 
-This branch implements the **local Top Gear release slice**. Trigger.dev account configuration, staging tests, production budgets and Warmane client parity are deferred. Boss/Raid Droptimizer, token redemption and billing are outside this slice.
+This branch implements the **local Top Gear release slice** with a connected Trigger.dev Development environment. Hosted workers, staging tests, production budgets and Warmane client parity remain pending. Boss/Raid Droptimizer, token redemption and billing are outside this slice.
 
 ## Run locally
 
@@ -15,17 +15,23 @@ pnpm setup:local
 
 The setup script creates an isolated PostgreSQL cluster in ignored `.cache/pgdata`, listening only on `127.0.0.1:55435`, writes `.env.local` with a random encryption key, builds the pinned native simulator if missing, and applies the schema. It does not modify other databases. Set `PG_BIN` if PostgreSQL is installed elsewhere. Do not use this local trust-authentication setup as a public database.
 
-Start these in two terminals:
+For the configured Trigger.dev Development flow, start these in three terminals:
 
 ```sh
 pnpm dev
 ```
 
 ```sh
-pnpm worker
+pnpm trigger:dev
 ```
 
-Open [Top Gear](http://127.0.0.1:3000/top-gear). The worker runs separately from Next.js and persists each result in PostgreSQL. Stopping the web server does not stop a simulation. Both worker loops share a database-enforced concurrency limit of two.
+```sh
+pnpm jobs:dispatch:watch
+```
+
+Open [Top Gear](http://127.0.0.1:3000/top-gear). The dispatcher sends admitted jobs to Trigger's `top-gear` task. Development mode executes the native worker on your machine, separately from Next.js, and persists results in PostgreSQL. The configured project is `proj_tbzzdkaotlbspettqxxh`; the development secret stays in ignored `.env.local`. The CLI uses your existing login. Fresh checkouts need `pnpm exec trigger login` and the project's Development secret key set locally.
+
+For a fully local flow without Trigger, run `pnpm worker` instead of the Trigger dev server and dispatcher. Do not run both worker modes against the same database. Both modes enforce a shared concurrency limit of two.
 
 For Docker instead, run `docker compose up -d` and use `postgresql://wotlk:local-development-only@127.0.0.1:55435/wow_top_gear` in `.env.local`. Generate `CAPABILITY_KEY` with `openssl rand -hex 32`, then run `pnpm sim:build` and `pnpm db:migrate`. Use either Docker or the isolated local cluster on port 55435.
 
@@ -61,6 +67,6 @@ Database tests create and drop randomly named `tg_test_*` schemas. Native tests 
 
 See [compatibility and release evidence](docs/engineering/top-gear-compatibility.md), [worker operations](docs/engineering/top-gear-operations.md), and the [focused implementation plan](docs/superpowers/plans/2026-09-08-top-gear-implementation.md).
 
-Trigger files are included but intentionally unconfigured. After local review, set the project reference and credentials, package the Linux binary, configure database/environment access and run the documented staging checks. No cloud deployment or production launch has been performed.
+Trigger Development is configured and a real eight-set browser run completed through its queue. A deployment dry run also verified that the executable Linux binary is included in the bundle. Hosted execution still needs a remotely reachable PostgreSQL database, hosted environment variables and the documented staging checks. No cloud worker deployment or production launch has been performed. See [Trigger setup evidence](docs/engineering/top-gear-trigger.md).
 
 Simulator and generated source retain the [upstream license](public/licenses/Poli93-wotlk.txt). Item artwork is displayed from Wowhead's icon CDN using cached icon names; item text and functionality remain available if artwork fails. Warcraft assets belong to their respective rights holders. Inter and Barlow Condensed are provided through Fontsource with their bundled licenses.

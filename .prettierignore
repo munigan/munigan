@@ -1,6 +1,7 @@
 src/generated/
 data/
 .cache/
+.trigger/
 docs/design/
 tests/artifacts/
 pnpm-lock.yaml

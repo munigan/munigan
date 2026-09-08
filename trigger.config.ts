@@ -1,8 +1,7 @@
 import { defineConfig } from "@trigger.dev/sdk";
 import { additionalFiles } from "@trigger.dev/build/extensions/core";
 export default defineConfig({
-  project:
-    process.env.TRIGGER_PROJECT_REF ?? "configure-after-local-validation",
+  project: process.env.TRIGGER_PROJECT_REF ?? "proj_tbzzdkaotlbspettqxxh",
   runtime: "node-24",
   dirs: ["./src/trigger"],
   maxDuration: 960,

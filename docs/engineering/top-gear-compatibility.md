@@ -1,6 +1,6 @@
 # Top Gear compatibility and release evidence
 
-The implemented scope is the local Top Gear path approved by “You can start the implementation.” Trigger.dev configuration is deferred by the user's later instruction, “Configure Trigger.dev after local implementation.” No cloud or production readiness claim follows from local tests.
+The implemented scope is the local Top Gear path approved by “You can start the implementation.” After local implementation, the user authorized setup using the selected Trigger.dev project. Development is now connected and a real Top Gear run completed through Trigger; see [setup evidence](top-gear-trigger.md). No hosted execution or production readiness claim follows from Development tests.
 
 ## Mechanical sources
 
@@ -30,7 +30,7 @@ See `top-gear-local-benchmark.json` for measured native wall time at 180 seconds
 ## Remaining release gates
 
 1. Capture real Warmane 3.3.5a client exports for character/bags, localized glyphs, duplicate enhanced copies, empty sockets, professions and all supported DPS families. Compare representative output to the pinned browser simulator and actual client restrictions.
-2. Configure the user's Trigger project after local review; verify Linux packaging, database reachability, cancellation of a live child, forced crash/lease recovery, lost dispatch acknowledgment, queue expiry and peak child-process concurrency with at least three jobs against cap two.
+2. Configure hosted database/environment access in the connected Trigger project; verify actual Linux container execution, cancellation of a live child, forced crash/lease recovery, lost dispatch acknowledgment, queue expiry and peak child-process concurrency with at least three jobs against cap two. Development execution and dry-run binary packaging are verified separately.
 3. Benchmark worst-case admitted duration/target/spec combinations on the chosen worker machine. Select production iteration, time, cost and abuse limits from that evidence; production admission is closed without explicit configuration.
 4. Verify the deployment's trusted client-IP header is overwritten by its proxy, set origin and capability keys, and exercise public quota and expiry behavior. Perform a manual keyboard/screen-reader and contrast review alongside the automated narrow-width checks.
 
