@@ -70,7 +70,8 @@ export function decodeSnapshot(s: ReturnType<typeof encodeSnapshot>): Snapshot {
 export function encodeRequest(r: TopGearRequest) {
   return { ...r, snapshot: encodeSnapshot(r.snapshot) };
 }
-export function validateRequest(input: unknown): TopGearRequest {
+// Drafts must be safe to edit, but need not be ready to simulate yet.
+export function decodeDraft(input: unknown): TopGearRequest {
   const parsed = shape.parse(input),
     s = parsed.snapshot;
   const settings = IndividualSimSettings.fromJson(s.settings as JsonObject),
@@ -85,6 +86,27 @@ export function validateRequest(input: unknown): TopGearRequest {
     throw new Error(
       "This draft uses an older simulator version. Import again.",
     );
+  getSpec(s.specId);
+  const pending: Array<[unknown, number]> = [[settings, 0]];
+  let nodes = 0;
+  while (pending.length) {
+    const [value, depth] = pending.pop()!;
+    if (++nodes > 50000 || depth > 64)
+      throw new Error("Simulation configuration is too complex");
+    if (typeof value === "number" && !Number.isFinite(value))
+      throw new Error("Simulation settings must contain finite numbers");
+    if (value && typeof value === "object")
+      for (const nested of Object.values(value))
+        pending.push([nested, depth + 1]);
+  }
+  return { ...parsed, snapshot: { ...s, settings } };
+}
+
+export function validateRequest(input: unknown): TopGearRequest {
+  const parsed = decodeDraft(input),
+    s = parsed.snapshot;
+  const settings = s.settings,
+    p = settings.player!;
   const spec = getSpec(s.specId);
   if (p.class !== spec.classId)
     throw new Error("Class does not match specialization");
@@ -119,7 +141,7 @@ export function validateRequest(input: unknown): TopGearRequest {
     throw new Error("Choose Automatic or APL rotation before importing");
   if (!/^[0-5]{0,40}(-[0-5]{0,40}){0,2}$/.test(p.talentsString))
     throw new Error("Invalid Wrath talents");
-  const encounter = settings.encounter;
+  const encounter = settings.encounter!;
   if (
     !Number.isFinite(encounter.duration) ||
     encounter.duration < 10 ||
@@ -140,18 +162,6 @@ export function validateRequest(input: unknown): TopGearRequest {
     )
   )
     throw new Error("Invalid target configuration");
-  const pending: Array<[unknown, number]> = [[settings, 0]];
-  let nodes = 0;
-  while (pending.length) {
-    const [value, depth] = pending.pop()!;
-    if (++nodes > 50000 || depth > 64)
-      throw new Error("Simulation configuration is too complex");
-    if (typeof value === "number" && !Number.isFinite(value))
-      throw new Error("Simulation settings must contain finite numbers");
-    if (value && typeof value === "object")
-      for (const nested of Object.values(value))
-        pending.push([nested, depth + 1]);
-  }
   const snapshot: Snapshot = { ...s, settings };
   const talentErrors = validateTalents(snapshot);
   if (talentErrors.length) throw new Error(talentErrors[0]);

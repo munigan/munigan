@@ -269,6 +269,13 @@ export function PresetPanel({
                       </option>
                     ))}
                 </select>
+                {snapshot.professionLevels?.[String(p[field])] !==
+                  undefined && (
+                  <small className="muted">
+                    Imported rank: {snapshot.professionLevels[String(p[field])]}{" "}
+                    / 450
+                  </small>
+                )}
               </label>
             ))}
           </div>

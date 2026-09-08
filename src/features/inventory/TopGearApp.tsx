@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type {
   Snapshot,
@@ -10,7 +10,7 @@ import { ImportPanel } from "@/features/import/ImportPanel";
 import { InventorySelector } from "./InventorySelector";
 import { PresetPanel } from "@/features/settings/PresetPanel";
 import { getSpec } from "@/features/settings/registry";
-import { validateItem, validateLoadout } from "@/domain/equipment/validate";
+import { validateItem } from "@/domain/equipment/validate";
 import { estimateAllowance } from "@/domain/equipment/enumerate";
 import {
   encodeRequest,
@@ -129,15 +129,17 @@ export function TopGearApp() {
     request && policy
       ? estimateAllowance(request.snapshot, request.selection, policy)
       : null;
-  const invalid = request
-    ? validateLoadout(request.snapshot, request.snapshot.equipped)
-    : [];
-  const unacknowledged = request?.snapshot.inventory.some(
-    (i) =>
-      i.source === "bag" &&
-      validateItem(request.snapshot, i).length &&
-      !request.selection.acknowledgedExclusions.includes(i.instanceId),
-  );
+  const readinessError = useMemo(() => {
+    if (!request) return "";
+    try {
+      validateRequest(encodeRequest(request));
+      return "";
+    } catch (error) {
+      return error instanceof Error
+        ? error.message
+        : "Review your simulation settings.";
+    }
+  }, [request]);
   const spec = request ? getSpec(request.snapshot.specId) : null;
   return (
     <section id="content">
@@ -267,24 +269,14 @@ export function TopGearApp() {
                 Reduce your selections to fit the free allowance.
               </p>
             )}
-            {invalid.length > 0 && (
+            {readinessError && (
               <p role="alert" className="notice error">
-                Equipped gear: {invalid[0].message}
-              </p>
-            )}
-            {unacknowledged && (
-              <p className="muted small">
-                Review unsupported bag items before running.
+                {readinessError}
               </p>
             )}
             <button
               className="primary run-button"
-              disabled={
-                pending ||
-                !allowance?.allowed ||
-                !!invalid.length ||
-                !!unacknowledged
-              }
+              disabled={pending || !allowance?.allowed || !!readinessError}
               onClick={run}
             >
               {pending ? "Submitting…" : "Find Top Gear"}{" "}
