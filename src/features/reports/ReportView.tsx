@@ -15,7 +15,12 @@ import { slots, slotNames } from "@/domain/top-gear/slots";
 import { changedSlots } from "@/domain/top-gear/report";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { getSpec } from "@/features/settings/registry";
-import { ItemIcon, ItemName, ItemDetails } from "@/features/inventory/Item";
+import {
+  ItemIcon,
+  ItemName,
+  ItemDetails,
+  ItemLink,
+} from "@/features/inventory/Item";
 import { saveDraft } from "@/features/import/draft-store";
 import { IndividualSimSettings } from "@/generated/wotlk/ui";
 import { Stat } from "@/generated/wotlk/common";
@@ -355,15 +360,20 @@ export function ReportView({ token }: { token: string }) {
             {report.rows.map((row, index) => {
               const changes = changedSlots(snapshot, base, row.loadout);
               return (
-                <button
+                <div
                   key={row.id}
                   role="row"
                   className={`combination-columns combination-row ${row.id === selected.id ? "selected" : ""}`}
                   onClick={() => setSelectedId(row.id)}
-                  aria-label={`View ${row.isEquipped ? "equipped gear" : `set ${cursor + index + 1}`}, ${number(row.dps)} DPS`}
                 >
                   <span className="set-number" role="cell">
-                    {String(cursor + index + 1).padStart(2, "0")}
+                    <button
+                      className="set-select"
+                      aria-label={`View ${row.isEquipped ? "equipped gear" : `set ${cursor + index + 1}`}, ${number(row.dps)} DPS`}
+                      aria-pressed={row.id === selected.id}
+                    >
+                      {String(cursor + index + 1).padStart(2, "0")}
+                    </button>
                   </span>
                   <span className="set-changes" role="cell">
                     <span className="changed-icons">
@@ -377,7 +387,15 @@ export function ReportView({ token }: { token: string }) {
                             title={`${slotNames[slot]}: ${i ? getCatalog().items.get(i.itemId)?.name : "Empty"}`}
                           >
                             {i ? (
-                              <ItemIcon itemId={i.itemId} size={40} />
+                              <ItemLink
+                                item={i}
+                                aria-label={
+                                  getCatalog().items.get(i.itemId)?.name
+                                }
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <ItemIcon itemId={i.itemId} size={40} />
+                              </ItemLink>
                             ) : (
                               <span className="empty-icon">—</span>
                             )}
@@ -417,7 +435,7 @@ export function ReportView({ token }: { token: string }) {
                       {row.percent === null ? "" : `${row.percent.toFixed(2)}%`}
                     </small>
                   </span>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -538,7 +556,12 @@ function GearStrip({
           >
             <span>{slotNames[slot]}</span>
             {item ? (
-              <ItemIcon itemId={item.itemId} />
+              <ItemLink
+                item={item}
+                aria-label={getCatalog().items.get(item.itemId)?.name}
+              >
+                <ItemIcon itemId={item.itemId} />
+              </ItemLink>
             ) : (
               <span className="empty-icon">—</span>
             )}
@@ -586,8 +609,15 @@ function FullSet({
               <span className="muted">{slotNames[slot]}</span>
               {item ? (
                 <>
-                  <ItemIcon itemId={item.itemId} />
-                  <ItemName item={item} />
+                  <ItemLink
+                    item={item}
+                    aria-label={getCatalog().items.get(item.itemId)?.name}
+                  >
+                    <ItemIcon itemId={item.itemId} />
+                  </ItemLink>
+                  <ItemLink item={item}>
+                    <ItemName item={item} />
+                  </ItemLink>
                   <ItemDetails item={item} />
                 </>
               ) : (

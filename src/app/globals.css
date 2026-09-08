@@ -479,6 +479,16 @@ footer span {
   min-width: 0;
   text-decoration: none;
 }
+.wowhead-tooltip[popover] {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  right: auto;
+  bottom: auto;
+  overflow: visible;
+  background: #080d21;
+  color: inherit;
+}
 .item-tooltip-link > span:last-child {
   min-width: 0;
 }
@@ -968,6 +978,7 @@ progress::-moz-progress-bar {
   background: var(--color-surface);
 }
 .combination-row {
+  cursor: pointer;
   width: 100%;
   padding: 15px 20px;
   border: 0;
@@ -1009,6 +1020,12 @@ progress::-moz-progress-bar {
 }
 .set-number {
   color: var(--color-muted);
+}
+.set-select {
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  color: inherit;
 }
 .combination-row strong {
   font-size: 20px;
@@ -1168,7 +1185,7 @@ progress::-moz-progress-bar {
     gap: 8px;
     font-size: 12px;
   }
-  .full-gear-row > .item-icon {
+  .full-gear-row > a > .item-icon {
     width: 36px !important;
     height: 36px !important;
   }
