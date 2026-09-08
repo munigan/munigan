@@ -25,7 +25,7 @@
 
 ## Deliverables and stable references
 
-Create a dedicated Paper file named **WotLK Droptimizer — Product Design**. The currently open Paper file was an unrelated project when planning; do not modify or clone it. At execution, rediscover files and reuse a matching project file if already created by this plan.
+Use the user-created **WoW Droptimizer** file, ID `01M20P4F8A377J1GT1GGCM3K1Z`. This explicit user selection supersedes the original proposed file name. Do not modify or clone unrelated files. Actual screen references are recorded in `docs/design/screens.json`.
 
 Create these repository artifacts during design execution:
 
@@ -136,7 +136,7 @@ Do not treat this example header as an approved component. Implement the selecte
 **Consumes:** D3 imported-character context. **Produces:** `TG-SELECT.desktop`, `BOSS-SELECT.desktop`, `RAID-SELECT.desktop`, `TOKEN-OPTIONS.desktop`.
 
 - [ ] Build Top Gear slot groups with selection/lock controls, scoped select-all/clear, selected-only filter, equipped/bag origin, duplicate quantities, and enhancement details. Show source inventory and search size in the run summary.
-- [ ] Add paired weapon/ring/trinket states and an oversized-search message with an action to reduce selected items. No presumed universal hit/expertise lock appears.
+- [ ] Add paired weapon/ring/trinket states and a live free allowance meter with used/maximum work and gear-combination count. Show within-limit, exactly-at-limit, and over-limit states; block Run when over limit and offer selection/lock changes while preserving the import. Distinguish budget accounting from actual fight iterations. The provisional 300,000/5,000 example is subject to WotLK benchmarks. No presumed universal hit/expertise lock appears.
 - [ ] Build raid/size/difficulty selection and boss selection; present unavailable catalog combinations as unavailable. Boss mode selects one boss, raid mode presents the full eligible catalog with explicit exclusions and coverage.
 - [ ] Add slot/boss grouping, eligible-item inclusion controls, and new-loot gem/enchant setup with a per-item preview. Owned enhancements remain visibly unchanged.
 - [ ] Build token alternatives showing the chosen reward, required prerequisite item/currency, owned versus unknown resource state, and the one-redemption rule. Show an incomplete recipe outside immediate-upgrade candidates.
@@ -150,7 +150,7 @@ Do not treat this example header as an approved component. Implement the selecte
 **Consumes:** D4 submission states and D1 arithmetic. **Produces:** `JOB.desktop`, `TG-RESULT.desktop`, `BOSS-RESULT.desktop`, `RAID-RESULT.desktop`, `DROP-DETAIL.desktop`.
 
 - [ ] Design progress phases **Queued**, **Finding your best owned gear**, **Comparing drops**, **Refining results**, **Complete**. Use actual completed counts; show an unknown completion time gracefully. Include report link, expiry, and owner-only cancel action.
-- [ ] Design Top Gear result: current 10,000 → best found 10,200, +200 (+2%), exact swaps, complete resulting set, and near-tied alternatives with fewer changes.
+- [ ] Design Top Gear as ranked complete combinations: current 10,000 → highest set 10,200, +200 (+2%), with several alternative sets, each set’s exact swaps, and a full-slot view. Include equipped reference, jump-to-equipped, gear differences versus equipped/top set, and reuse of a chosen set in Droptimizer. A 10,196 set with fewer changes can be recommended as a near-tie without changing exact rankings or the numerical equipped baseline. Show evaluated/refined/displayed counts and pagination for larger retained result lists. See the real Raidbots run recorded in `docs/design/raidbots-top-gear-observations.md`.
 - [ ] Design boss and raid rankings against the shared optimized-owned baseline 10,200. The illustrated 10,350 outcome shows +150 (+1.47%), not +350. Include item/boss grouping, gains in DPS/percent, and catalog coverage.
 - [ ] Design expanded drop details with before/after slots, enhancements, prerequisite consumption, set bonuses, relevant hit/expertise change, and the full equipment set. Label one-drop independence beside the report summary.
 - [ ] Add report variants for provisional rows, one failed candidate, interrupted limited search, all no-improvement, unavailable uncertainty, zero baseline percentage, invalid/expired link, and canceled work. A failed row never displays zero gain.

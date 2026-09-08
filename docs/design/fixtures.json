@@ -1,0 +1,19 @@
+{
+  "illustrative": true,
+  "character": {"name":"Aldren","level":80,"spec":"Fury Warrior","equippedCount":17,"bagCount":7},
+  "currentDps":10000,
+  "bestOwnedDps":10200,
+  "topDropDps":10350,
+  "topDropGain":150,
+  "allowance":{"unitsPerSet":5000,"maxUnits":300000,"maxCombinations":60,"selectedCombinations":6,"overLimitExample":72,"productionValidated":false},
+  "combinationSets":[
+    {"id":"01","head":51212,"trinkets":[50362,54569],"dps":10200,"swaps":2,"highest":true},
+    {"id":"02","head":50080,"trinkets":[50362,54569],"dps":10196,"swaps":1,"effectivelyTied":true,"recommendedWithFewerChanges":true},
+    {"id":"03","head":51212,"trinkets":[50362,50342],"dps":10120,"swaps":1},
+    {"id":"04","head":51212,"trinkets":[54569,50342],"dps":10080,"swaps":2},
+    {"id":"05","head":50080,"trinkets":[54569,50342],"dps":10040,"swaps":1},
+    {"id":"06","head":50080,"trinkets":[50362,50342],"dps":10000,"swaps":0,"equipped":true}
+  ],
+  "otherSlots":"14 fixed owned items in this six-combination illustration; paired placement equivalence is illustrative and requires engine verification",
+  "reportExpiryDays":30
+}

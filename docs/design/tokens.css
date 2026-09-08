@@ -1,0 +1,27 @@
+@theme {
+  --color-canvas: #111518;
+  --color-surface: #1B2227;
+  --color-border: #3C4851;
+  --color-text: #F1F5F7;
+  --color-muted: #B2BEC7;
+  --color-action: #9CD6F0;
+  --color-gain: #E6BF78;
+  --color-danger: #F4A79E;
+  --color-control-border: #697985;
+  --font-body: Inter;
+  --font-display: Barlow Condensed;
+  --text-body: 16px;
+  --text-label: 14px;
+  --text-title: 56px;
+  --font-weight-body: 400;
+  --font-weight-heading: 600;
+  --tracking-label: 0.08em;
+  --leading-body: 24px;
+  --leading-title: 60px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --container-workspace: 1280px;
+  --spacing-unit: 4px;
+  --radius-panel: 8px;
+  --radius-control: 4px;
+}
