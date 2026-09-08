@@ -12,6 +12,10 @@
 
 **Design dependency:** [Paper implementation plan](2026-09-08-paper-design.md), especially D8. References below are stable design keys that D8 maps to real Paper nodes. Revision 4 handoff now exists at `docs/design/handoff.md`, with `screens.json`, `coverage.md`, `component-map.json`, exported screenshots and interaction contracts. It is a reviewed draft with approval still pending. Read `approval.json` at C0; the existence of these artifacts is not authorization to begin coding.
 
+## Active delivery scope — Top Gear first
+
+The user narrowed the next coding plan to Top Gear using equipped and carried-bag items. Execute the [focused Top Gear plan](2026-09-08-top-gear-implementation.md) for this first delivery instead of the full C0–C15 sequence below. This file remains the broader roadmap for future boss/raid functionality. Loot catalogs, token redemption, drop comparisons and billing are not prerequisites for Top Gear. The focused plan proposes uniform sampling within the free allowance before adding adaptive refinement; review that explicit simplification with its scoped design contract. No application coding has begun and the design approval record is unchanged.
+
 ## Global constraints
 
 - "All three are initially free and anonymous."
