@@ -2,7 +2,7 @@
 
 Date: 2026-09-08
 
-Status: Product and architecture approved in conversation. Written specification, including the Raidbots-informed experience, awaiting review. No application implementation has started.
+Status: Written product and architecture specification approved in conversation on 2026-09-08. The user requested two implementation plans: create and refine the design in Paper MCP first, then implement application code against the approved design. No application implementation has started.
 
 ## 1. Product and scope
 
@@ -109,7 +109,7 @@ Proposed direction: restrained WotLK-inspired dark surfaces, icy blue/cyan accen
 
 Better design means measurable usability: key character and baseline context stays visible, primary actions are consistent, errors sit beside the relevant input, advanced settings are progressively disclosed, and source/selection state is never conveyed only by color. Keyboard access, visible focus, labeled controls, responsive layouts, sufficient contrast, reduced-motion support, and screen-reader progress announcements are acceptance criteria. Long names must be readable on demand without relying on hover.
 
-No finished visual mockup has been approved. This specification defines the direction and behavior; visual layout validation belongs to the implementation planning/design work after spec review.
+No finished visual mockup has been approved. Create the visual design in Paper MCP, refine it with the user, and record approval of the final handoff before starting application coding. The design implementation plan precedes the code implementation plan; the code plan references the approved Paper screens, tokens, and interaction specifications.
 
 ## 6. Architecture and contracts
 
