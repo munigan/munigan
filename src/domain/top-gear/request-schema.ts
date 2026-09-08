@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { JsonObject } from "@protobuf-ts/runtime";
 import { IndividualSimSettings } from "@/generated/wotlk/ui";
 import rules from "../../../data/wotlk/equipment-rules.json";
-import { Spec } from "@/generated/wotlk/common";
+import { Spec, Profession } from "@/generated/wotlk/common";
 import { APLRotation_Type } from "@/generated/wotlk/apl";
 import { validateTalents } from "@/features/settings/talents";
 import { getSpec } from "@/features/settings/registry";
@@ -165,15 +165,21 @@ export function validateRequest(input: unknown): TopGearRequest {
   const snapshot: Snapshot = { ...s, settings };
   const talentErrors = validateTalents(snapshot);
   if (talentErrors.length) throw new Error(talentErrors[0]);
-  if (
-    Object.entries(snapshot.professionLevels ?? {}).some(
-      ([id, rank]) =>
-        [p.profession1, p.profession2].includes(Number(id)) && rank < 450,
-    )
-  )
-    throw new Error(
-      "The pinned simulator assumes max-rank professions. This export includes a profession below 450.",
-    );
+  // core/professions.go applies these gathering bonuses unconditionally.
+  // Crafting benefits come from gear/enchants/gems/consumes, not a blanket rank.
+  const gatheringBonuses: Partial<Record<Profession, string>> = {
+    [Profession.Mining]: "60 stamina",
+    [Profession.Skinning]: "40 critical strike rating",
+    [Profession.Herbalism]: "maximum-rank Lifeblood",
+  };
+  for (const profession of [p.profession1, p.profession2]) {
+    const rank = snapshot.professionLevels?.[String(profession)];
+    const bonus = gatheringBonuses[profession];
+    if (bonus && rank !== undefined && rank < 450)
+      throw new Error(
+        `${Profession[profession]} ${rank}/450: the simulator applies ${bonus}, which requires 450 skill. Lower-rank gathering bonuses are not supported yet.`,
+      );
+  }
   const ids = new Set(snapshot.inventory.map((i) => i.instanceId));
   if (ids.size !== snapshot.inventory.length)
     throw new Error("Duplicate item instance IDs");

@@ -8,7 +8,7 @@ import {
 
 afterEach(() => localStorage.clear());
 
-it("restores an editable draft with an imported profession below 450 without weakening admission", () => {
+it("restores and admits a draft with crafting professions below 450", () => {
   const request = fixtureRequest();
   request.snapshot.professionLevels = { 4: 425 };
   saveDraft(request);
@@ -16,9 +16,7 @@ it("restores an editable draft with an imported profession below 450 without wea
   expect(restored?.snapshot.professionLevels).toEqual({ 4: 425 });
   expect(restored?.snapshot.inventory).toEqual(request.snapshot.inventory);
   expect(restored?.selection).toEqual(request.selection);
-  expect(() => validateRequest(encodeRequest(restored!))).toThrow(
-    /profession/i,
-  );
+  expect(() => validateRequest(encodeRequest(restored!))).not.toThrow();
 });
 
 it("restores other correctable settings but rejects malformed and outdated drafts", () => {
