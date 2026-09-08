@@ -13,10 +13,15 @@ export GOTOOLCHAIN=go1.23.4
 mkdir -p .cache/tools src/generated/wotlk "$source_dir/sim/core/proto" "$source_dir/ui/core/proto" dist/simulator/local
 GOBIN="$project_root/.cache/tools" go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6
 export PATH="$project_root/.cache/tools:$PATH"
+if [ "${SKIP_PROTO:-0}" != "1" ]; then
 pnpm exec protoc -I "$source_dir/proto" --ts_out src/generated/wotlk "$source_dir"/proto/*.proto
 node --input-type=module -e 'import fs from "node:fs"; for (const file of fs.readdirSync("src/generated/wotlk")) { if (!file.endsWith(".ts")) continue; const path = `src/generated/wotlk/${file}`; fs.writeFileSync(path, fs.readFileSync(path, "utf8").replace(/[ \t]+$/gm, "")); }'
+fi
 pnpm exec protoc -I "$source_dir/proto" --go_out "$source_dir/sim/core" "$source_dir"/proto/*.proto
 cp src/generated/wotlk/*.ts "$source_dir/ui/core/proto/"
+python3 tools/data/original-items.py --check
+python3 tools/simulator/apply-original-profile.py
+cp tests/fixtures/sim/warrior.request.json "$source_dir/cmd/wowsimcli/cmd/json_sim_warrior_request_test.json"
 cp tools/simulator/overlay/*.go "$source_dir/cmd/wowsimcli/cmd/"
 cd "$source_dir"
 go test -tags=with_db ./cmd/wowsimcli/cmd -run TestEvaluateJSON -count=1
