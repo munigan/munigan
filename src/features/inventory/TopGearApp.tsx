@@ -76,7 +76,11 @@ export function TopGearApp() {
           .filter((i) => validateItem(snapshot, i).length === 0)
           .map((i) => i.instanceId),
         lockedSlots: {},
-        acknowledgedExclusions: [],
+        acknowledgedExclusions: snapshot.inventory
+          .filter(
+            (i) => i.source === "bag" && validateItem(snapshot, i).length > 0,
+          )
+          .map((i) => i.instanceId),
       },
     });
     setReplace(false);

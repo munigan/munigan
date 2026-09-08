@@ -8,7 +8,7 @@ import {
   canEquip,
   validateItem,
 } from "@/domain/equipment/validate";
-import { ItemIcon, ItemName, ItemDetails } from "./Item";
+import { ItemIcon, ItemName, ItemDetails, ItemLink } from "./Item";
 export function InventorySelector({
   request,
   onChange,
@@ -18,7 +18,8 @@ export function InventorySelector({
 }) {
   const [filter, setFilter] = useState("All slots"),
     [expanded, setExpanded] = useState(false),
-    [selectedOnly, setSelectedOnly] = useState(false);
+    [selectedOnly, setSelectedOnly] = useState(false),
+    [inspectedBagId, setInspectedBagId] = useState("");
   const { snapshot, selection } = request,
     catalog = getCatalog();
   const valid = snapshot.inventory.filter(
@@ -127,16 +128,48 @@ export function InventorySelector({
         </label>
       </div>
       {unsupported.length > 0 && (
-        <div className="notice">
-          <details>
-            <summary>
-              {unsupported.length} unsupported bag{" "}
-              {unsupported.length === 1 ? "item" : "items"}
-            </summary>
-            {unsupported.map((i) => (
-              <p key={i.instanceId}>{validateItem(snapshot, i)[0].message}</p>
-            ))}
-          </details>
+        <div className="unsupported-bag">
+          <h3>
+            {unsupported.length} unsupported bag{" "}
+            {unsupported.length === 1 ? "item" : "items"}
+          </h3>
+          <ul className="bag-grid" aria-label="Unsupported bag items">
+            {unsupported.map((item) => {
+              const metadata =
+                catalog.items.get(item.itemId) ?? catalog.gems.get(item.itemId);
+              return (
+                <li key={item.instanceId}>
+                  <ItemLink
+                    item={item}
+                    className="bag-item"
+                    data-wh-icon-size={!metadata?.icon ? "medium" : undefined}
+                    aria-label={`${metadata?.name ?? `Item ${item.itemId}`} · Unsupported`}
+                    aria-describedby={`reason-${item.instanceId}`}
+                    onMouseEnter={() => setInspectedBagId(item.instanceId)}
+                    onFocus={() => setInspectedBagId(item.instanceId)}
+                  >
+                    <span className="bag-icon-fallback">
+                      <ItemIcon itemId={item.itemId} size={44} />
+                    </span>
+                    <span className="bag-excluded-mark" aria-hidden="true">
+                      ×
+                    </span>
+                  </ItemLink>
+                  <span className="sr-only" id={`reason-${item.instanceId}`}>
+                    {validateItem(snapshot, item)[0].message}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="bag-reason muted small">
+            {unsupported.some((i) => i.instanceId === inspectedBagId)
+              ? validateItem(
+                  snapshot,
+                  unsupported.find((i) => i.instanceId === inspectedBagId)!,
+                )[0].message
+              : "Hover or focus an item for details."}
+          </p>
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -210,7 +243,7 @@ export function InventorySelector({
               ) : (
                 values.map((item, index) => (
                   <div className="inventory-row" key={item.instanceId}>
-                    <label className="item-choice">
+                    <div className="item-choice">
                       <input
                         type="checkbox"
                         checked={selection.selectedInstanceIds.includes(
@@ -219,17 +252,19 @@ export function InventorySelector({
                         onChange={() => toggle(item.instanceId)}
                         aria-label={`Select ${catalog.items.get(item.itemId)!.name}, ${item.source}, copy ${index + 1}`}
                       />
-                      <ItemIcon itemId={item.itemId} />
-                      <span>
-                        <ItemName item={item} />
-                        <small className="item-enhancements">
-                          {item.enchantId ? "Enchanted" : "No enchant"}
-                          {item.gemIds.length
-                            ? ` · ${item.gemIds.filter(Boolean).length}/${item.gemIds.length} gems`
-                            : ""}
-                        </small>
-                      </span>
-                    </label>
+                      <ItemLink item={item} className="item-tooltip-link">
+                        <ItemIcon itemId={item.itemId} />
+                        <span>
+                          <ItemName item={item} />
+                          <small className="item-enhancements">
+                            {item.enchantId ? "Enchanted" : "No enchant"}
+                            {item.gemIds.length
+                              ? ` · ${item.gemIds.filter(Boolean).length}/${item.gemIds.length} gems`
+                              : ""}
+                          </small>
+                        </span>
+                      </ItemLink>
+                    </div>
                     <span className="item-level">
                       {catalog.items.get(item.itemId)!.ilvl}
                     </span>

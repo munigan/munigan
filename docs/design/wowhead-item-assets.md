@@ -1,6 +1,6 @@
 # Wowhead item artwork and tooltips
 
-Verified on 2026-09-08. This is a design and implementation reference; no application integration has been built.
+Verified on 2026-09-08. The item-list integration is implemented, including hover/focus tooltips and unsupported bag artwork.
 
 ## What works
 
@@ -18,7 +18,13 @@ The JSON endpoint is observable infrastructure, not a versioned public API contr
 - Keep imports, stats, restrictions, loot sources, and numerical tooltips authoritative to the pinned simulator and normalized inventory. Wowhead's Wrath Classic data is not proof of Warmane mechanics. Never feed its tooltip HTML or stats into the simulator.
 - Load the optional Wowhead script once in a client boundary. For custom icon/name layouts, disable automatic renaming, recoloring, and icon insertion to prevent duplicated images or layout shifts. Pass only validated item, gem, and enchant identifiers through documented attributes. Do not insert the raw JSON `tooltip` HTML into our DOM.
 - Verify Wrath gem/enchant options and dynamically added rows in the browser during implementation; documented options alone do not prove that every Wrath combination works. Local accessible item details remain available when the external script is blocked or fails.
-- No per-row metadata requests, arbitrary user-provided image hosts, or bulk runtime scraping. Validate icon keys and use the fixed CDN host. Review provider usage terms before expanding the small design manifest into production data generation.
+- No custom per-row metadata requests, arbitrary user-provided image hosts, or bulk runtime scraping. The documented provider script supplies icons for unsupported items missing from the pinned catalog using opt-in `data-wh-icon-size="medium"`; those requests are managed by Wowhead's widget. Known gear/gem artwork uses the pinned catalog. No provider data changes simulation eligibility or stats.
+
+## Implemented item list
+
+`WowheadTooltips.tsx` loads the script once, disables automatic renaming/recoloring/global icon insertion, refreshes links added by React and bridges keyboard focus to the provider tooltip behavior. `ItemLink` uses Wrath URLs plus per-instance `ench` and colon-separated `gems` options. Unsupported items appear as separate physical copies in a bag-style icon grid with local exclusion reasons and a question-mark fallback. The user requested that their exclusion be checked by default; the server still validates that unsupported items are excluded before admission.
+
+Live browser verification loaded a Runic Healing Potion icon and tooltip, plus a Valorous Dreadnaught Helmet tooltip containing its +50 attack power/+20 critical strike enchant, meta gem and +16 strength gem. The provider requests carried `dataEnv=8` (Wrath), `ench=3817` and `gems=41285:39996`. Keyboard focus and Escape were checked, and the 390px layout had no horizontal overflow. The setup regression also runs with the provider script blocked to verify that optional artwork/tooltips do not block selection.
 
 ## Revision 3 visual use
 

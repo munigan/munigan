@@ -472,8 +472,90 @@ footer span {
   min-width: 0;
   cursor: pointer;
 }
-.item-choice > span:last-child {
+.item-tooltip-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   min-width: 0;
+  text-decoration: none;
+}
+.item-tooltip-link > span:last-child {
+  min-width: 0;
+}
+.unsupported-bag {
+  margin: 16px 0 24px;
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+.unsupported-bag h3 {
+  margin: 0 0 14px;
+}
+.bag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 48px);
+  gap: 8px;
+  padding: 12px;
+  margin: 0;
+  list-style: none;
+  border: 1px solid #403943;
+  border-radius: 4px;
+  background: #111012;
+  box-shadow: inset 0 2px 8px #0008;
+}
+.bag-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #64516a;
+  border-radius: 4px;
+  background: #231d28;
+  box-shadow: inset 0 0 5px #000;
+  text-decoration: none;
+}
+.bag-item:hover,
+.bag-item:focus-visible {
+  border-color: var(--color-action);
+}
+.bag-item[data-wh-icon-added="true"] .bag-icon-fallback {
+  display: none;
+}
+.bag-item > .iconmedium {
+  margin: 0 !important;
+}
+.bag-excluded-mark {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #795f61;
+  border-radius: 50%;
+  background: #2b2022;
+  color: #e3aaad;
+  font-size: 14px;
+  pointer-events: none;
+}
+.bag-reason {
+  min-height: 18px;
+  margin: 10px 0 14px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .item-icon {
   display: inline-flex;

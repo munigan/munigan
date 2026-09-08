@@ -6,6 +6,10 @@ const fixture = JSON.parse(
 test("imports owned bags, exposes exclusions and preserves a free anonymous gear selection", async ({
   page,
 }) => {
+  // The import and exclusion flow must still work when the optional provider is blocked.
+  await page.route("https://wow.zamimg.com/js/tooltips.js", (route) =>
+    route.abort(),
+  );
   await page.goto("/top-gear");
   const player = fixture.raid.parties[0].players[0];
   await page.getByLabel("Character export", { exact: true }).fill(
@@ -23,6 +27,7 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
     JSON.stringify({
       items: [
         { id: 40528, enchant: 3817, gems: [41285, 39996] },
+        { id: 33447 },
         { id: 9999999 },
       ],
     }),
@@ -33,6 +38,27 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
   ).toBeVisible();
+  await expect(page.getByLabel(/Exclude unsupported bag items/)).toBeChecked();
+  await expect(
+    page
+      .getByRole("list", { name: "Unsupported bag items" })
+      .getByRole("listitem"),
+  ).toHaveCount(2);
+  const helmetLink = page
+    .locator(".inventory-row a[data-wowhead]")
+    .filter({ hasText: "Valorous Dreadnaught Helmet" });
+  await expect(helmetLink).toHaveAttribute(
+    "href",
+    /wowhead.com\/wotlk\/item=40528/,
+  );
+  await expect(helmetLink).toHaveAttribute(
+    "data-wowhead",
+    "ench=3817&gems=41285:39996",
+  );
+  await expect(
+    page.getByRole("button", { name: "Find Top Gear" }),
+  ).toBeEnabled();
+  await page.getByLabel(/Exclude unsupported bag items/).uncheck();
   await expect(
     page.getByRole("button", { name: "Find Top Gear" }),
   ).toBeDisabled();
@@ -68,4 +94,10 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await expect(
     page.getByRole("button", { name: "Find Top Gear" }),
   ).toBeEnabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
