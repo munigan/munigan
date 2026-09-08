@@ -10,6 +10,7 @@ import { slots } from "./slots";
 import type { TopGearRequest, Snapshot } from "./model";
 import { validateItem, validateLoadout } from "@/domain/equipment/validate";
 import versions from "../../../data/wotlk/versions.json";
+import { itemVersions, itemVersionOf } from "./item-version";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -20,6 +21,8 @@ const shape = z
     snapshot: z.object({
       id,
       specId: id,
+      itemVersion: z.enum(["original", "classic"]).default("classic"),
+      itemDataRevision: id.optional(),
       versions: z.object({
         engine: id,
         schema: id,
@@ -65,7 +68,13 @@ export function encodeSnapshot(s: Snapshot) {
   return { ...s, settings: IndividualSimSettings.toJson(s.settings) };
 }
 export function decodeSnapshot(s: ReturnType<typeof encodeSnapshot>): Snapshot {
-  return { ...s, settings: IndividualSimSettings.fromJson(s.settings) };
+  const itemVersion = itemVersionOf(s);
+  return {
+    ...s,
+    itemVersion,
+    itemDataRevision: s.itemDataRevision ?? itemVersions[itemVersion].revision,
+    settings: IndividualSimSettings.fromJson(s.settings),
+  };
 }
 export function encodeRequest(r: TopGearRequest) {
   return { ...r, snapshot: encodeSnapshot(r.snapshot) };
@@ -74,6 +83,15 @@ export function encodeRequest(r: TopGearRequest) {
 export function decodeDraft(input: unknown): TopGearRequest {
   const parsed = shape.parse(input),
     s = parsed.snapshot;
+  const revision = itemVersions[s.itemVersion].revision;
+  if (
+    (s.itemVersion === "original" && !s.itemDataRevision) ||
+    (s.itemDataRevision && s.itemDataRevision !== revision)
+  )
+    throw new Error(
+      "This draft uses older item data. Select the current item version or import again.",
+    );
+  s.itemDataRevision = revision;
   const settings = IndividualSimSettings.fromJson(s.settings as JsonObject),
     p = settings.player;
   if (!p || !settings.encounter)

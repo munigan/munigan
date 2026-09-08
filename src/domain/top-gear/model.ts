@@ -1,4 +1,5 @@
 import type { IndividualSimSettings } from "@/generated/wotlk/ui";
+import type { ItemVersion } from "./item-version";
 export type Slot =
   | "head"
   | "neck"
@@ -37,6 +38,8 @@ export type Snapshot = {
   id: string;
   specId: string;
   versions: Versions;
+  itemVersion?: ItemVersion;
+  itemDataRevision?: string;
   professionLevels?: Record<string, number>;
   settings: IndividualSimSettings;
   inventory: ItemInstance[];

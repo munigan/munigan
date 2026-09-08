@@ -9,6 +9,12 @@ import type {
 import { ImportPanel } from "@/features/import/ImportPanel";
 import { InventorySelector } from "./InventorySelector";
 import { PresetPanel } from "@/features/settings/PresetPanel";
+import { ItemVersionContext } from "./ItemVersionContext";
+import {
+  itemVersions,
+  itemVersionOf,
+  type ItemVersion,
+} from "@/domain/top-gear/item-version";
 import { getSpec } from "@/features/settings/registry";
 import { validateItem } from "@/domain/equipment/validate";
 import { estimateAllowance } from "@/domain/equipment/enumerate";
@@ -67,6 +73,11 @@ export function TopGearApp() {
           (id) => !excluded.includes(id),
         ),
         acknowledgedExclusions: excluded,
+        lockedSlots: Object.fromEntries(
+          Object.entries(next.selection.lockedSlots).filter(
+            ([, id]) => !id || !excluded.includes(id),
+          ),
+        ),
       },
     };
     setRequest(next);
@@ -142,171 +153,206 @@ export function TopGearApp() {
   }, [request]);
   const spec = request ? getSpec(request.snapshot.specId) : null;
   return (
-    <section id="content">
-      <div className="page-heading">
-        <h1>TOP GEAR</h1>
-        <p>
-          {request
-            ? "Select items. Compare sets."
-            : "Import your character. Find your best set."}
-        </p>
-        {request && (
-          <button
-            className="text-button heading-action"
-            onClick={() => setReplace(true)}
-          >
-            Import character ↗
-          </button>
-        )}
-      </div>
-      {!request ? (
-        <>
-          {hasDraft && (
-            <div className="notice resume-draft">
-              <span>You have a saved Top Gear selection.</span>
-              <button
-                onClick={() => {
-                  try {
-                    const draft = loadDraft();
-                    if (draft) change(draft);
-                  } catch (e) {
-                    setError((e as Error).message);
-                  }
-                }}
-              >
-                Restore draft
-              </button>
-              <button
-                className="text-button"
-                onClick={() => {
-                  try {
-                    clearDraft();
-                    setHasDraft(false);
-                  } catch {
-                    setStorageError("Could not clear local storage");
-                  }
-                }}
-              >
-                Discard
-              </button>
-            </div>
-          )}
-          <ImportPanel onResolved={resolved} />
-        </>
-      ) : replace ? (
-        <>
-          <div className="notice">
-            Importing replaces this local selection. Previous reports stay
-            available.{" "}
-            <button onClick={() => setReplace(false)}>
-              Keep current character
-            </button>
-          </div>
-          <ImportPanel onResolved={resolved} />
-        </>
-      ) : (
-        <div className="gear-layout">
-          <InventorySelector request={request} onChange={change} />
-          <aside className="run-summary panel">
-            <div className="section-top">
-              <div>
-                <h2>
-                  {request.snapshot.settings.player!.name || "Your character"}
-                </h2>
-                <p className="muted">
-                  {spec!.name} {spec!.className} · 80
-                </p>
-              </div>
-              <button className="text-button" onClick={() => setReplace(true)}>
-                Edit
-              </button>
-            </div>
-            <div>
-              <p className="muted">Simulation</p>
-              <p className="simulation-description">
-                {request.snapshot.settings.encounter!.targets.length === 1
-                  ? "Single target"
-                  : `${request.snapshot.settings.encounter!.targets.length} targets`}{" "}
-                · {request.snapshot.settings.encounter!.duration}s
-              </p>
-              <button
-                className="text-button"
-                onClick={() => setSettingsOpen(true)}
-              >
-                Buffs & settings <span aria-hidden="true">→</span>
-              </button>
-            </div>
-            <div>
-              <div className="section-top">
-                <span>
-                  {allowance
-                    ? `${Math.min(allowance.count, 999999).toLocaleString()} / ${Math.floor(policy!.maxUnits / policy!.unitsPerSet)} sets`
-                    : "Loading allowance…"}
-                </span>
-                <span className="accent">Free</span>
-              </div>
-              <progress
-                aria-label="Free work allowance"
-                max={policy?.maxUnits ?? 1}
-                value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
-              />
-              <p className="muted small">
-                {allowance?.units.toLocaleString() ?? "—"} /{" "}
-                {policy?.maxUnits.toLocaleString() ?? "—"} work units
-              </p>
-              <details className="allowance-help">
-                <summary>About this estimate</summary>
-                <p>
-                  Upper bound, including equipped gear once. Illegal or
-                  identical combinations are removed by the worker. Each
-                  admitted set receives {policy?.iterationsPerSet} simulation
-                  iterations.
-                </p>
-              </details>
-            </div>
-            {allowance && !allowance.allowed && (
-              <p className="notice error">
-                Reduce your selections to fit the free allowance.
-              </p>
-            )}
-            {readinessError && (
-              <p role="alert" className="notice error">
-                {readinessError}
-              </p>
-            )}
+    <ItemVersionContext.Provider
+      value={request ? itemVersionOf(request.snapshot) : "original"}
+    >
+      <section id="content">
+        <div className="page-heading">
+          <h1>TOP GEAR</h1>
+          <p>
+            {request
+              ? "Select items. Compare sets."
+              : "Import your character. Find your best set."}
+          </p>
+          {request && (
             <button
-              className="primary run-button"
-              disabled={pending || !allowance?.allowed || !!readinessError}
-              onClick={run}
+              className="text-button heading-action"
+              onClick={() => setReplace(true)}
             >
-              {pending ? "Submitting…" : "Find Top Gear"}{" "}
-              <span aria-hidden="true">→</span>
+              Import character ↗
             </button>
-            <p className="muted small">
-              {request.snapshot.inventory.some((i) => i.source === "bag")
-                ? "Equipped + carried bags"
-                : "Equipped only · no bags imported"}
-            </p>
-          </aside>
+          )}
         </div>
-      )}
-      {error && (
-        <p role="alert" className="notice error">
-          {error}
-        </p>
-      )}
-      {storageError && (
-        <p role="status" className="notice">
-          {storageError}
-        </p>
-      )}
-      {settingsOpen && request && (
-        <PresetPanel
-          snapshot={request.snapshot}
-          onChange={(snapshot) => change({ ...request, snapshot })}
-          onClose={() => setSettingsOpen(false)}
-        />
-      )}
-    </section>
+        {!request ? (
+          <>
+            {hasDraft && (
+              <div className="notice resume-draft">
+                <span>You have a saved Top Gear selection.</span>
+                <button
+                  onClick={() => {
+                    try {
+                      const draft = loadDraft();
+                      if (draft) change(draft);
+                    } catch (e) {
+                      setError((e as Error).message);
+                    }
+                  }}
+                >
+                  Restore draft
+                </button>
+                <button
+                  className="text-button"
+                  onClick={() => {
+                    try {
+                      clearDraft();
+                      setHasDraft(false);
+                    } catch {
+                      setStorageError("Could not clear local storage");
+                    }
+                  }}
+                >
+                  Discard
+                </button>
+              </div>
+            )}
+            <ImportPanel onResolved={resolved} />
+          </>
+        ) : replace ? (
+          <>
+            <div className="notice">
+              Importing replaces this local selection. Previous reports stay
+              available.{" "}
+              <button onClick={() => setReplace(false)}>
+                Keep current character
+              </button>
+            </div>
+            <ImportPanel onResolved={resolved} />
+          </>
+        ) : (
+          <div className="gear-layout">
+            <InventorySelector request={request} onChange={change} />
+            <aside className="run-summary panel">
+              <div className="section-top">
+                <div>
+                  <h2>
+                    {request.snapshot.settings.player!.name || "Your character"}
+                  </h2>
+                  <p className="muted">
+                    {spec!.name} {spec!.className} · 80
+                  </p>
+                </div>
+                <button
+                  className="text-button"
+                  onClick={() => setReplace(true)}
+                >
+                  Edit
+                </button>
+              </div>
+              <label className="item-version-select">
+                Item version
+                <select
+                  aria-label="Item version"
+                  value={itemVersionOf(request.snapshot)}
+                  onChange={(event) => {
+                    const itemVersion = event.target.value as ItemVersion;
+                    change({
+                      ...request,
+                      snapshot: {
+                        ...request.snapshot,
+                        itemVersion,
+                        itemDataRevision: itemVersions[itemVersion].revision,
+                        provenance: {
+                          ...request.snapshot.provenance,
+                          itemVersion: "edited",
+                        },
+                      },
+                    });
+                  }}
+                >
+                  {Object.entries(itemVersions).map(([id, profile]) => (
+                    <option key={id} value={id}>
+                      {profile.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="simulation-settings-summary">
+                <p className="muted">Simulation</p>
+                <p className="simulation-description">
+                  {request.snapshot.settings.encounter!.targets.length === 1
+                    ? "Single target"
+                    : `${request.snapshot.settings.encounter!.targets.length} targets`}{" "}
+                  · {request.snapshot.settings.encounter!.duration}s
+                </p>
+                <button
+                  className="text-button"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  Buffs & settings <span aria-hidden="true">→</span>
+                </button>
+              </div>
+              <div>
+                <div className="section-top">
+                  <span>
+                    {allowance
+                      ? `${Math.min(allowance.count, 999999).toLocaleString()} / ${Math.floor(policy!.maxUnits / policy!.unitsPerSet)} sets`
+                      : "Loading allowance…"}
+                  </span>
+                  <span className="accent">Free</span>
+                </div>
+                <progress
+                  aria-label="Free work allowance"
+                  max={policy?.maxUnits ?? 1}
+                  value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
+                />
+                <p className="muted small">
+                  {allowance?.units.toLocaleString() ?? "—"} /{" "}
+                  {policy?.maxUnits.toLocaleString() ?? "—"} work units
+                </p>
+                <details className="allowance-help">
+                  <summary>About this estimate</summary>
+                  <p>
+                    Upper bound, including equipped gear once. Illegal or
+                    identical combinations are removed by the worker. Each
+                    admitted set receives {policy?.iterationsPerSet} simulation
+                    iterations.
+                  </p>
+                </details>
+              </div>
+              {allowance && !allowance.allowed && (
+                <p className="notice error">
+                  Reduce your selections to fit the free allowance.
+                </p>
+              )}
+              {readinessError && (
+                <p role="alert" className="notice error">
+                  {readinessError}
+                </p>
+              )}
+              <button
+                className="primary run-button"
+                disabled={pending || !allowance?.allowed || !!readinessError}
+                onClick={run}
+              >
+                {pending ? "Submitting…" : "Find Top Gear"}{" "}
+                <span aria-hidden="true">→</span>
+              </button>
+              <p className="muted small">
+                {request.snapshot.inventory.some((i) => i.source === "bag")
+                  ? "Equipped + carried bags"
+                  : "Equipped only · no bags imported"}
+              </p>
+            </aside>
+          </div>
+        )}
+        {error && (
+          <p role="alert" className="notice error">
+            {error}
+          </p>
+        )}
+        {storageError && (
+          <p role="status" className="notice">
+            {storageError}
+          </p>
+        )}
+        {settingsOpen && request && (
+          <PresetPanel
+            snapshot={request.snapshot}
+            onChange={(snapshot) => change({ ...request, snapshot })}
+            onClose={() => setSettingsOpen(false)}
+          />
+        )}
+      </section>
+    </ItemVersionContext.Provider>
   );
 }

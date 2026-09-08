@@ -11,13 +11,18 @@ import { getCatalog, type Catalog } from "./catalog";
 import { HandType, WeaponType } from "@/generated/wotlk/common";
 import { readTalents } from "@/features/settings/talents";
 import { canEquip, validateLoadout } from "./validate";
+import { itemVersionOf, itemVersions } from "@/domain/top-gear/item-version";
 export function loadoutKey(snapshot: Snapshot, loadout: Loadout) {
   const map = new Map(snapshot.inventory.map((i) => [i.instanceId, i]));
-  return JSON.stringify(
-    slots.map((s) => {
-      const i = map.get(loadout[s] ?? "");
-      return i ? [i.itemId, i.enchantId, i.gemIds] : null;
-    }),
+  const profile = itemVersionOf(snapshot);
+  return (
+    `${profile}:${snapshot.itemDataRevision ?? itemVersions[profile].revision}:` +
+    JSON.stringify(
+      slots.map((s) => {
+        const i = map.get(loadout[s] ?? "");
+        return i ? [i.itemId, i.enchantId, i.gemIds] : null;
+      }),
+    )
   );
 }
 function choices(snapshot: Snapshot, selection: Selection, catalog: Catalog) {
@@ -56,7 +61,7 @@ function choices(snapshot: Snapshot, selection: Selection, catalog: Catalog) {
 export function* enumerateLoadouts(
   snapshot: Snapshot,
   selection: Selection,
-  catalog: Catalog = getCatalog(),
+  catalog: Catalog = getCatalog(snapshot.itemVersion),
   maxNodes = 100000,
 ): Generator<Loadout> {
   const domains = choices(snapshot, selection, catalog),
@@ -106,7 +111,7 @@ export function estimateAllowance(
   snapshot: Snapshot,
   selection: Selection,
   policy: WorkPolicy,
-  catalog: Catalog = getCatalog(),
+  catalog: Catalog = getCatalog(snapshot.itemVersion),
 ): Allowance {
   const domains = choices(snapshot, selection, catalog);
   let count = 1;
@@ -146,7 +151,7 @@ export function planRun(
   snapshot: Snapshot,
   selection: Selection,
   policy: WorkPolicy,
-  catalog: Catalog = getCatalog(),
+  catalog: Catalog = getCatalog(snapshot.itemVersion),
 ): RunPlan {
   const estimate = estimateAllowance(snapshot, selection, policy, catalog);
   if (!estimate.allowed)

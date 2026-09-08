@@ -1,6 +1,6 @@
 # Top Gear item-version correction
 
-Status: investigated; profile implementation pending scope selection. Result tooltips are implemented independently. Recommendation: deliver Original WotLK 3.3.5a first, with Original as the default; add Blizzard Wrath Classic as a separate selectable profile if requested. A realm name is not a mechanical profile.
+Status: both item profiles implemented after the user authorized the selector. Original WotLK 3.3.5a is the new-import default; Blizzard Wrath Classic remains selectable and is preserved for pre-selector drafts/reports. A realm name is not a mechanical profile. The sequence below records the implementation design; implementation evidence and limits follow.
 
 ## Confirmed discrepancy
 
@@ -31,8 +31,18 @@ A read-only comparison of current catalog items against the already pinned Azero
 6. Keep tooltip data aligned. Wowhead's `/wotlk/` widget currently presents Classic itemization. Original runs need tooltips built from the verified Original dataset (including original effect text and preserved gems/enchants), or a verified original-data provider. Icons can continue using the same icon artwork. Do not label Classic Wowhead tooltips as Original.
 7. Verify native stats and deterministic proc behavior for changed items; unchanged items should retain parity. Add profile-isolation tests for admission, serialization, retries and report reuse, then run an end-to-end Original Top Gear simulation with Mjolnir. Validate representative real Warmane exports before declaring compatibility.
 
-## Current result tooltip verification
+## Result tooltip verification
 
 The report gear strip, changed-item rows, and full-set icons/names now use the shared Wowhead links with instance gems/enchants. Comparison rows have a separate keyboard-accessible selection button instead of nesting item links inside a button. Visible provider tooltips use the browser top layer so they remain visible above the full-set modal.
 
-Checked against the existing local report: keyboard tooltip in the gear strip; keyboard set selection; hover tooltip in changed items; visible tooltip above the full-set dialog; no horizontal overflow at 390px. The real native Top Gear E2E also verifies result links and row selection. Item data and existing DPS values have not been altered by this UI fix.
+Checked against the existing local report: keyboard tooltip in the gear strip; keyboard set selection; hover tooltip in changed items; visible tooltip above the full-set dialog; no horizontal overflow at 390px. The real native Top Gear E2E also verifies result links and row selection. Existing reports and their DPS values remain immutable. New runs use their explicitly selected item profile.
+
+## Implemented profile behavior and evidence
+
+- The run-panel selector updates catalog item levels/stats, native `--item-version`, validation, and source-appropriate tooltip data. Item version/revision persist in snapshots, reports, simulation hashes and reusable-work keys. New imports default Original; pre-selector data normalizes to Classic. Supported manual bag selections survive switching and draft restore.
+- Original data is revision `original-335-v1`: 878 static overrides and 28 effect groups, generated from pinned/hash-checked sources. The native build verifies generated outputs and injects only trusted compiled data; callers cannot supply alternate mechanics. A profile scope isolates and restores native databases/effect state, and existing native callers default to Classic. See `original-items-audit.json` for exact sources, changed fields, effects and unsupported reasons.
+- Twelve unavailable/unverified Original items are excluded explicitly. This does not claim a complete reimplementation of Original class/encounter mechanics; shared logic remains the pinned Poli93 engine. Source/drop metadata inherited from the baseline is not an audited Original acquisition guide.
+- Original tooltips are explicitly labeled **Stats preview**: they show source-backed static stats, preserved enhancements and verified effect summaries where available; their link opens the full original item reference. They do not substitute Classic Wowhead effect text for unknown original descriptions. Classic continues using Wowhead.
+- PostgreSQL regression coverage verifies pre-selector idempotency, legacy completed-work reuse with normalized Classic keys, no reuse for a changed Original request, and preservation of old stored snapshots. UI review raised this compatibility issue; it was fixed and the focused re-review passed.
+- A real browser → Trigger Development → native-worker test switches Mjolnir between versions, restores the selected draft, runs both modes, checks report labels and a 13-point difference in final crit rating, and reopens the old Original report unchanged. Keyboard tooltips (including Escape inside the full-set modal), manual bag selection retention, and narrow-screen layout are covered.
+- Native tests activate the real Mjolnir aura and verify 751/665 armor penetration, 115/102 passive crit, 10-second duration and 45-second cooldown. Additional trinket tests cover Flare, Comet’s Trail, Scale of Fates, Eye of the Broodmother and Meteorite Crystal, plus Classic→Original→Classic isolation and unchanged-gear parity. The existing 45 native simulator tests also pass.

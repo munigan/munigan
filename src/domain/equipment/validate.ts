@@ -139,7 +139,7 @@ function enchantApplies(enchant: UIEnchant, item: UIItem, snapshot: Snapshot) {
 export function validateItem(
   snapshot: Snapshot,
   instance: ItemInstance,
-  catalog: Catalog = getCatalog(),
+  catalog: Catalog = getCatalog(snapshot.itemVersion),
 ): Diagnostic[] {
   const errors: Diagnostic[] = [];
   const error = (code: string, message: string) =>
@@ -157,6 +157,11 @@ export function validateItem(
     );
     return errors;
   }
+  if (catalog.unsupportedItemIds?.has(instance.itemId))
+    error(
+      "unsupported-item-version",
+      `${item.name} is not yet supported with Original WotLK item data`,
+    );
   if (catalog.restrictions && !catalog.restrictions.items[instance.itemId])
     error(
       "unverified-item",
@@ -204,7 +209,7 @@ export function validateItem(
 export function validateLoadout(
   snapshot: Snapshot,
   loadout: Loadout,
-  catalog: Catalog = getCatalog(),
+  catalog: Catalog = getCatalog(snapshot.itemVersion),
 ): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const physical = new Set<string>(),

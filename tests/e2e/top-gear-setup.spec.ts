@@ -35,6 +35,11 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await page.getByRole("button", { name: "Review import" }).click();
   await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
   await page.getByRole("button", { name: "Select gear" }).click();
+  await page
+    .getByLabel("Item version", { exact: true })
+    .selectOption("classic");
+  await expect(page.locator(".unsupported-bag .bag-grid")).toBeHidden();
+  await page.locator(".unsupported-bag > summary").click();
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
   ).toBeVisible();

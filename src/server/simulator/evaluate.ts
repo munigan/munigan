@@ -14,6 +14,7 @@ import { readTalents, talentPoints } from "@/features/settings/talents";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { autoRotations } from "@/generated/wotlk/auto-rotations";
 import { runCli } from "./cli";
+import { itemVersionOf, itemVersions } from "@/domain/top-gear/item-version";
 export function simulationInput(
   snapshot: Snapshot,
   loadout: Loadout,
@@ -59,6 +60,7 @@ export async function evaluate(
   const input = simulationInput(snapshot, loadout, iterations, seed),
     player = input.raid!.parties[0].players[0];
   const options = {
+    itemVersion: itemVersionOf(snapshot),
     binary:
       process.env.SIM_BINARY ??
       resolve(
@@ -95,7 +97,9 @@ export async function evaluate(
       getSpecOptions: () => specOptions,
       getCurrentStats: () => ({ sets }),
       getEquippedItem: (slot: number) => ({
-        item: getCatalog().items.get(player.equipment!.items[slot].id) ?? {
+        item: getCatalog(snapshot.itemVersion).items.get(
+          player.equipment!.items[slot].id,
+        ) ?? {
           handType: 0,
         },
       }),
@@ -110,6 +114,9 @@ export async function evaluate(
   return {
     loadout,
     inputHash: createHash("sha256")
+      .update(
+        `${options.itemVersion}:${snapshot.itemDataRevision ?? itemVersions[options.itemVersion].revision}:`,
+      )
       .update(RaidSimRequest.toJsonString(input))
       .digest("hex"),
     metric: { mean: metric.avg, stdev: metric.stdev, iterations },

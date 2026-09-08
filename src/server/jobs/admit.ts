@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { transaction } from "@/server/db/client";
 import {
   validateRequest,
@@ -7,6 +8,20 @@ import {
 import { estimateAllowance } from "@/domain/equipment/enumerate";
 import { workPolicy, limits } from "./policy";
 import { digest, capability, encrypt, decrypt } from "./capabilities";
+import { itemVersions } from "@/domain/top-gear/item-version";
+function sameRequest(
+  previous: unknown,
+  current: ReturnType<typeof encodeRequest>,
+) {
+  try {
+    // JSONB can reorder object keys. Normalize legacy profiles and compare
+    // structure so retries survive an additive schema change without rewriting
+    // the old report or ever sharing results across item profiles.
+    return isDeepStrictEqual(encodeRequest(validateRequest(previous)), current);
+  } catch {
+    return false;
+  }
+}
 export class AdmissionError extends Error {
   constructor(
     message: string,
@@ -39,12 +54,12 @@ export async function admitJob(args: {
   return transaction(async (c) => {
     await c.query("SELECT pg_advisory_xact_lock(33050335)");
     const existing = await c.query(
-      "SELECT id,request_hash,token_cipher FROM tg_jobs WHERE owner_hash=$1 AND intent=$2",
+      "SELECT id,request_hash,token_cipher,request FROM tg_jobs WHERE owner_hash=$1 AND intent=$2",
       [ownerHash, args.idempotencyKey],
     );
     if (existing.rowCount) {
       const j = existing.rows[0];
-      if (j.request_hash !== requestHash)
+      if (j.request_hash !== requestHash && !sameRequest(j.request, frozen))
         throw new AdmissionError(
           "This submission key belongs to a different selection",
           409,
@@ -116,16 +131,23 @@ export async function admitJob(args: {
       ]);
     if (args.priorJob) {
       const prior = await c.query(
-        "SELECT policy FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND request_hash=$3",
-        [args.priorJob, ownerHash, requestHash],
+        "SELECT policy,request,request_hash FROM tg_jobs WHERE id=$1 AND owner_hash=$2",
+        [args.priorJob, ownerHash],
       );
       if (
         prior.rowCount &&
+        (prior.rows[0].request_hash === requestHash ||
+          sameRequest(prior.rows[0].request, frozen)) &&
         prior.rows[0].policy.iterationsPerSet === policy.iterationsPerSet
       )
         await c.query(
-          "INSERT INTO tg_work(job_id,work_key,result) SELECT $1,work_key,result FROM tg_work WHERE job_id=$2 AND result IS NOT NULL",
-          [jobId, args.priorJob],
+          "INSERT INTO tg_work(job_id,work_key,result) SELECT $1,CASE WHEN $3::boolean AND left(work_key,1)='[' THEN $4 || work_key ELSE work_key END,result FROM tg_work WHERE job_id=$2 AND result IS NOT NULL",
+          [
+            jobId,
+            args.priorJob,
+            !prior.rows[0].request.snapshot.itemVersion,
+            `classic:${itemVersions.classic.revision}:`,
+          ],
         );
     }
     await c.query("INSERT INTO tg_outbox(job_id) VALUES($1)", [jobId]);

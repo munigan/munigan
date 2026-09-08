@@ -1,5 +1,7 @@
 import restrictions from "../../../data/wotlk/equipment-limits.json";
 import data from "../../../data/wotlk/db.json";
+import original from "../../../data/wotlk/original-items.json";
+import type { ItemVersion } from "@/domain/top-gear/item-version";
 import { UIDatabase, UIItem, UIEnchant, UIGem } from "@/generated/wotlk/ui";
 import type { JsonValue } from "@protobuf-ts/runtime";
 export type ItemRestriction = {
@@ -10,6 +12,8 @@ export type ItemRestriction = {
   maxOwned: number;
 };
 export type Catalog = {
+  icons?: Map<number, { id: number; name: string; icon: string }>;
+  unsupportedItemIds?: Set<number>;
   restrictions?: {
     items: Record<string, ItemRestriction>;
     categories: Record<
@@ -25,20 +29,32 @@ export function createCatalog(data: {
   items: UIItem[];
   gems: UIGem[];
   enchants: UIEnchant[];
+  itemIcons?: Array<{ id: number; name: string; icon: string }>;
 }): Catalog {
   const enchants = new Map<number, UIEnchant[]>();
   for (const e of data.enchants)
     enchants.set(e.effectId, [...(enchants.get(e.effectId) ?? []), e]);
   return {
+    icons: new Map((data.itemIcons ?? []).map((item) => [item.id, item])),
     items: new Map(data.items.map((i) => [i.id, i])),
     gems: new Map(data.gems.map((g) => [g.id, g])),
     enchants,
   };
 }
-let cached: Catalog | undefined;
-export function getCatalog() {
-  return (cached ??= {
+const cached: Partial<Record<ItemVersion, Catalog>> = {};
+export function getCatalog(version: ItemVersion = "classic") {
+  if (cached[version]) return cached[version];
+  const catalog: Catalog = {
     ...createCatalog(UIDatabase.fromJson(data as unknown as JsonValue)),
     restrictions,
-  });
+  };
+  if (version === "original") {
+    for (const item of UIDatabase.fromJson({
+      items: original.items,
+    } as unknown as JsonValue).items)
+      catalog.items.set(item.id, item);
+    catalog.unsupportedItemIds = new Set(original.unsupportedItemIds);
+  }
+  cached[version] = catalog;
+  return catalog;
 }

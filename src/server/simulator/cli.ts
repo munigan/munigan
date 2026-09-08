@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, writeFile, readFile, stat, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ItemVersion } from "@/domain/top-gear/item-version";
 import {
   RaidSimRequest,
   RaidSimResult,
@@ -15,6 +16,7 @@ export async function runCli(
     signal: AbortSignal;
     maxSeconds: number;
     statsOnly?: boolean;
+    itemVersion?: ItemVersion;
   },
 ): Promise<{ raidResult: RaidSimResult; statsResult: ComputeStatsResult }> {
   options.signal.throwIfAborted();
@@ -34,6 +36,9 @@ export async function runCli(
           inputPath,
           "--outfile",
           outputPath,
+          ...(options.itemVersion
+            ? ["--item-version", options.itemVersion]
+            : []),
           ...(options.statsOnly ? ["--stats-only"] : []),
         ],
         {

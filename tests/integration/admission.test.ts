@@ -13,7 +13,9 @@ import { admitJob, cancelJob } from "@/server/jobs/admit";
 import { fixtureRequest } from "../support/fixtures";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 import { randomUUID } from "node:crypto";
-import { estimateAllowance } from "@/domain/equipment/enumerate";
+import { estimateAllowance, loadoutKey } from "@/domain/equipment/enumerate";
+import { itemVersions } from "@/domain/top-gear/item-version";
+import { digest } from "@/server/jobs/capabilities";
 import { workPolicy } from "@/server/jobs/policy";
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(async () => {
@@ -27,6 +29,79 @@ afterEach(() => vi.unstubAllEnvs());
 afterAll(async () => {
   await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
   await pool.end();
+});
+it("reuses legacy Classic work only for the same Classic request", async () => {
+  const request = fixtureRequest();
+  request.snapshot.itemVersion = "classic";
+  request.snapshot.itemDataRevision = itemVersions.classic.revision;
+  const ownerKey = randomUUID(),
+    idempotencyKey = randomUUID();
+  const prior = await admitJob({
+    request: encodeRequest(request),
+    ownerKey,
+    idempotencyKey,
+  });
+  const legacy = encodeRequest(request);
+  delete legacy.snapshot.itemVersion;
+  delete legacy.snapshot.itemDataRevision;
+  await pool.query(
+    "UPDATE tg_jobs SET request=$2,request_hash=$3,status='failed' WHERE id=$1",
+    [prior.jobId, JSON.stringify(legacy), digest(JSON.stringify(legacy))],
+  );
+  const key = loadoutKey(request.snapshot, request.snapshot.equipped);
+  const result = {
+    loadout: request.snapshot.equipped,
+    inputHash: "legacy-result",
+    metric: {
+      mean: 9000,
+      stdev: 100,
+      iterations: workPolicy().iterationsPerSet,
+    },
+    stats: [],
+  };
+  await pool.query(
+    "INSERT INTO tg_work(job_id,work_key,result) VALUES($1,$2,$3)",
+    [prior.jobId, key.slice(key.indexOf("[")), JSON.stringify(result)],
+  );
+  expect(
+    await admitJob({
+      request: encodeRequest(request),
+      ownerKey,
+      idempotencyKey,
+    }),
+  ).toEqual(prior);
+  const retry = await admitJob({
+    request: legacy,
+    ownerKey,
+    idempotencyKey: randomUUID(),
+    priorJob: prior.jobId,
+  });
+  expect(
+    (
+      await pool.query("SELECT work_key,result FROM tg_work WHERE job_id=$1", [
+        retry.jobId,
+      ])
+    ).rows,
+  ).toEqual([{ work_key: key, result }]);
+  request.snapshot.itemVersion = "original";
+  request.snapshot.itemDataRevision = itemVersions.original.revision;
+  const originalRun = await admitJob({
+    request: encodeRequest(request),
+    ownerKey,
+    idempotencyKey: randomUUID(),
+    priorJob: prior.jobId,
+  });
+  expect(
+    (
+      await pool.query("SELECT * FROM tg_work WHERE job_id=$1", [
+        originalRun.jobId,
+      ])
+    ).rowCount,
+  ).toBe(0);
+  const old = await pool.query("SELECT request FROM tg_jobs WHERE id=$1", [
+    prior.jobId,
+  ]);
+  expect(old.rows[0].request.snapshot.itemVersion).toBeUndefined();
 });
 it("reserves once for simultaneous retries and rejects changed request under the same key", async () => {
   const args = {

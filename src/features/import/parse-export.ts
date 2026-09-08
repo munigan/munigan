@@ -9,6 +9,7 @@ import type {
 import { slots, emptyLoadout } from "@/domain/top-gear/slots";
 import { defaultSettings, getSpec } from "@/features/settings/registry";
 import versions from "../../../data/wotlk/versions.json";
+import { itemVersions } from "@/domain/top-gear/item-version";
 import glyphIds from "../../../data/wotlk/glyph-names.json";
 import { decodeProfileLink } from "./profile-link";
 export type ImportDraft = {
@@ -276,6 +277,8 @@ export function resolveSnapshot(
       id: crypto.randomUUID(),
       specId: presetId,
       versions,
+      itemVersion: "original",
+      itemDataRevision: itemVersions.original.revision,
       professionLevels: draft.professionLevels,
       settings,
       inventory: draft.inventory,

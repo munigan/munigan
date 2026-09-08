@@ -4,7 +4,7 @@ The implemented scope is the local Top Gear path approved by “You can start th
 
 ## Mechanical sources
 
-**Known itemization mismatch (2026-09-08):** the pinned Poli93 catalog and engine retain Blizzard Wrath Classic itemization. They are not yet an Original WotLK 3.3.5a item profile. Mjolnir Runestone is 239 / 115 crit / 751 armor-penetration proc in the current implementation, versus 226 / 102 / 665 in original Wrath. Existing reports used the former data and must not be relabeled as original-itemization runs. See the [item-version correction plan](top-gear-item-versions.md). Correct original item stats and proc effects are a release blocker for Warmane support.
+**Item profiles (2026-09-08):** the run panel selects Original WotLK 3.3.5a (new-import default) or Blizzard Wrath Classic. Original uses 878 source-derived static item overrides and 28 native effect groups; 12 items with unavailable/unverified mechanics are explicitly unsupported. Mjolnir is 226 / 102 crit / 665 proc in Original and 239 / 115 / 751 in Classic. Profile and revision are frozen into snapshots and work/result identities. Pre-selector reports/drafts remain Classic and legacy retries can reuse compatible completed Classic work without rewriting old data. See the [implementation and verification](top-gear-item-versions.md) and [source audit](../../data/wotlk/original-items-audit.json). This is itemization support; full realm-specific/class-mechanics certification is not claimed.
 
 - Engine, schemas, presets and automatic rotation functions: Poli93/wotlk commit `563e4a08cb15729f1fdcbcf68e6d68224553bfef`.
 - Exporter adapter: [pinned character/bag exporter](https://github.com/Poli93/wowsimsexporter-wotlk-335/blob/e69635092425bf4beadca22570fc7b975a73c95e/WowSimsExporter/WowSimsExporter.lua). English glyph names map to class-specific pinned IDs. Profession ranks are retained. Crafting professions are not subject to a blanket 450 gate. The rank gate is limited to Mining/Skinning/Herbalism, whose maximum bonuses are applied unconditionally by the pinned `sim/core/professions.go` (+60 stamina, +40 crit and maximum-rank Lifeblood). Lower-rank gathering bonuses are not modeled yet. Regression coverage includes a real run with Engineering 425 and Jewelcrafting 400.
@@ -12,7 +12,7 @@ The implemented scope is the local Top Gear path approved by “You can start th
 - All 8,404 catalog item/gem entries present in this restriction source are covered. Five Classic-only IDs without 3.3.5 source coverage are explicitly unsupported. Normal/heroic trinket category conflicts and cross-color unique gem categories are checked.
 - Realm is not part of the normalized mechanics or work key. No Onyxia-specific tuning is introduced.
 
-The CLI overlay only adds structured `json-sim` output and a stats-only mode. It clones requests before calling `ComputeStats` and `RunRaidSim`. Original CLI commands are preserved. Native-host and Linux-amd64 binaries are produced with Go 1.23.4; checksums are generated under ignored `dist/simulator`.
+The CLI overlay adds structured `json-sim` output, a stats-only mode, and `--item-version original|classic` (default Classic for existing native callers). It clones requests before `ComputeStats` and `RunRaidSim`; Original applies trusted compiled static data and runtime effect hooks, then restores the prior profile. Original CLI commands are preserved. Native-host and Linux-amd64 binaries are produced with Go 1.23.4; checksums are generated under ignored `dist/simulator`.
 
 ## Evidence represented by tests
 

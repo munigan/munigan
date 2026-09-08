@@ -20,7 +20,7 @@ export function InventorySelector({
     [expanded, setExpanded] = useState(false),
     [selectedOnly, setSelectedOnly] = useState(false);
   const { snapshot, selection } = request,
-    catalog = getCatalog();
+    catalog = getCatalog(snapshot.itemVersion);
   const valid = snapshot.inventory.filter(
       (i) => !validateItem(snapshot, i).length,
     ),
@@ -135,7 +135,9 @@ export function InventorySelector({
           <ul className="bag-grid" aria-label="Unsupported bag items">
             {unsupported.map((item) => {
               const metadata =
-                catalog.items.get(item.itemId) ?? catalog.gems.get(item.itemId);
+                catalog.items.get(item.itemId) ??
+                catalog.gems.get(item.itemId) ??
+                catalog.icons?.get(item.itemId);
               return (
                 <li key={item.instanceId}>
                   <ItemLink

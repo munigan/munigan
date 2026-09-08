@@ -2,6 +2,8 @@
 import { useState, type ComponentProps } from "react";
 import Image from "next/image";
 import type { ItemInstance } from "@/domain/top-gear/model";
+import { useItemVersion } from "./ItemVersionContext";
+import { OriginalItemLink } from "./OriginalItemLink";
 import { getCatalog } from "@/domain/equipment/catalog";
 export function ItemIcon({
   itemId,
@@ -11,7 +13,11 @@ export function ItemIcon({
   size?: number;
 }) {
   const [failed, setFailed] = useState(false);
-  const item = getCatalog().items.get(itemId) ?? getCatalog().gems.get(itemId);
+  const catalog = getCatalog(useItemVersion());
+  const item =
+    catalog.items.get(itemId) ??
+    catalog.gems.get(itemId) ??
+    catalog.icons?.get(itemId);
   const icon = item?.icon;
   return (
     <span className="item-icon" style={{ width: size, height: size }}>
@@ -36,6 +42,11 @@ export function ItemLink({
   tooltipOnly = false,
   ...props
 }: { item: ItemInstance; tooltipOnly?: boolean } & ComponentProps<"a">) {
+  const version = useItemVersion();
+  if (version === "original")
+    return (
+      <OriginalItemLink item={item} tooltipOnly={tooltipOnly} {...props} />
+    );
   const options = `ench=${item.enchantId}&gems=${item.gemIds.join(":")}`;
   return (
     <a
@@ -60,16 +71,19 @@ export function ItemLink({
   );
 }
 export function ItemName({ item }: { item: ItemInstance }) {
+  const catalog = getCatalog(useItemVersion());
   return (
     <span className="item-name">
-      {getCatalog().items.get(item.itemId)?.name ??
-        getCatalog().gems.get(item.itemId)?.name ??
+      {catalog.items.get(item.itemId)?.name ??
+        catalog.gems.get(item.itemId)?.name ??
+        catalog.icons?.get(item.itemId)?.name ??
         `Unknown item ${item.itemId}`}
     </span>
   );
 }
 export function ItemDetails({ item }: { item: ItemInstance }) {
-  const catalog = getCatalog(),
+  const version = useItemVersion();
+  const catalog = getCatalog(version),
     meta = catalog.items.get(item.itemId);
   return (
     <details className="item-details">
@@ -101,7 +115,9 @@ export function ItemDetails({ item }: { item: ItemInstance }) {
                 .join(" · ")
             : "None"}
         </p>
-        <ItemLink item={item}>View on Wowhead ↗</ItemLink>
+        <ItemLink item={item}>
+          View on {version === "original" ? "Cavern of Time" : "Wowhead"} ↗
+        </ItemLink>
       </div>
     </details>
   );

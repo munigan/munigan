@@ -2,6 +2,10 @@
 
 Anonymous Top Gear for level-80 Wrath 3.3.5a characters. Import equipped and carried-bag items, select owned copies, lock slots, and compare complete combinations with the native Poli93 simulator. Gems and enchants stay attached to their original copies.
 
+Choose **Item version** in the run panel: **Original WotLK 3.3.5a** (default for new imports) or **Blizzard Wrath Classic**. The choice controls item stats, native item effects, inventory/result item levels and tooltip data, and is saved in drafts and reports. Pre-selector drafts/reports remain Classic. Original Mjolnir Runestone uses item level 226, 102 crit and a 665 armor-penetration proc; Classic uses 239, 115 and 751. Switching versions preserves supported manual selections and excludes newly unsupported bag items.
+
+Original mode uses a pinned source-derived item profile with 878 static item overrides and 28 effect groups. Twelve items with unavailable/unverified Original mechanics are explicitly unsupported; see the [audit and sources](data/wotlk/original-items-audit.json). Class mechanics and shared encounter behavior remain those of the pinned simulator. Original hover/focus tooltips are labeled stats previews with verified effect summaries where available and links to full original item details; Classic uses Wowhead tooltips. Unsupported bag items remain passive and collapsed by default.
+
 This branch implements the **local Top Gear release slice** with a connected Trigger.dev Development environment. Hosted workers, staging tests, production budgets and Warmane client parity remain pending. Boss/Raid Droptimizer, token redemption and billing are outside this slice.
 
 ## Run locally
@@ -41,7 +45,7 @@ Use the [Wrath WowSims Exporter](https://github.com/Poli93/wowsimsexporter-wotlk
 
 Imported fields, including explicit zero/false values and empty enhancements, take precedence over presets. Missing settings use the selected simulator preset. Simple/legacy rotations must be switched to Automatic or APL before import. Crafting professions do not require 450 to simulate; imported gear, enchant, gem and profession restrictions still apply. Only known lower-rank gathering professions are blocked, because the engine applies maximum-rank Mining, Skinning and Herbalism bonuses. Profession ranks never block draft restore: saved gear, selections and settings reopen for review, with imported ranks visible under Professions and readiness errors displayed beside Run.
 
-Only valid equipped items start selected after import; supported bag items must be selected manually. Unsupported bag entries remain visible as passive icons with tooltips and are automatically excluded. They have no selection controls or navigation actions. Item icons/names show Wowhead Wrath tooltips with the original gems and enchant; local details remain available if Wowhead is blocked. Invalid equipped gear blocks submission. The free allowance is up to 120 sets per run, including the equipped reference. The allowance is an upper bound; the worker removes illegal or mechanically identical inputs before charging actual work. Paired-slot order is preserved.
+Only valid equipped items start selected after import; supported bag items must be selected manually. Unsupported bag entries remain visible as passive icons with tooltips and are automatically excluded. They have no selection controls or navigation actions. Item icons/names show tooltips for the chosen item version and preserve the instance’s gems and enchant; local details remain available if external services are blocked. Invalid equipped gear blocks submission. The free allowance is up to 120 sets per run, including the equipped reference. The allowance is an upper bound; the worker removes illegal or mechanically identical inputs before charging actual work. Paired-slot order is preserved.
 
 The equipped set is always evaluated once. If locks or selection exclude it, it remains reference-only. Every gain is versus that original set, including negative gains. Reports retain every result, paginate at 20 rows, show all 17 slots, and distinguish numerical highest DPS from a fewer-swaps recommendation within pairwise uncertainty. A partial or canceled run never claims exhaustive coverage. Retry creates a new report and can reuse completed work at the same policy and input version.
 
@@ -53,6 +57,7 @@ pnpm lint
 pnpm test
 pnpm test:integration
 pnpm test:sim
+pnpm test:item-data
 pnpm check:design
 pnpm check:specs
 pnpm test:e2e
@@ -63,7 +68,7 @@ Database tests create and drop randomly named `tg_test_*` schemas. Native tests 
 
 ## Pinned data and deployment
 
-`pnpm sim:build` builds native host and Linux amd64 binaries. `pnpm data:generate` extracts defaults, APL decisions, catalogs and equipment tables from the same engine commit. `pnpm data:limits` separately extracts 3.3.5 item equip-limit categories from pinned source SQL without executing it. Restrictions and source hashes are checked in. Simulator mechanics remain Poli93; supplemental restrictions do not replace item stats.
+`pnpm sim:build` verifies the Original data and builds native host and Linux amd64 binaries with both item profiles. `pnpm data:generate` extracts Classic defaults, APL decisions, catalogs and equipment tables from the engine commit. `pnpm data:limits` extracts 3.3.5 equip-limit categories; `python3 tools/data/original-items.py` generates Original item overrides and their effect audit from pinned, hash-checked SQL without executing it. Restrictions, Original data and source hashes are checked in. `tools/simulator/apply-original-profile.py` applies narrowly checked native hooks to the pinned checkout; shared class/encounter mechanics remain Poli93. Rebuild after any profile change and bump its revision before changing shipped mechanics.
 
 See [compatibility and release evidence](docs/engineering/top-gear-compatibility.md), [worker operations](docs/engineering/top-gear-operations.md), and the [focused implementation plan](docs/superpowers/plans/2026-09-08-top-gear-implementation.md).
 
