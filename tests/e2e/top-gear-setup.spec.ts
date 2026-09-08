@@ -38,7 +38,14 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
   ).toBeVisible();
-  await expect(page.getByLabel(/Exclude unsupported bag items/)).toBeChecked();
+  await expect(
+    page.locator(
+      ".unsupported-bag input, .unsupported-bag button, .bag-excluded-mark",
+    ),
+  ).toHaveCount(0);
+  await expect(page.locator(".unsupported-bag").getByRole("link")).toHaveCount(
+    0,
+  );
   await expect(
     page
       .getByRole("list", { name: "Unsupported bag items" })
@@ -58,14 +65,19 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await expect(
     page.getByRole("button", { name: "Find Top Gear" }),
   ).toBeEnabled();
-  await page.getByLabel(/Exclude unsupported bag items/).uncheck();
+  const bagHelmet = page.getByRole("checkbox", {
+    name: /Select Valorous Dreadnaught Helmet, bag/,
+  });
+  await expect(bagHelmet).not.toBeChecked();
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
-  ).toBeDisabled();
-  await page.getByLabel(/Exclude unsupported bag items/).check();
-  await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
-  ).toBeEnabled();
+    page.getByRole("checkbox", { name: /Select Obsidian Greathelm, equipped/ }),
+  ).toBeChecked();
+  const url = page.url();
+  const tabs = page.context().pages().length;
+  await page.locator(".bag-item").first().click();
+  expect(page.url()).toBe(url);
+  expect(page.context().pages()).toHaveLength(tabs);
+  await bagHelmet.check();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "Done" }).click();
@@ -90,7 +102,7 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await expect(
     page.getByRole("alert").filter({ hasText: "The simulation queue is full" }),
   ).toContainText("Try again shortly");
-  await expect(page.getByLabel(/Exclude unsupported bag items/)).toBeChecked();
+  await expect(bagHelmet).toBeChecked();
   await expect(
     page.getByRole("button", { name: "Find Top Gear" }),
   ).toBeEnabled();

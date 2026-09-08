@@ -29,6 +29,9 @@ test("runs real local DPS and compares complete owned sets", async ({
   await page.getByRole("button", { name: "Review import" }).click();
   await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
   await page.getByRole("button", { name: "Select gear" }).click();
+  await page
+    .getByRole("checkbox", { name: /Select Valorous Dreadnaught Helmet, bag/ })
+    .check();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByLabel("Fight length (seconds)").fill("30");
   await page.getByRole("button", { name: "Done" }).click();

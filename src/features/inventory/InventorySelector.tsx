@@ -18,8 +18,7 @@ export function InventorySelector({
 }) {
   const [filter, setFilter] = useState("All slots"),
     [expanded, setExpanded] = useState(false),
-    [selectedOnly, setSelectedOnly] = useState(false),
-    [inspectedBagId, setInspectedBagId] = useState("");
+    [selectedOnly, setSelectedOnly] = useState(false);
   const { snapshot, selection } = request,
     catalog = getCatalog();
   const valid = snapshot.inventory.filter(
@@ -141,18 +140,14 @@ export function InventorySelector({
                 <li key={item.instanceId}>
                   <ItemLink
                     item={item}
+                    tooltipOnly
                     className="bag-item"
                     data-wh-icon-size={!metadata?.icon ? "medium" : undefined}
                     aria-label={`${metadata?.name ?? `Item ${item.itemId}`} · Unsupported`}
                     aria-describedby={`reason-${item.instanceId}`}
-                    onMouseEnter={() => setInspectedBagId(item.instanceId)}
-                    onFocus={() => setInspectedBagId(item.instanceId)}
                   >
                     <span className="bag-icon-fallback">
                       <ItemIcon itemId={item.itemId} size={44} />
-                    </span>
-                    <span className="bag-excluded-mark" aria-hidden="true">
-                      ×
                     </span>
                   </ItemLink>
                   <span className="sr-only" id={`reason-${item.instanceId}`}>
@@ -162,34 +157,6 @@ export function InventorySelector({
               );
             })}
           </ul>
-          <p className="bag-reason muted small">
-            {unsupported.some((i) => i.instanceId === inspectedBagId)
-              ? validateItem(
-                  snapshot,
-                  unsupported.find((i) => i.instanceId === inspectedBagId)!,
-                )[0].message
-              : "Hover or focus an item for details."}
-          </p>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={unsupported.every((i) =>
-                selection.acknowledgedExclusions.includes(i.instanceId),
-              )}
-              onChange={(e) =>
-                onChange({
-                  ...request,
-                  selection: {
-                    ...selection,
-                    acknowledgedExclusions: e.target.checked
-                      ? unsupported.map((i) => i.instanceId)
-                      : [],
-                  },
-                })
-              }
-            />{" "}
-            Exclude unsupported bag items from this run
-          </label>
         </div>
       )}
       {shown

@@ -54,6 +54,21 @@ export function TopGearApp() {
       );
   }, []);
   function change(next: TopGearRequest) {
+    const excluded = next.snapshot.inventory
+      .filter(
+        (i) => i.source === "bag" && validateItem(next.snapshot, i).length > 0,
+      )
+      .map((i) => i.instanceId);
+    next = {
+      ...next,
+      selection: {
+        ...next.selection,
+        selectedInstanceIds: next.selection.selectedInstanceIds.filter(
+          (id) => !excluded.includes(id),
+        ),
+        acknowledgedExclusions: excluded,
+      },
+    };
     setRequest(next);
     intent.current = "";
     setError("");
@@ -73,7 +88,10 @@ export function TopGearApp() {
       snapshot,
       selection: {
         selectedInstanceIds: snapshot.inventory
-          .filter((i) => validateItem(snapshot, i).length === 0)
+          .filter(
+            (i) =>
+              i.source === "equipped" && validateItem(snapshot, i).length === 0,
+          )
           .map((i) => i.instanceId),
         lockedSlots: {},
         acknowledgedExclusions: snapshot.inventory

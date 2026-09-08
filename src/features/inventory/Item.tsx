@@ -33,8 +33,9 @@ export function ItemIcon({
 }
 export function ItemLink({
   item,
+  tooltipOnly = false,
   ...props
-}: { item: ItemInstance } & ComponentProps<"a">) {
+}: { item: ItemInstance; tooltipOnly?: boolean } & ComponentProps<"a">) {
   const options = `ench=${item.enchantId}&gems=${item.gemIds.join(":")}`;
   return (
     <a
@@ -43,6 +44,18 @@ export function ItemLink({
       data-wowhead={options}
       target="_blank"
       rel="noreferrer"
+      // Wowhead requires an anchor URL to resolve Wrath data. Passive bag icons
+      // expose image semantics and prevent navigation while retaining tooltips.
+      role={tooltipOnly ? "img" : props.role}
+      tabIndex={tooltipOnly ? 0 : props.tabIndex}
+      draggable={tooltipOnly ? false : props.draggable}
+      onClick={tooltipOnly ? (event) => event.preventDefault() : props.onClick}
+      onAuxClick={
+        tooltipOnly ? (event) => event.preventDefault() : props.onAuxClick
+      }
+      onContextMenu={
+        tooltipOnly ? (event) => event.preventDefault() : props.onContextMenu
+      }
     />
   );
 }
