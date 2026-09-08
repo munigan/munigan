@@ -1,9 +1,11 @@
 {
   "status": "pending",
-  "revision": 3,
+  "revision": 4,
   "approvedAt": null,
   "approvalMessage": null,
-  "paperFileUrl": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/2-0",
-  "checkpoint": "D2 icon-led layout simplification and Raidbots comparison",
-  "applicationCodingAuthorizedByDesignApproval": false
+  "paperFileUrl": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/4-0",
+  "checkpoint": "D3\u2013D6 complete; D8 exports ready; full design approval pending",
+  "applicationCodingAuthorizedByDesignApproval": false,
+  "directionAccepted": true,
+  "directionAcceptanceMessage": "Great, now I want to keep going implementing all the design of the screens of all flows, states, etc..."
 }

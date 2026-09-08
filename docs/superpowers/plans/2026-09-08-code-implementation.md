@@ -10,7 +10,7 @@
 
 **Spec:** [Approved product specification](../specs/2026-09-08-wotlk-droptimizer-design.md).
 
-**Design dependency:** [Paper implementation plan](2026-09-08-paper-design.md), especially D8. References below are stable design keys that D8 maps to real Paper nodes. The handoff files do not exist yet and must be created by design execution, not fabricated by the code executor.
+**Design dependency:** [Paper implementation plan](2026-09-08-paper-design.md), especially D8. References below are stable design keys that D8 maps to real Paper nodes. Revision 4 handoff now exists at `docs/design/handoff.md`, with `screens.json`, `coverage.md`, `component-map.json`, exported screenshots and interaction contracts. It is a reviewed draft with approval still pending. Read `approval.json` at C0; the existence of these artifacts is not authorization to begin coding.
 
 ## Global constraints
 

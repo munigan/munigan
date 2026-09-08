@@ -1,0 +1,216 @@
+[
+  {
+    "name": "AppShell",
+    "nodeId": "1K0-0",
+    "screenKey": "TG-SELECT.desktop",
+    "styles": {
+      "styles": {
+        "1K0-0": {
+          "height": "72px",
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "space-between",
+          "flexShrink": "0",
+          "paddingInline": "80px",
+          "borderBottomWidth": "1px",
+          "borderBottomStyle": "solid",
+          "borderBottomColor": "var(--color-border)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/AppShell.reference.tsx"
+  },
+  {
+    "name": "CharacterSummary",
+    "nodeId": "1HN-0",
+    "screenKey": "TG-SELECT.desktop",
+    "styles": {
+      "styles": {
+        "1HN-0": {
+          "display": "flex",
+          "justifyContent": "space-between",
+          "alignItems": "center",
+          "fontFamily": "var(--font-body)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/CharacterSummary.reference.tsx"
+  },
+  {
+    "name": "InventoryRow",
+    "nodeId": "1IX-0",
+    "screenKey": "TG-SELECT.desktop",
+    "styles": {
+      "styles": {
+        "1IX-0": {
+          "display": "flex",
+          "alignItems": "center",
+          "fontFamily": "var(--font-body)",
+          "paddingBlock": "12px",
+          "paddingInline": "16px",
+          "gap": "14px",
+          "backgroundColor": "var(--color-surface)",
+          "borderBottomWidth": "1px",
+          "borderBottomStyle": "solid",
+          "borderBottomColor": "var(--color-border)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/InventoryRow.reference.tsx"
+  },
+  {
+    "name": "RunSummary",
+    "nodeId": "1H7-0",
+    "screenKey": "TG-SELECT.desktop",
+    "styles": {
+      "styles": {
+        "1H7-0": {
+          "display": "flex",
+          "flexDirection": "column",
+          "width": "320px",
+          "flexShrink": "0",
+          "padding": "24px",
+          "borderRadius": "8px",
+          "gap": "28px",
+          "backgroundColor": "var(--color-surface)",
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderColor": "var(--color-border)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/RunSummary.reference.tsx"
+  },
+  {
+    "name": "PresetPanel",
+    "nodeId": "1HH-0",
+    "screenKey": "TG-SELECT.desktop",
+    "styles": {
+      "styles": {
+        "1HH-0": {
+          "display": "flex",
+          "flexDirection": "column",
+          "fontFamily": "var(--font-body)",
+          "gap": "12px"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/PresetPanel.reference.tsx"
+  },
+  {
+    "name": "CombinationRow",
+    "nodeId": "1O6-0",
+    "screenKey": "TG-RESULT.desktop",
+    "styles": {
+      "styles": {
+        "1O6-0": {
+          "display": "flex",
+          "alignItems": "center",
+          "minHeight": "70px",
+          "fontFamily": "var(--font-body)",
+          "paddingBlock": "12px",
+          "paddingInline": "20px",
+          "gap": "16px",
+          "backgroundColor": "var(--color-selected-surface)",
+          "borderLeftWidth": "3px",
+          "borderLeftStyle": "solid",
+          "borderLeftColor": "var(--color-action)",
+          "borderBottomWidth": "1px",
+          "borderBottomStyle": "solid",
+          "borderBottomColor": "var(--color-border)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/CombinationRow.reference.tsx"
+  },
+  {
+    "name": "ResultRow",
+    "nodeId": "1TK-0",
+    "screenKey": "RAID-RESULT.desktop",
+    "styles": {
+      "styles": {
+        "1TK-0": {
+          "display": "flex",
+          "alignItems": "center",
+          "minHeight": "80px",
+          "fontFamily": "var(--font-body)",
+          "paddingBlock": "16px",
+          "paddingInline": "20px",
+          "gap": "16px",
+          "backgroundColor": "var(--color-surface)",
+          "borderBottomWidth": "1px",
+          "borderBottomStyle": "solid",
+          "borderBottomColor": "var(--color-border)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/ResultRow.reference.tsx"
+  },
+  {
+    "name": "EquipmentDiff",
+    "nodeId": "1FN-0",
+    "screenKey": "DROP-DETAIL.desktop",
+    "styles": {
+      "styles": {
+        "1FN-0": {
+          "display": "flex",
+          "flexDirection": "column",
+          "fontFamily": "var(--font-body)",
+          "paddingBottom": "32px",
+          "gap": "20px",
+          "paddingInline": "80px"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/EquipmentDiff.reference.tsx"
+  },
+  {
+    "name": "JobProgress",
+    "nodeId": "1DY-0",
+    "screenKey": "JOB.desktop",
+    "styles": {
+      "styles": {
+        "1DY-0": {
+          "display": "flex",
+          "flexDirection": "column",
+          "fontFamily": "var(--font-body)",
+          "padding": "28px",
+          "borderRadius": "8px",
+          "gap": "16px",
+          "backgroundColor": "var(--color-surface)",
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderColor": "var(--color-border)"
+        }
+      },
+      "contentHash": {
+        "tokens": "480820ac"
+      }
+    },
+    "referencePath": "docs/design/exports/JobProgress.reference.tsx"
+  }
+]

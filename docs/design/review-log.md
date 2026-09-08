@@ -29,3 +29,24 @@ Request: simplify the confusing, text-heavy layouts; use actual Wowhead item ima
 - No generated hero art: real item artwork provides visual character while keeping comparisons prominent.
 
 Screens and reference JSX exported for this draft; final responsive designs and user approval remain pending. Component-state board revision 1 remains a reference for behavior; revised direction screens take precedence for visual styling until the full library is consolidated.
+
+## Revision 4 — 2026-09-08
+
+User accepted the simplified direction and requested all screens, flows and states. Completed 53 additional editable Paper artboards and exported all 53 at native width. This is a reviewed draft awaiting full-design user approval. Six earlier boards remain historical references.
+
+| Family | Spacing | Typography | Contrast | Alignment | Fit | Repetition |
+| --- | --- | --- | --- | --- | --- | --- |
+| Home/import/settings | Consistent control gaps and restrained panels | Compact headings, clear provenance and short instructions | Existing high-contrast text and controls retained | Shared heading/field lanes | Content-driven height; errors remain adjacent | Reused field, note and button styles |
+| Gear/loot/token setup | Icon-led selection with separate run context | Item names and enhancements readable | Selected/locked/conditional have text cues | Fixed icon lanes; flexible names | Long names and prerequisites wrap | Consistent owned/new-loot rows |
+| Jobs/recovery states | Phase and recovery actions separated | Counts and unknown ETA distinguishable | Failure/partial/tied status use text | Controls align within state examples | Fit-content boards include all variants | Common confirmation and retry patterns |
+| Set/drop reports | Full-set details separated from compact rankings | Numeric rank, score and source remain clear | Amber gains and explicit tie labels | Desktop score lanes; mobile stacked gain | All 17 slots shown in full-set views | Reused item/diff/combination treatments |
+| Mobile/responsive | One-column spacing; inline actions avoid overlap | 320px and 200% long names wrap | Same token roles as desktop | Narrow result rows stack instead of compressing | Keyboard-space reference and content height reviewed | Shared controls mirrored across all three tools |
+| Components/state map | Even family spacing and canvas separation | Compact explanatory reference text | Status semantics retained | Consistent component lanes | Exports have positive dimensions, correct widths | Current library replaces legacy styling |
+
+Corrections during review: fixed mobile home tool names; corrected Coldwraith Links preview to yellow/red sockets using Wrath metadata; replaced a malformed-import dropdown treatment with an actual textarea; made explicit unknown-bag exclusion a checkbox; added cancel actions to replacement/reset/cancellation confirmations; fixed 200% text scaling and stacked raid result icon/name/gain groups to prevent cramped mid-word wraps. Renamed the historical component board COMPONENTS.legacy. Repacked artboards with 100px gaps using measured dimensions.
+
+Reviewed all desktop/mobile flow families and the shared exception boards in Paper. Final enlarged-text raid screenshot retains complete item names, source, gain and actions without horizontal clipping. Export validation checks PNG dimensions and every registered file; this does not prove browser interaction or accessibility behavior. Nine component nodes have exact JSX and computed-style reference exports; current Paper tokens were re-exported.
+
+All three tools stay free/anonymous. No automatic cap repair, billing, account onboarding, application, worker or deployment implementation was added. Item data, socket examples and tier recipe constraints are distinct from fictional simulation outcomes. All-spec registry, legality, uncertainty and live accessibility remain engineering acceptance requirements.
+
+Open review: consolidated user feedback and explicit full-design approval for revision 4. No known blocking visual defect remains in the reviewed fixtures; this is not a claim of production readiness.

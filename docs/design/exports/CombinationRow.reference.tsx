@@ -1,5 +1,4 @@
-// Draft revision 3 — exact Paper JSX, not application code.
-export const CombinationRowReference = () => (
+(
     <div style={{ alignItems: 'center', backgroundColor: 'var(--color-selected-surface)', borderBottomColor: 'var(--color-border)', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderLeftColor: 'var(--color-action)', borderLeftStyle: 'solid', borderLeftWidth: '3px', boxSizing: 'border-box', display: 'flex', fontFamily: 'var(--font-body)', fontSynthesis: 'none', gap: '16px', minHeight: '70px', MozOsxFontSmoothing: 'grayscale', overflowWrap: 'anywhere', paddingBlock: '12px', paddingInline: '20px', WebkitFontSmoothing: 'antialiased' }}>
       <div style={{ boxSizing: 'border-box', color: 'var(--color-muted)', flexShrink: '0', fontFamily: 'var(--font-body)', fontSize: '14px', lineHeight: '20px', width: '33px' }}>
         01
@@ -41,4 +40,4 @@ export const CombinationRowReference = () => (
         ⋯
       </div>
     </div>
-  );
+  )

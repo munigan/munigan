@@ -174,5 +174,49 @@
       "slot": "Ranged",
       "itemLevel": 277
     }
-  ]
+  ],
+  "revision": 4,
+  "raidCandidates": [
+    {
+      "itemId": 50363,
+      "gain": 150
+    },
+    {
+      "itemId": 50620,
+      "gain": 40
+    },
+    {
+      "itemId": 50670,
+      "gain": 2,
+      "effectivelyTied": true
+    }
+  ],
+  "bossCandidateIds": [
+    50363,
+    50670
+  ],
+  "alternateStates": {
+    "partialSearch": {
+      "tested": 42,
+      "bestFoundDps": 10180
+    },
+    "coverage": {
+      "evaluated": 60,
+      "refined": 30,
+      "displayed": 10
+    },
+    "failedCandidates": 1,
+    "zeroBaseline": {
+      "baselineDps": 0,
+      "gain": 150,
+      "percentage": null
+    }
+  },
+  "newLootPreview": {
+    "itemId": 50620,
+    "socketColors": [
+      "yellow",
+      "red"
+    ]
+  }
 }

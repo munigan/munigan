@@ -1,5 +1,4 @@
-// Draft revision 3 — exact Paper JSX, not application code.
-export const ResultRowReference = () => (
+(
     <div style={{ alignItems: 'center', backgroundColor: 'var(--color-surface)', borderBottomColor: 'var(--color-border)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', fontFamily: 'var(--font-body)', fontSynthesis: 'none', gap: '16px', minHeight: '80px', MozOsxFontSmoothing: 'grayscale', overflowWrap: 'anywhere', paddingBlock: '16px', paddingInline: '20px', WebkitFontSmoothing: 'antialiased' }}>
       <div style={{ boxSizing: 'border-box', color: 'var(--color-muted)', flexShrink: '0', fontFamily: 'var(--font-body)', fontSize: '14px', lineHeight: '20px', width: '36px' }}>
         01
@@ -33,4 +32,4 @@ export const ResultRowReference = () => (
         ⌃
       </div>
     </div>
-  );
+  )
