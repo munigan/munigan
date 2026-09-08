@@ -14,7 +14,7 @@ export function workPolicy(): WorkPolicy {
   return {
     version: "uniform-local-v1",
     unitsPerSet: 5000,
-    maxUnits: integer("TOP_GEAR_MAX_UNITS", 300000),
+    maxUnits: integer("TOP_GEAR_MAX_UNITS", 600000),
     iterationsPerSet: integer("TOP_GEAR_ITERATIONS", 500),
     maxSearchNodes: 100000,
     maxJobSeconds: integer("TOP_GEAR_MAX_SECONDS", 900),

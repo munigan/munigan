@@ -23,7 +23,7 @@ The smoke matrix covers every exported preset; it is **not** a claim that every 
 
 ## Local limits and benchmark
 
-The development policy is 500 actual iterations per set, at most 60 admitted work units of 5,000 budget units each, two shared workers, 900 seconds per job, a 60-second native-process timeout and at most two attempts per set. Work units are accounting units, separate from actual iterations. Reservations cover the maximum attempts and are reconciled against attempted work; cached completed results on retry consume no new attempt.
+The development policy is 500 actual iterations per set, at most 120 admitted sets of 5,000 budget units each (600,000 units per run), two shared workers, 900 seconds per job, a 60-second native-process timeout and at most two attempts per set. The free set allowance was increased to 120 at the user's request. Work units are accounting units, separate from actual iterations. Reservations cover the maximum attempts and are reconciled against attempted work; cached completed results on retry consume no new attempt.
 
 See `top-gear-local-benchmark.json` for measured native wall time at 180 seconds/500 iterations on this machine. These single-worker samples do not establish production costs, concurrency behavior on Trigger, long multi-target capacity, or a public precision guarantee.
 
