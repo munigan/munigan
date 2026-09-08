@@ -8,11 +8,15 @@
   --color-gain: #E6BF78;
   --color-danger: #F4A79E;
   --color-control-border: #697985;
+  --color-item-epic: #D3AAEF;
+  --color-item-border: #B485D6;
+  --color-selected-surface: #233039;
   --font-body: Inter;
   --font-display: Barlow Condensed;
   --text-body: 16px;
   --text-label: 14px;
   --text-title: 56px;
+  --text-tool-title: 40px;
   --font-weight-body: 400;
   --font-weight-heading: 600;
   --tracking-label: 0.08em;
@@ -25,3 +29,4 @@
   --radius-panel: 8px;
   --radius-control: 4px;
 }
+

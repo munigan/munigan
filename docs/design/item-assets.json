@@ -1,0 +1,218 @@
+{
+  "50080": {
+    "name": "Ymirjar Lord's Helmet",
+    "icon": "inv_helmet_158",
+    "quality": 4,
+    "itemId": 50080,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50080",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50080",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_helmet_158.jpg"
+  },
+  "51212": {
+    "name": "Sanctified Ymirjar Lord's Helmet",
+    "icon": "inv_helmet_158",
+    "quality": 4,
+    "itemId": 51212,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/51212",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=51212",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_helmet_158.jpg"
+  },
+  "50362": {
+    "name": "Deathbringer's Will",
+    "icon": "inv_jewelry_trinket_04",
+    "quality": 4,
+    "itemId": 50362,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50362",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50362",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_trinket_04.jpg"
+  },
+  "50342": {
+    "name": "Whispering Fanged Skull",
+    "icon": "inv_misc_bone_skull_02",
+    "quality": 4,
+    "itemId": 50342,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50342",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50342",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_misc_bone_skull_02.jpg"
+  },
+  "54569": {
+    "name": "Sharpened Twilight Scale",
+    "icon": "inv_misc_rubysanctum4",
+    "quality": 4,
+    "itemId": 54569,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/54569",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=54569",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_misc_rubysanctum4.jpg"
+  },
+  "50363": {
+    "name": "Deathbringer's Will",
+    "icon": "inv_jewelry_trinket_04",
+    "quality": 4,
+    "itemId": 50363,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50363",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50363",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_trinket_04.jpg"
+  },
+  "50620": {
+    "name": "Coldwraith Links",
+    "icon": "inv_belt_63",
+    "quality": 4,
+    "itemId": 50620,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50620",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50620",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_belt_63.jpg"
+  },
+  "50670": {
+    "name": "Toskk's Maximized Wristguards",
+    "icon": "inv_bracer_41",
+    "quality": 4,
+    "itemId": 50670,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50670",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50670",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_bracer_41.jpg"
+  },
+  "50674": {
+    "name": "Raging Behemoth's Shoulderplates",
+    "icon": "inv_shoulder_130",
+    "quality": 4,
+    "itemId": 50674,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50674",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50674",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_shoulder_130.jpg"
+  },
+  "50977": {
+    "name": "Gatecrasher's Gauntlets",
+    "icon": "inv_gauntlets_86",
+    "quality": 4,
+    "itemId": 50977,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50977",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50977",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_gauntlets_86.jpg"
+  },
+  "50647": {
+    "name": "Ahn'kahar Onyx Neckguard",
+    "icon": "inv_jewelry_necklace_48",
+    "quality": 4,
+    "itemId": 50647,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50647",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50647",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_necklace_48.jpg"
+  },
+  "50653": {
+    "name": "Shadowvault Slayer's Cloak",
+    "icon": "item_icecrowncloak",
+    "quality": 4,
+    "itemId": 50653,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50653",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50653",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/item_icecrowncloak.jpg"
+  },
+  "50001": {
+    "name": "Ikfirus's Sack of Wonder",
+    "icon": "inv_chest_leather_22",
+    "quality": 4,
+    "itemId": 50001,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50001",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50001",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_chest_leather_22.jpg"
+  },
+  "49983": {
+    "name": "Blood-Soaked Saronite Stompers",
+    "icon": "inv_boots_plate_12",
+    "quality": 4,
+    "itemId": 49983,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/49983",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=49983",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_boots_plate_12.jpg"
+  },
+  "49906": {
+    "name": "Hellfrozen Bonegrinders",
+    "icon": "inv_boots_plate_12",
+    "quality": 4,
+    "itemId": 49906,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/49906",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=49906",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_boots_plate_12.jpg"
+  },
+  "50402": {
+    "name": "Ashen Band of Endless Vengeance",
+    "icon": "inv_jewelry_ring_81",
+    "quality": 4,
+    "itemId": 50402,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50402",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50402",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_ring_81.jpg"
+  },
+  "50604": {
+    "name": "Band of the Bone Colossus",
+    "icon": "inv_jewelry_ring_83",
+    "quality": 4,
+    "itemId": 50604,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50604",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50604",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_ring_83.jpg"
+  },
+  "50730": {
+    "name": "Glorenzelg, High-Blade of the Silver Hand",
+    "icon": "inv_sword_153",
+    "quality": 4,
+    "itemId": 50730,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50730",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50730",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_sword_153.jpg"
+  },
+  "49919": {
+    "name": "Cryptmaker",
+    "icon": "inv_mace_116",
+    "quality": 4,
+    "itemId": 49919,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/49919",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=49919",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_mace_116.jpg"
+  },
+  "50638": {
+    "name": "Zod's Repeating Longbow",
+    "icon": "inv_weapon_bow_55",
+    "quality": 4,
+    "itemId": 50638,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50638",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50638",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_weapon_bow_55.jpg"
+  },
+  "50267": {
+    "name": "Tyrannical Beheader",
+    "icon": "inv_axe_96",
+    "quality": 4,
+    "itemId": 50267,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50267",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50267",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_axe_96.jpg"
+  },
+  "50081": {
+    "name": "Ymirjar Lord's Legplates",
+    "icon": "inv_pants_plate_32",
+    "quality": 4,
+    "itemId": 50081,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50081",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50081",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_pants_plate_32.jpg"
+  },
+  "50659": {
+    "name": "Polar Bear Claw Bracers",
+    "icon": "inv_bracer_43",
+    "quality": 4,
+    "itemId": 50659,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50659",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50659",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_bracer_43.jpg"
+  },
+  "50067": {
+    "name": "Astrylian's Sutured Cinch",
+    "icon": "inv_belt_61",
+    "quality": 4,
+    "itemId": 50067,
+    "tooltipUrl": "https://nether.wowhead.com/wotlk/tooltip/item/50067",
+    "itemUrl": "https://www.wowhead.com/wotlk/item=50067",
+    "iconUrl": "https://wow.zamimg.com/images/wow/icons/large/inv_belt_61.jpg"
+  }
+}

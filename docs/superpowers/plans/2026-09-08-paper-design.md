@@ -115,6 +115,8 @@ Do not treat this example header as an approved component. Implement the selecte
 - [ ] Present this concrete visual direction for user refinement before producing the complete screen family. Record feedback; make targeted edits and propagate accepted changes into components/tokens. Call `finish_working_on_nodes` before yielding.
 - [ ] Commit the documented direction after the user accepts it: `docs: record selected Paper visual direction`.
 
+**Revision 3 refinement applies to D2–D8:** The latest direction boards supersede the earlier text-heavy layouts. Use actual Wrath item artwork from `docs/design/item-assets.json`; follow `wowhead-item-assets.md` for provenance and the future integration contract. Keep tool headings compact, selection rows mostly one line, report gear sets visual, and detailed assumptions behind disclosures. Preserve visible allowance counts, complete-set rankings, paired-slot labels, duplicate-enhancement identification, and accessible item details. Consolidate the older component-state board into this style before final handoff. Optional themed art must not compete with equipment comparison.
+
 ## D3. Design import and settings
 
 **Files:** Update `screens.json`, `interactions.md`, `review-log.md`, `fixtures.json`.

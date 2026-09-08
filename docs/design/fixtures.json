@@ -1,19 +1,178 @@
 {
   "illustrative": true,
-  "character": {"name":"Aldren","level":80,"spec":"Fury Warrior","equippedCount":17,"bagCount":7},
-  "currentDps":10000,
-  "bestOwnedDps":10200,
-  "topDropDps":10350,
-  "topDropGain":150,
-  "allowance":{"unitsPerSet":5000,"maxUnits":300000,"maxCombinations":60,"selectedCombinations":6,"overLimitExample":72,"productionValidated":false},
-  "combinationSets":[
-    {"id":"01","head":51212,"trinkets":[50362,54569],"dps":10200,"swaps":2,"highest":true},
-    {"id":"02","head":50080,"trinkets":[50362,54569],"dps":10196,"swaps":1,"effectivelyTied":true,"recommendedWithFewerChanges":true},
-    {"id":"03","head":51212,"trinkets":[50362,50342],"dps":10120,"swaps":1},
-    {"id":"04","head":51212,"trinkets":[54569,50342],"dps":10080,"swaps":2},
-    {"id":"05","head":50080,"trinkets":[54569,50342],"dps":10040,"swaps":1},
-    {"id":"06","head":50080,"trinkets":[50362,50342],"dps":10000,"swaps":0,"equipped":true}
+  "character": {
+    "name": "Aldren",
+    "level": 80,
+    "spec": "Fury Warrior",
+    "equippedCount": 17,
+    "bagCount": 7
+  },
+  "currentDps": 10000,
+  "bestOwnedDps": 10200,
+  "topDropDps": 10350,
+  "topDropGain": 150,
+  "allowance": {
+    "unitsPerSet": 5000,
+    "maxUnits": 300000,
+    "maxCombinations": 60,
+    "selectedCombinations": 6,
+    "overLimitExample": 72,
+    "productionValidated": false
+  },
+  "combinationSets": [
+    {
+      "id": "01",
+      "head": 51212,
+      "trinkets": [
+        50362,
+        54569
+      ],
+      "dps": 10200,
+      "swaps": 2,
+      "highest": true
+    },
+    {
+      "id": "02",
+      "head": 50080,
+      "trinkets": [
+        50362,
+        54569
+      ],
+      "dps": 10196,
+      "swaps": 1,
+      "effectivelyTied": true,
+      "recommendedWithFewerChanges": true
+    },
+    {
+      "id": "03",
+      "head": 51212,
+      "trinkets": [
+        50362,
+        50342
+      ],
+      "dps": 10120,
+      "swaps": 1
+    },
+    {
+      "id": "04",
+      "head": 51212,
+      "trinkets": [
+        54569,
+        50342
+      ],
+      "dps": 10080,
+      "swaps": 2
+    },
+    {
+      "id": "05",
+      "head": 50080,
+      "trinkets": [
+        54569,
+        50342
+      ],
+      "dps": 10040,
+      "swaps": 1
+    },
+    {
+      "id": "06",
+      "head": 50080,
+      "trinkets": [
+        50362,
+        50342
+      ],
+      "dps": 10000,
+      "swaps": 0,
+      "equipped": true
+    }
   ],
-  "otherSlots":"14 fixed owned items in this six-combination illustration; paired placement equivalence is illustrative and requires engine verification",
-  "reportExpiryDays":30
+  "otherSlots": "14 fixed owned items in this six-combination illustration; paired placement equivalence is illustrative and requires engine verification",
+  "reportExpiryDays": 30,
+  "visibleSetId": "01",
+  "gearPreview": [
+    {
+      "itemId": 51212,
+      "slot": "Head",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 50647,
+      "slot": "Neck",
+      "itemLevel": 277
+    },
+    {
+      "itemId": 50674,
+      "slot": "Shoulder",
+      "itemLevel": 277
+    },
+    {
+      "itemId": 50653,
+      "slot": "Back",
+      "itemLevel": 277
+    },
+    {
+      "itemId": 50001,
+      "slot": "Chest",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 50659,
+      "slot": "Wrist",
+      "itemLevel": 277
+    },
+    {
+      "itemId": 50977,
+      "slot": "Hands",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 50067,
+      "slot": "Waist",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 50081,
+      "slot": "Legs",
+      "itemLevel": 251
+    },
+    {
+      "itemId": 49983,
+      "slot": "Feet",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 50402,
+      "slot": "Ring 1",
+      "itemLevel": 277
+    },
+    {
+      "itemId": 50604,
+      "slot": "Ring 2",
+      "itemLevel": 277
+    },
+    {
+      "itemId": 50362,
+      "slot": "Trinket 1",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 54569,
+      "slot": "Trinket 2",
+      "itemLevel": 271
+    },
+    {
+      "itemId": 50730,
+      "slot": "Main",
+      "itemLevel": 284
+    },
+    {
+      "itemId": 49919,
+      "slot": "Off",
+      "itemLevel": 264
+    },
+    {
+      "itemId": 50638,
+      "slot": "Ranged",
+      "itemLevel": 277
+    }
+  ]
 }
