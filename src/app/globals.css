@@ -489,8 +489,12 @@ footer span {
   border-radius: 6px;
   background: var(--color-surface);
 }
-.unsupported-bag h3 {
-  margin: 0 0 14px;
+.unsupported-bag > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.unsupported-bag[open] > summary {
+  margin-bottom: 14px;
 }
 .bag-grid {
   display: grid;

@@ -127,11 +127,11 @@ export function InventorySelector({
         </label>
       </div>
       {unsupported.length > 0 && (
-        <div className="unsupported-bag">
-          <h3>
+        <details className="unsupported-bag">
+          <summary>
             {unsupported.length} unsupported bag{" "}
             {unsupported.length === 1 ? "item" : "items"}
-          </h3>
+          </summary>
           <ul className="bag-grid" aria-label="Unsupported bag items">
             {unsupported.map((item) => {
               const metadata =
@@ -157,7 +157,7 @@ export function InventorySelector({
               );
             })}
           </ul>
-        </div>
+        </details>
       )}
       {shown
         .filter((s) => expanded || needsChoice(s))
