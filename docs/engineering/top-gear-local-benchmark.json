@@ -1,0 +1,113 @@
+{
+  "measuredAt": "2026-09-08T17:53:26.745Z",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "node": "v24.15.0",
+  "concurrency": 1,
+  "results": [
+    {
+      "module": "balance_druid",
+      "preset": "Phase 4",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.696,
+      "dps": 8177.978199664402
+    },
+    {
+      "module": "feral_druid",
+      "preset": "Standard",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.181,
+      "dps": 8073.770574584169
+    },
+    {
+      "module": "elemental_shaman",
+      "preset": "Standard",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.095,
+      "dps": 8120.134987065416
+    },
+    {
+      "module": "enhancement_shaman",
+      "preset": "Standard",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.218,
+      "dps": 7317.4091226211585
+    },
+    {
+      "module": "hunter",
+      "preset": "Survival",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.109,
+      "dps": 8085.117352179689
+    },
+    {
+      "module": "mage",
+      "preset": "Fire Phase 3",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.09,
+      "dps": 10175.808252828274
+    },
+    {
+      "module": "rogue",
+      "preset": "Subtlety",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.238,
+      "dps": 3981.0567563296404
+    },
+    {
+      "module": "retribution_paladin",
+      "preset": "Divine Sacrifice & Guardian",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.101,
+      "dps": 6936.907018114728
+    },
+    {
+      "module": "shadow_priest",
+      "preset": "Standard",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.106,
+      "dps": 7679.543036498221
+    },
+    {
+      "module": "smite_priest",
+      "preset": "Standard",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.099,
+      "dps": 3342.286920804367
+    },
+    {
+      "module": "warlock",
+      "preset": "Destruction",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.213,
+      "dps": 8047.134581211478
+    },
+    {
+      "module": "warrior",
+      "preset": "Fury",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.203,
+      "dps": 7033.958411456111
+    },
+    {
+      "module": "deathknight",
+      "preset": "Unholy DW",
+      "duration": 180,
+      "iterations": 500,
+      "seconds": 0.436,
+      "dps": 6608.645752421437
+    }
+  ]
+}

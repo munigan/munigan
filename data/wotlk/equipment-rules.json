@@ -1,0 +1,438 @@
+{
+  "classToEligibleRangedWeaponTypes": {
+    "0": [],
+    "1": [
+      4
+    ],
+    "2": [
+      1,
+      2,
+      3
+    ],
+    "3": [
+      8
+    ],
+    "4": [
+      5
+    ],
+    "5": [
+      8
+    ],
+    "6": [
+      1,
+      2,
+      3,
+      6
+    ],
+    "7": [
+      7
+    ],
+    "8": [
+      8
+    ],
+    "9": [
+      1,
+      2,
+      3,
+      6
+    ],
+    "10": [
+      9
+    ]
+  },
+  "classToEligibleWeaponTypes": {
+    "0": [],
+    "1": [
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 3
+      },
+      {
+        "weaponType": 4,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 6,
+        "canUseTwoHand": true
+      }
+    ],
+    "2": [
+      {
+        "weaponType": 1,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 3
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 6,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 9,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      }
+    ],
+    "3": [
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 9
+      }
+    ],
+    "4": [
+      {
+        "weaponType": 1,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 4,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 6,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 7
+      },
+      {
+        "weaponType": 9,
+        "canUseTwoHand": true
+      }
+    ],
+    "5": [
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 4
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      }
+    ],
+    "6": [
+      {
+        "weaponType": 1,
+        "canUseTwoHand": false
+      },
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 3
+      },
+      {
+        "weaponType": 4
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 9
+      }
+    ],
+    "7": [
+      {
+        "weaponType": 1,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 3
+      },
+      {
+        "weaponType": 4,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 7
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      }
+    ],
+    "8": [
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 9
+      }
+    ],
+    "9": [
+      {
+        "weaponType": 1,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 2
+      },
+      {
+        "weaponType": 3
+      },
+      {
+        "weaponType": 4,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 5
+      },
+      {
+        "weaponType": 6,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 7
+      },
+      {
+        "weaponType": 8,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 9,
+        "canUseTwoHand": true
+      }
+    ],
+    "10": [
+      {
+        "weaponType": 1,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 4,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 6,
+        "canUseTwoHand": true
+      },
+      {
+        "weaponType": 9,
+        "canUseTwoHand": true
+      }
+    ]
+  },
+  "classToMaxArmorType": {
+    "0": 0,
+    "1": 2,
+    "2": 3,
+    "3": 1,
+    "4": 4,
+    "5": 1,
+    "6": 2,
+    "7": 3,
+    "8": 1,
+    "9": 4,
+    "10": 4
+  },
+  "specToEligibleRaces": {
+    "0": [
+      8,
+      6
+    ],
+    "1": [
+      7,
+      2,
+      8,
+      9
+    ],
+    "2": [
+      9,
+      1,
+      2,
+      4,
+      5,
+      10
+    ],
+    "3": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "4": [
+      9,
+      1,
+      2,
+      3,
+      5,
+      6,
+      10
+    ],
+    "5": [
+      1,
+      4,
+      5,
+      7,
+      10
+    ],
+    "6": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "7": [
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10
+    ],
+    "8": [
+      1,
+      2,
+      3,
+      6,
+      7,
+      8,
+      9
+    ],
+    "9": [
+      7,
+      2,
+      8,
+      9
+    ],
+    "10": [
+      9,
+      1,
+      2,
+      3,
+      5,
+      6,
+      10
+    ],
+    "11": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "12": [
+      8,
+      6
+    ],
+    "13": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "14": [
+      8,
+      6
+    ],
+    "15": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "16": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "17": [
+      9,
+      1,
+      2,
+      3,
+      5,
+      6,
+      10
+    ],
+    "18": [
+      8,
+      6
+    ],
+    "19": [
+      7,
+      2,
+      8,
+      9
+    ],
+    "20": [
+      1,
+      2,
+      3,
+      5
+    ]
+  }
+}

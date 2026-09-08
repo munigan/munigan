@@ -1,0 +1,109 @@
+import { createHmac } from "node:crypto";
+import { isIP } from "node:net";
+import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
+import { AdmissionError } from "@/server/jobs/admit";
+export const ownerCookie = "tg_owner";
+export function owner(request: NextRequest) {
+  return request.cookies.get(ownerCookie)?.value;
+}
+export function requireOwner(request: NextRequest) {
+  const key = owner(request);
+  if (!key || !/^[\w-]{43}$/.test(key))
+    throw new AdmissionError(
+      "Reload this page to initialize your anonymous session",
+      401,
+    );
+  return key;
+}
+export function mutation(request: NextRequest) {
+  const expected = process.env.APP_ORIGIN ?? new URL(request.url).origin;
+  if (request.headers.get("origin") !== expected)
+    throw new AdmissionError("Invalid request origin", 403);
+  if (!request.headers.get("content-type")?.startsWith("application/json"))
+    throw new AdmissionError("Use application/json", 415);
+}
+export async function body(request: NextRequest) {
+  const reader = request.body?.getReader();
+  if (!reader) throw new AdmissionError("Request body required", 400);
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > 1500000) {
+      await reader.cancel();
+      throw new AdmissionError("Request exceeds 1.5 MB", 413);
+    }
+    chunks.push(value);
+  }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw new AdmissionError("Invalid JSON", 400);
+  }
+}
+export function failure(error: unknown) {
+  if (error instanceof AdmissionError)
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.status },
+    );
+  if (error instanceof ZodError)
+    return NextResponse.json(
+      {
+        error: "Invalid Top Gear input",
+        details: error.issues
+          .map((i) => i.path.join(".") + ": " + i.message)
+          .slice(0, 3),
+      },
+      { status: 422 },
+    );
+  if (
+    error instanceof Error &&
+    /ECONNREFUSED|timeout|CAPABILITY_KEY|Production admission/.test(
+      error.message,
+    )
+  )
+    return NextResponse.json(
+      {
+        error:
+          "Simulation service is unavailable. Your selection has been kept.",
+      },
+      { status: 503 },
+    );
+  return NextResponse.json(
+    {
+      error:
+        error instanceof Error ? error.message : "Unable to process request",
+    },
+    { status: 422 },
+  );
+}
+export const privateHeaders = {
+  "Cache-Control": "no-store",
+  "X-Robots-Tag": "noindex, nofollow",
+  "Referrer-Policy": "no-referrer",
+};
+
+export function sourceHash(request: NextRequest) {
+  const header = process.env.TRUSTED_IP_HEADER;
+  if (!header) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.APP_ENV !== "local"
+    )
+      throw new AdmissionError("Public admission is not configured", 503);
+    return undefined;
+  }
+  const ip = request.headers.get(header)?.trim();
+  if (!ip || !isIP(ip))
+    throw new AdmissionError(
+      "The deployment did not supply a trusted client address",
+      503,
+    );
+  return createHmac("sha256", process.env.CAPABILITY_KEY ?? "")
+    .update(ip)
+    .digest("hex");
+}

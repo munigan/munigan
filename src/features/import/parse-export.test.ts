@@ -1,0 +1,96 @@
+import { it, expect } from "vitest";
+import { parseExport, applyBagImport, resolveSnapshot } from "./parse-export";
+import { IndividualSimSettings } from "@/generated/wotlk/ui";
+import { defaultSettings, listSpecs } from "@/features/settings/registry";
+const character = {
+  name: "Tester",
+  class: "warrior",
+  race: "Human",
+  level: 80,
+  talents: "32002301233-305053000520310053120500351",
+  glyphs: { major: [], minor: [] },
+  professions: [],
+  gear: { items: [{ id: 50080, enchant: 0, gems: [0, 0] }] },
+};
+it("keeps two enhanced copies and replaces repeated bag snapshots", () => {
+  const parsed = parseExport(
+    JSON.stringify({
+      items: [
+        { id: 51212, enchant: 0, gems: [0] },
+        { id: 51212, enchant: 3817, gems: [40111] },
+      ],
+    }),
+    "bags",
+  );
+  expect(parsed.inventory.map((i) => i.enchantId)).toEqual([0, 3817]);
+  expect(new Set(parsed.inventory.map((i) => i.instanceId)).size).toBe(2);
+  const draft = parseExport(JSON.stringify(character), "character");
+  const spec = listSpecs().find((s) => s.name === "Fury")!;
+  const initial = resolveSnapshot(draft, spec.id).snapshot;
+  const once = applyBagImport(initial, parsed.inventory),
+    twice = applyBagImport(once, parsed.inventory);
+  expect(twice.inventory).toEqual(once.inventory);
+  expect(twice.inventory).toHaveLength(3);
+  expect(twice.inventory[0].gemIds).toEqual([0, 0]);
+});
+it("rejects incompatible level and malformed input", () => {
+  expect(() => parseExport("{", "character")).toThrow(/valid JSON/i);
+  expect(() =>
+    parseExport(JSON.stringify({ ...character, level: 90 }), "character"),
+  ).toThrow(/80|Wrath/);
+});
+it("does not count preset gear as owned or overwrite explicit empty glyphs", () => {
+  const draft = parseExport(JSON.stringify(character), "character");
+  const spec = listSpecs().find((s) => s.name === "Fury")!;
+  const { snapshot } = resolveSnapshot(draft, spec.id);
+  expect(snapshot.inventory).toHaveLength(1);
+  expect(snapshot.settings.player?.glyphs?.major1).toBe(0);
+  expect(snapshot.settings.player?.talentsString).toBe(character.talents);
+});
+it("preserves a full profile explicit false and zero while changing encounter only", () => {
+  const spec = listSpecs().find((s) => s.name === "Fury")!;
+  const draft = parseExport(
+    JSON.stringify({
+      player: {
+        name: "Profile",
+        class: "ClassWarrior",
+        race: "RaceHuman",
+        equipment: character.gear,
+        warrior: { options: { useRecklessness: false, startingRage: 0 } },
+        talentsString: character.talents,
+      },
+      encounter: { duration: 120, targets: [{ level: 83 }] },
+    }),
+    "profile",
+  );
+  const { snapshot } = resolveSnapshot(draft, spec.id);
+  const options = snapshot.settings.player?.spec;
+  expect(options?.oneofKind).toBe("warrior");
+  if (options?.oneofKind === "warrior")
+    expect(options.warrior.options?.useRecklessness).toBe(false);
+  expect(snapshot.settings.encounter?.duration).toBe(120);
+});
+it("keeps disabled values from full simulator JSON categories", () => {
+  const id = listSpecs().find((s) => s.name === "Fury")!.id;
+  const settings = defaultSettings(id);
+  settings.player!.equipment = { items: [{ id: 44006, enchant: 0, gems: [] }] };
+  settings.raidBuffs!.bloodlust = false;
+  const { snapshot } = resolveSnapshot(
+    parseExport(IndividualSimSettings.toJsonString(settings), "profile"),
+    id,
+  );
+  expect(snapshot.settings.raidBuffs!.bloodlust).toBe(false);
+});
+it("preserves zero encounter variation and execute proportions in full JSON", () => {
+  const id = listSpecs().find((s) => s.name === "Fury")!.id,
+    settings = defaultSettings(id);
+  settings.player!.equipment = { items: [{ id: 44006, enchant: 0, gems: [] }] };
+  settings.encounter!.durationVariation = 0;
+  settings.encounter!.executeProportion20 = 0;
+  const { snapshot } = resolveSnapshot(
+    parseExport(IndividualSimSettings.toJsonString(settings), "profile"),
+    id,
+  );
+  expect(snapshot.settings.encounter!.durationVariation).toBe(0);
+  expect(snapshot.settings.encounter!.executeProportion20).toBe(0);
+});

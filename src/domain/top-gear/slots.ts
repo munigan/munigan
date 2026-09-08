@@ -1,0 +1,41 @@
+import type { Slot, Loadout } from "./model";
+export const slots: Slot[] = [
+  "head",
+  "neck",
+  "shoulder",
+  "back",
+  "chest",
+  "wrist",
+  "hands",
+  "waist",
+  "legs",
+  "feet",
+  "finger1",
+  "finger2",
+  "trinket1",
+  "trinket2",
+  "mainHand",
+  "offHand",
+  "ranged",
+];
+export const slotNames: Record<Slot, string> = {
+  head: "Head",
+  neck: "Neck",
+  shoulder: "Shoulder",
+  back: "Back",
+  chest: "Chest",
+  wrist: "Wrist",
+  hands: "Hands",
+  waist: "Waist",
+  legs: "Legs",
+  feet: "Feet",
+  finger1: "Ring 1",
+  finger2: "Ring 2",
+  trinket1: "Trinket 1",
+  trinket2: "Trinket 2",
+  mainHand: "Main hand",
+  offHand: "Off hand",
+  ranged: "Ranged",
+};
+export const emptyLoadout = () =>
+  Object.fromEntries(slots.map((s) => [s, null])) as Loadout;

@@ -1,0 +1,6 @@
+src/generated/
+data/
+.cache/
+docs/design/
+tests/artifacts/
+pnpm-lock.yaml

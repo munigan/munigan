@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: wow_top_gear
+      POSTGRES_USER: wotlk
+      POSTGRES_PASSWORD: local-development-only
+    ports:
+      - "127.0.0.1:55435:5432"
+    volumes:
+      - top-gear-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wotlk -d wow_top_gear"]
+      interval: 5s
+      retries: 10
+volumes:
+  top-gear-postgres:

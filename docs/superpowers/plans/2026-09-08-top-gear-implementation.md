@@ -10,7 +10,7 @@
 
 **Spec:** [Product and architecture specification](../specs/2026-09-08-wotlk-droptimizer-design.md), specifically §§1–3, 5–8 and Top Gear acceptance in §10. [Design handoff](../../design/handoff.md), [interactions](../../design/interactions.md) and [screen index](../../design/screens.json) supply the UI contract. This plan is the active first delivery slice of the [broader code roadmap](2026-09-08-code-implementation.md).
 
-**Status:** Focused implementation proposal, ready for review. No application code has been started. Uniform sampling and scoped navigation are explicit recommendations in this plan, not a retroactive change to the approved broader specification.
+**Status:** Local Top Gear implementation delivered on `codex/top-gear`, authorized by “You can start the implementation.” The user subsequently directed: “Configure Trigger.dev after local implementation.” See the [execution record](../../engineering/top-gear-execution.md) for implemented milestones, verification and remaining release gates. Original task checklists below retain the broader acceptance criteria; unchecked compound items must not be interpreted as completed cloud/client validation.
 
 ## Global constraints
 
@@ -23,7 +23,7 @@
 - Use Warmane-compatible 3.3.5a mechanics. Realm is display metadata only and never a selector or a mechanical cache key.
 - Use simulator candidate pin `563e4a08cb15729f1fdcbcf68e6d68224553bfef` and exporter pin `e69635092425bf4beadca22570fc7b975a73c95e`; record and verify any necessary pin change.
 - Preserve quantities, item-instance identity, paired-slot order, professions, enhancement legality, meta activation and existing tier set bonuses. Lower armor types remain eligible when legally usable.
-- This is a planning request. No application scaffolding, dependency installation, simulator build or cloud deployment is performed while writing it. Revision 4 design approval is currently pending; planning does not change `approval.json`.
+- Planning has concluded. The user's coding authorization is recorded for the revision 4 Top Gear subset in `approval.json`; unrelated tools remain pending. Local application setup and simulator builds are authorized. Trigger project configuration and cloud deployment are deferred until after local implementation.
 
 ## Delivery decisions
 

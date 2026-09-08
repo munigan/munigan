@@ -5,7 +5,14 @@
   "approvalMessage": null,
   "paperFileUrl": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/4-0",
   "checkpoint": "D3\u2013D6 complete; D8 exports ready; full design approval pending",
-  "applicationCodingAuthorizedByDesignApproval": false,
+  "applicationCodingAuthorizedByDesignApproval": true,
   "directionAccepted": true,
-  "directionAcceptanceMessage": "Great, now I want to keep going implementing all the design of the screens of all flows, states, etc..."
+  "directionAcceptanceMessage": "Great, now I want to keep going implementing all the design of the screens of all flows, states, etc...",
+  "topGear": {
+    "status": "approved",
+    "revision": 4,
+    "approvedAt": "2026-09-08T16:50:31.911664+00:00",
+    "approvalMessage": "You can start the implementation.",
+    "scope": "Top Gear plan, including scoped navigation and uniform sampling; unrelated tool designs remain pending"
+  }
 }

@@ -1,0 +1,31 @@
+@theme {
+  --color-canvas: #111518;
+  --color-surface: #1b2227;
+  --color-border: #3c4851;
+  --color-text: #f1f5f7;
+  --color-muted: #b2bec7;
+  --color-action: #9cd6f0;
+  --color-gain: #e6bf78;
+  --color-danger: #f4a79e;
+  --color-control-border: #697985;
+  --color-item-epic: #d3aaef;
+  --color-item-border: #b485d6;
+  --color-selected-surface: #233039;
+  --font-body: Inter;
+  --font-display: Barlow Condensed;
+  --text-body: 16px;
+  --text-label: 14px;
+  --text-title: 56px;
+  --text-tool-title: 40px;
+  --font-weight-body: 400;
+  --font-weight-heading: 600;
+  --tracking-label: 0.08em;
+  --leading-body: 24px;
+  --leading-title: 60px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --container-workspace: 1280px;
+  --spacing-unit: 4px;
+  --radius-panel: 8px;
+  --radius-control: 4px;
+}
