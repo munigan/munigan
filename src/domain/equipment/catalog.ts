@@ -14,6 +14,7 @@ export type ItemRestriction = {
 export type Catalog = {
   icons?: Map<number, { id: number; name: string; icon: string }>;
   unsupportedItemIds?: Set<number>;
+  adjustedItemIds?: Set<number>;
   restrictions?: {
     items: Record<string, ItemRestriction>;
     categories: Record<
@@ -30,12 +31,27 @@ export function createCatalog(data: {
   gems: UIGem[];
   enchants: UIEnchant[];
   itemIcons?: Array<{ id: number; name: string; icon: string }>;
+  spellIcons?: Array<{ id: number; name: string; icon: string }>;
 }): Catalog {
+  const icons = new Map((data.itemIcons ?? []).map((item) => [item.id, item]));
+  const spells = new Map(
+    (data.spellIcons ?? []).map((spell) => [spell.id, spell]),
+  );
   const enchants = new Map<number, UIEnchant[]>();
   for (const e of data.enchants)
-    enchants.set(e.effectId, [...(enchants.get(e.effectId) ?? []), e]);
+    enchants.set(e.effectId, [
+      ...(enchants.get(e.effectId) ?? []),
+      {
+        ...e,
+        icon:
+          e.icon ||
+          icons.get(e.itemId)?.icon ||
+          spells.get(e.spellId)?.icon ||
+          "",
+      },
+    ]);
   return {
-    icons: new Map((data.itemIcons ?? []).map((item) => [item.id, item])),
+    icons,
     items: new Map(data.items.map((i) => [i.id, i])),
     gems: new Map(data.gems.map((g) => [g.id, g])),
     enchants,
@@ -49,6 +65,7 @@ export function getCatalog(version: ItemVersion = "classic") {
     restrictions,
   };
   if (version === "original") {
+    catalog.adjustedItemIds = new Set(original.items.map((item) => item.id));
     for (const item of UIDatabase.fromJson({
       items: original.items,
     } as unknown as JsonValue).items)

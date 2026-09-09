@@ -30,7 +30,7 @@ afterAll(async () => {
   await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
   await pool.end();
 });
-it("reuses legacy Classic work only for the same Classic request", async () => {
+it("accepts legacy Classic retries but does not reuse ordered-pair work", async () => {
   const request = fixtureRequest();
   request.snapshot.itemVersion = "classic";
   request.snapshot.itemDataRevision = itemVersions.classic.revision;
@@ -82,7 +82,31 @@ it("reuses legacy Classic work only for the same Classic request", async () => {
         retry.jobId,
       ])
     ).rows,
+  ).toEqual([]);
+  // Work created with the current pair identity can still be reused.
+  await pool.query(
+    "INSERT INTO tg_work(job_id,work_key,result) VALUES($1,$2,$3)",
+    [retry.jobId, key, JSON.stringify(result)],
+  );
+  await pool.query("UPDATE tg_jobs SET status='failed' WHERE id=$1", [
+    retry.jobId,
+  ]);
+  const currentRetry = await admitJob({
+    request: encodeRequest(request),
+    ownerKey,
+    idempotencyKey: randomUUID(),
+    priorJob: retry.jobId,
+  });
+  expect(
+    (
+      await pool.query("SELECT work_key,result FROM tg_work WHERE job_id=$1", [
+        currentRetry.jobId,
+      ])
+    ).rows,
   ).toEqual([{ work_key: key, result }]);
+  await pool.query("UPDATE tg_jobs SET status='failed' WHERE id=$1", [
+    currentRetry.jobId,
+  ]);
   request.snapshot.itemVersion = "original";
   request.snapshot.itemDataRevision = itemVersions.original.revision;
   const originalRun = await admitJob({

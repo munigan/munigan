@@ -14,6 +14,7 @@
     "test:sim": "vitest run --project simulator",
     "test:e2e": "playwright test",
     "sim:build": "bash tools/simulator/build.sh",
+    "data:settings": "tsx tools/data/settings-ui.ts",
     "data:generate": "tsx tools/data/generate.ts",
     "data:original": "python3 -B tools/data/original-items.py",
     "test:item-data": "python3 -B tools/data/test_original_items.py",
@@ -35,6 +36,7 @@
     "@fontsource/inter": "5.3.0",
     "@protobuf-ts/runtime": "2.11.1",
     "@trigger.dev/sdk": "4.5.16",
+    "@vercel/functions": "3.9.6",
     "drizzle-orm": "0.45.2",
     "fflate": "0.8.3",
     "next": "16.3.4",
@@ -70,5 +72,8 @@
     "typescript": "5.9.3",
     "vitest": "5.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  }
 }

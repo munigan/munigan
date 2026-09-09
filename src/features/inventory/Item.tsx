@@ -1,17 +1,12 @@
 "use client";
+import { extraSocketLabel } from "@/domain/equipment/sockets";
 import { useState, type ComponentProps } from "react";
 import Image from "next/image";
 import type { ItemInstance } from "@/domain/top-gear/model";
 import { useItemVersion } from "./ItemVersionContext";
 import { OriginalItemLink } from "./OriginalItemLink";
 import { getCatalog } from "@/domain/equipment/catalog";
-export function ItemIcon({
-  itemId,
-  size = 44,
-}: {
-  itemId: number;
-  size?: number;
-}) {
+function ItemImage({ itemId, size = 44 }: { itemId: number; size?: number }) {
   const [failed, setFailed] = useState(false);
   const catalog = getCatalog(useItemVersion());
   const item =
@@ -37,13 +32,48 @@ export function ItemIcon({
     </span>
   );
 }
+export function ItemIcon({
+  item,
+  size = 44,
+  children,
+  ...props
+}: {
+  item: ItemInstance;
+  size?: number;
+  tooltipOnly?: boolean;
+} & ComponentProps<"a">) {
+  const catalog = getCatalog(useItemVersion());
+  const metadata =
+    catalog.items.get(item.itemId) ??
+    catalog.gems.get(item.itemId) ??
+    catalog.icons?.get(item.itemId);
+  return (
+    <ItemLink
+      item={item}
+      aria-label={
+        children ? undefined : (metadata?.name ?? `Item ${item.itemId}`)
+      }
+      {...props}
+    >
+      <ItemImage key={item.itemId} itemId={item.itemId} size={size} />
+      {children}
+    </ItemLink>
+  );
+}
 export function ItemLink({
   item,
   tooltipOnly = false,
   ...props
 }: { item: ItemInstance; tooltipOnly?: boolean } & ComponentProps<"a">) {
   const version = useItemVersion();
-  if (version === "original")
+  const catalog = getCatalog(version);
+  // Unchanged Wrath items can use the provider's complete effect/socket text.
+  // Original overrides must not display Classic's upgraded stats or procs.
+  if (
+    version === "original" &&
+    (catalog.adjustedItemIds?.has(item.itemId) ||
+      catalog.unsupportedItemIds?.has(item.itemId))
+  )
     return (
       <OriginalItemLink item={item} tooltipOnly={tooltipOnly} {...props} />
     );
@@ -53,6 +83,7 @@ export function ItemLink({
       {...props}
       href={`https://www.wowhead.com/wotlk/item=${item.itemId}`}
       data-wowhead={options}
+      data-item-version={version}
       target="_blank"
       rel="noreferrer"
       // Wowhead requires an anchor URL to resolve Wrath data. Passive bag icons
@@ -115,9 +146,10 @@ export function ItemDetails({ item }: { item: ItemInstance }) {
                 .join(" · ")
             : "None"}
         </p>
-        <ItemLink item={item}>
-          View on {version === "original" ? "Cavern of Time" : "Wowhead"} ↗
-        </ItemLink>
+        {extraSocketLabel(meta, item.gemIds.length) && (
+          <p>Extra socket: {extraSocketLabel(meta, item.gemIds.length)}</p>
+        )}
+        <ItemLink item={item}>View full item details ↗</ItemLink>
       </div>
     </details>
   );

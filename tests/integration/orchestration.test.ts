@@ -61,10 +61,74 @@ it("cancels queued work without executing or losing a budget reservation", async
   ]);
   expect(state.rows[0].settled).toBe(true);
 });
+it("groups historical ring permutations on read without changing the stored report", async () => {
+  const owner = randomUUID();
+  const request = fixtureRequest();
+  const job = await admitJob({
+    request: encodeRequest(request),
+    ownerKey: owner,
+    idempotencyKey: randomUUID(),
+  });
+  await executeTopGear(
+    job.jobId,
+    new AbortController().signal,
+    async (_s, loadout, iterations) => ({
+      loadout,
+      inputHash: "baseline",
+      metric: { mean: 10000, stdev: 100, iterations },
+      stats: [],
+    }),
+  );
+  const { report } = await readReport(job.reportToken, owner);
+  const baseline = report.rows[0];
+  const swapped = {
+    ...baseline,
+    id: "old-swapped",
+    inputHash: "old-swapped",
+    isEquipped: false,
+    dps: 10020,
+    gain: 20,
+    loadout: {
+      ...baseline.loadout,
+      finger1: baseline.loadout.finger2,
+      finger2: baseline.loadout.finger1,
+    },
+  };
+  const stored = {
+    ...report,
+    rows: [swapped, baseline],
+    highestId: swapped.id,
+  };
+  await pool.query("UPDATE tg_jobs SET report=$2 WHERE id=$1", [
+    job.jobId,
+    JSON.stringify(stored),
+  ]);
+  const projected = await readReport(job.reportToken, owner);
+  expect(projected.report.rows).toHaveLength(1);
+  expect(projected.report.rows[0]).toMatchObject({
+    dps: 10000,
+    gain: 0,
+    isEquipped: true,
+  });
+  expect(projected.report.highestId).toBe(projected.report.equippedId);
+  expect(
+    (await pool.query("SELECT report FROM tg_jobs WHERE id=$1", [job.jobId]))
+      .rows[0].report,
+  ).toEqual(stored);
+});
 it("retains completed rows when cancellation interrupts the next set", async () => {
+  const request = fixtureRequest();
+  request.snapshot.inventory.push({
+    instanceId: "bag-head",
+    itemId: 40528,
+    enchantId: 3817,
+    gemIds: [41285, 39996],
+    source: "bag",
+  });
+  request.selection.selectedInstanceIds.push("bag-head");
   const owner = randomUUID(),
     job = await admitJob({
-      request: encodeRequest(fixtureRequest()),
+      request: encodeRequest(request),
       ownerKey: owner,
       idempotencyKey: randomUUID(),
     });

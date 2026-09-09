@@ -1,9 +1,26 @@
 "use client";
-import { useId, useRef, type ComponentProps } from "react";
+import { useEffect, useId, useRef, type ComponentProps } from "react";
+import Image from "next/image";
 import type { ItemInstance } from "@/domain/top-gear/model";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { Stat } from "@/generated/wotlk/common";
 import original from "../../../data/wotlk/original-items.json";
+import { fitItemTooltip } from "./tooltip-viewport";
+
+function TooltipIcon({ icon, size = 18 }: { icon?: string; size?: number }) {
+  return icon ? (
+    <Image
+      unoptimized
+      src={`https://wow.zamimg.com/images/wow/icons/large/${icon}.jpg`}
+      alt=""
+      width={size}
+      height={size}
+      className="original-tooltip-icon"
+    />
+  ) : (
+    <span className="original-tooltip-empty-icon" aria-hidden="true" />
+  );
+}
 
 // The simulator stores shared ratings twice, for melee and spell calculations.
 function statLines(stats: number[]) {
@@ -36,11 +53,38 @@ export function OriginalItemLink({
   const id = useId();
   const tooltip = useRef<HTMLSpanElement>(null);
   const anchor = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    const reposition = () => {
+      if (tooltip.current?.matches(":popover-open") && anchor.current)
+        fitItemTooltip(tooltip.current, anchor.current);
+    };
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(reposition);
+    if (tooltip.current) observer?.observe(tooltip.current);
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    window.visualViewport?.addEventListener("resize", reposition);
+    window.visualViewport?.addEventListener("scroll", reposition);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+      window.visualViewport?.removeEventListener("resize", reposition);
+      window.visualViewport?.removeEventListener("scroll", reposition);
+    };
+  }, []);
   const catalog = getCatalog("original");
   const statsItem =
     catalog.items.get(item.itemId) ?? catalog.gems.get(item.itemId);
   const meta = statsItem ?? catalog.icons?.get(item.itemId);
   const gear = catalog.items.get(item.itemId);
+  const enchants = catalog.enchants.get(item.enchantId);
+  const enchant =
+    enchants?.find(
+      (e) => e.type === gear?.type || e.extraTypes.includes(gear?.type ?? 0),
+    ) ?? enchants?.[0];
   const effects =
     (original as { effects?: Record<string, string[]> }).effects?.[
       item.itemId
@@ -55,21 +99,15 @@ export function OriginalItemLink({
       link = anchor.current;
     if (!node || !link || !node.showPopover) return;
     if (!node.matches(":popover-open")) node.showPopover();
-    const rect = link.getBoundingClientRect();
-    const width = node.offsetWidth,
-      height = node.offsetHeight;
-    const left =
-      rect.right + 10 + width <= innerWidth - 12
-        ? rect.right + 10
-        : Math.max(12, rect.left - width - 10);
-    node.style.left = `${left}px`;
-    node.style.top = `${Math.max(12, Math.min(rect.top, innerHeight - height - 12))}px`;
+    fitItemTooltip(node, link);
   }
   return (
     <span
       className="original-item-trigger"
       onMouseEnter={show}
-      onMouseLeave={hide}
+      onMouseLeave={(event) => {
+        if (!event.currentTarget.contains(document.activeElement)) hide();
+      }}
       onFocus={show}
       onBlur={hide}
       onKeyDown={(event) => {
@@ -115,10 +153,9 @@ export function OriginalItemLink({
         popover="manual"
         className="original-item-tooltip"
       >
-        <strong className="item-name">
+        <strong className="item-name" data-quality={statsItem?.quality}>
           {meta?.name ?? `Item ${item.itemId}`}
         </strong>
-        <small>Original WotLK 3.3.5a · Stats preview</small>
         {gear && !unsupported && (
           <span className="original-item-level">Item Level {gear.ilvl}</span>
         )}
@@ -144,21 +181,37 @@ export function OriginalItemLink({
           </>
         )}
         {!!item.enchantId && (
-          <span className="original-item-enhancement">
-            Enchant:{" "}
-            {catalog.enchants.get(item.enchantId)?.[0]?.name ?? item.enchantId}
+          <span className="original-item-enchant original-tooltip-attachment">
+            <TooltipIcon icon={enchant?.icon} />
+            <span>
+              {enchant?.name ?? `Enchant ${item.enchantId}`}
+              {!!enchant?.stats.some(Boolean) && (
+                <small>{statLines(enchant.stats).join(", ")}</small>
+              )}
+            </span>
           </span>
         )}
         {item.gemIds.map((gem, index) => (
-          <span className="original-item-enhancement" key={index}>
-            {gem
-              ? (catalog.gems.get(gem)?.name ?? `Gem ${gem}`)
-              : "Empty socket"}
+          <span
+            className="original-item-enhancement original-tooltip-attachment"
+            key={index}
+          >
+            <TooltipIcon icon={catalog.gems.get(gem)?.icon} />
+            <span>
+              {gem
+                ? (catalog.gems.get(gem)?.name ?? `Gem ${gem}`)
+                : "Empty socket"}
+            </span>
           </span>
         ))}
         {!!gear?.socketBonus.some(Boolean) && (
-          <span>Socket bonus: {statLines(gear.socketBonus).join(", ")}</span>
+          <span className="original-item-socket-bonus">
+            Socket bonus: {statLines(gear.socketBonus).join(", ")}
+          </span>
         )}
+        <small className="original-item-profile">
+          Original WotLK 3.3.5a · Stats preview
+        </small>
         <small>
           Item {item.itemId} ·{" "}
           {tooltipOnly

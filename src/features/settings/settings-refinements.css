@@ -1,0 +1,322 @@
+.simulation-dialog.settings-dialog {
+  padding: 0;
+  width: min(900px, calc(100vw - 32px));
+  height: min(760px, 90dvh);
+  max-height: 90dvh;
+}
+.simulation-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.simulation-dialog-header {
+  padding: 20px 24px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.simulation-dialog-header .eyebrow {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.simulation-dialog-header h2 {
+  font-size: 20px;
+}
+.simulation-dialog-header > button {
+  flex-shrink: 0;
+}
+.simulation-dialog .settings-tabs {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 4px 16px 0;
+  gap: 0;
+}
+.simulation-dialog .settings-tabs button {
+  min-height: 46px;
+  padding: 10px 12px;
+}
+.simulation-dialog .settings-body {
+  overflow-y: auto;
+  min-height: 0;
+  padding: 24px;
+  gap: 18px;
+  scrollbar-width: thin;
+}
+.simulation-dialog .settings-body > .section-top {
+  gap: 12px;
+}
+.simulation-dialog .settings-body > .section-top h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.simulation-dialog .settings-source {
+  font-size: 10px;
+  font-weight: 400;
+  padding: 2px 6px;
+}
+.simulation-dialog .settings-body > .section-top .text-button {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.simulation-dialog .form-grid label {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.simulation-dialog .encounter-presets button {
+  font-size: 12px;
+}
+.simulation-dialog .settings-filter {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.simulation-dialog .settings-filter input[type="search"] {
+  min-width: 0;
+  flex: 1;
+  font-size: 13px;
+}
+.simulation-dialog .settings-filter .checkbox-label {
+  white-space: nowrap;
+  font-size: 12px;
+}
+.simulation-dialog .buff-group {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.simulation-dialog .buff-group > summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 500;
+  font-size: 13px;
+  list-style: none;
+}
+.simulation-dialog .buff-group > summary::before {
+  content: "›";
+  color: var(--color-action);
+  transform: rotate(0);
+}
+.simulation-dialog .buff-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+.simulation-dialog .buff-group > summary::-webkit-details-marker {
+  display: none;
+}
+.simulation-dialog .buff-group > summary span {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-muted);
+  font-weight: 400;
+}
+.simulation-dialog .buff-grid {
+  padding: 0 12px 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.simulation-dialog .buff-control {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-canvas);
+}
+.simulation-dialog .buff-control[data-active="true"] {
+  border-color: #4a6675;
+  background: #233039;
+}
+.simulation-dialog .buff-label {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.simulation-dialog .buff-control select {
+  padding: 6px 4px;
+  font-size: 11px;
+  width: 80px;
+}
+.simulation-dialog .buff-control input[type="number"] {
+  padding: 6px;
+  font-size: 12px;
+  width: 70px;
+  font-variant-numeric: tabular-nums;
+}
+.simulation-dialog input[type="checkbox"] {
+  accent-color: var(--color-action);
+  width: 18px;
+  height: 18px;
+}
+.setting-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-canvas);
+  color: var(--color-control-border);
+}
+.setting-icon img {
+  object-fit: cover;
+}
+.setting-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.simulation-dialog .settings-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--color-muted);
+}
+.simulation-dialog .visual-consumes {
+  display: grid;
+  gap: 20px;
+}
+.simulation-dialog .consume-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.simulation-dialog .consume-control {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.simulation-dialog .consume-input,
+.simulation-dialog .profession-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.simulation-dialog .consume-input > a {
+  display: flex;
+  flex-shrink: 0;
+}
+.simulation-dialog .consume-input select {
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  font-size: 12px;
+}
+.simulation-dialog h4 {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.simulation-dialog .visual-consumes > .buff-group .consume-grid {
+  padding: 0 14px 14px;
+}
+.simulation-dialog .visual-glyphs {
+  display: grid;
+  gap: 24px;
+}
+.simulation-dialog .glyph-grid {
+  display: grid;
+  gap: 12px;
+}
+.simulation-dialog .glyph-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px 20px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.simulation-dialog .glyph-slot-label {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--color-muted);
+}
+.simulation-dialog .glyph-control small {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.simulation-dialog .talent-string {
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.simulation-dialog .talent-string summary {
+  cursor: pointer;
+  color: var(--color-action);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.simulation-dialog .talent-string label {
+  font-size: 12px;
+}
+.simulation-dialog .talent-string input {
+  margin-top: 8px;
+}
+.simulation-dialog .profession-input {
+  margin: 8px 0;
+}
+.simulation-dialog .profession-input select {
+  margin: 0;
+}
+.simulation-dialog .actions {
+  margin: 0;
+}
+.simulation-dialog .actions button {
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .simulation-dialog.settings-dialog {
+    width: calc(100vw - 16px);
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+  .simulation-dialog-header {
+    padding: 16px;
+  }
+  .simulation-dialog-header h2 {
+    font-size: 18px;
+  }
+  .simulation-dialog .settings-tabs {
+    padding-inline: 6px;
+  }
+  .simulation-dialog .settings-body {
+    padding: 16px;
+  }
+  .simulation-dialog .buff-grid,
+  .simulation-dialog .consume-grid,
+  .simulation-dialog .form-grid,
+  .simulation-dialog .glyph-control {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .simulation-dialog .settings-filter {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .simulation-dialog .settings-filter input[type="search"] {
+    flex-basis: 100%;
+  }
+  .simulation-dialog .settings-body > .section-top {
+    align-items: flex-start;
+  }
+  .simulation-dialog .settings-body > .section-top h3 {
+    font-size: 14px;
+    gap: 6px;
+  }
+  .simulation-dialog .buff-control {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
+  .simulation-dialog .encounter-presets {
+    gap: 6px;
+  }
+  .simulation-dialog .encounter-presets button {
+    flex: 1 1 120px;
+  }
+}

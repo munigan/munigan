@@ -1,0 +1,389 @@
+{
+  "source": "Poli93/wotlk@563e4a08cb15729f1fdcbcf68e6d68224553bfef ui/core/proto_utils/gems.ts",
+  "conditions": {
+    "41285": {
+      "description": "Requires at least 2 Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        2
+      ]
+    },
+    "41307": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "41333": {
+      "description": "Requires at least 3 Red Gems.",
+      "minimum": [
+        3,
+        0,
+        0
+      ]
+    },
+    "41335": {
+      "description": "Requires at least 2 Red Gems and at least 1 Yellow Gem.",
+      "minimum": [
+        2,
+        1,
+        0
+      ]
+    },
+    "41377": {
+      "description": "Requires at least 2 Blue Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        0,
+        2
+      ]
+    },
+    "41339": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        2,
+        0
+      ]
+    },
+    "41375": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "41376": {
+      "description": "Requires at least 2 Red Gems.",
+      "minimum": [
+        2,
+        0,
+        0
+      ]
+    },
+    "41378": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Blue Gem.",
+      "minimum": [
+        0,
+        2,
+        1
+      ]
+    },
+    "41379": {
+      "description": "Requires at least 2 Red Gems and at least 1 Blue Gem.",
+      "minimum": [
+        2,
+        0,
+        1
+      ]
+    },
+    "41380": {
+      "description": "Requires at least 2 Blue Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        0,
+        2
+      ]
+    },
+    "41381": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Blue Gem.",
+      "minimum": [
+        0,
+        2,
+        1
+      ]
+    },
+    "41382": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "41385": {
+      "description": "Requires at least 2 Blue Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        0,
+        2
+      ]
+    },
+    "41389": {
+      "description": "Requires at least 2 Red Gems and at least 1 Yellow Gem.",
+      "minimum": [
+        2,
+        1,
+        0
+      ]
+    },
+    "41395": {
+      "description": "Requires at least 2 Red Gems and at least 1 Blue Gem.",
+      "minimum": [
+        2,
+        0,
+        1
+      ]
+    },
+    "41396": {
+      "description": "Requires at least 2 Red Gems and at least 1 Blue Gem.",
+      "minimum": [
+        2,
+        0,
+        1
+      ]
+    },
+    "41397": {
+      "description": "Requires at least 3 Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        3
+      ]
+    },
+    "41398": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "41400": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "41401": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "44076": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        2,
+        0
+      ]
+    },
+    "44078": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "44081": {
+      "description": "Requires at least 2 Red Gems and at least 1 Blue Gem.",
+      "minimum": [
+        2,
+        0,
+        1
+      ]
+    },
+    "44082": {
+      "description": "Requires at least 2 Blue Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        0,
+        2
+      ]
+    },
+    "44084": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Blue Gem.",
+      "minimum": [
+        0,
+        2,
+        1
+      ]
+    },
+    "44087": {
+      "description": "Requires at least 3 Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        3
+      ]
+    },
+    "44088": {
+      "description": "Requires at least 2 Blue Gems and at least 1 Yellow Gem.",
+      "minimum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "44089": {
+      "description": "Requires at least 1 Red Gem, at least 1 Yellow Gem, and at least 1 Blue Gem.",
+      "minimum": [
+        1,
+        1,
+        1
+      ]
+    },
+    "25899": {
+      "description": "Requires at least 2 Red Gems, at least 2 Yellow Gems, and at least 2 Blue Gems.",
+      "minimum": [
+        2,
+        2,
+        2
+      ]
+    },
+    "34220": {
+      "description": "Requires at least 2 Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        2
+      ]
+    },
+    "25890": {
+      "description": "Requires at least 2 Red Gems, at least 2 Yellow Gems, and at least 2 Blue Gems.",
+      "minimum": [
+        2,
+        2,
+        2
+      ]
+    },
+    "35503": {
+      "description": "Requires at least 3 Red Gems.",
+      "minimum": [
+        3,
+        0,
+        0
+      ]
+    },
+    "35501": {
+      "description": "Requires at least 2 Blue Gems and at least 1 Yellow Gem.",
+      "minimum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "32641": {
+      "description": "Requires at least 3 Yellow Gems.",
+      "minimum": [
+        0,
+        3,
+        0
+      ]
+    },
+    "25901": {
+      "description": "Requires at least 2 Red Gems, at least 2 Yellow Gems, and at least 2 Blue Gems.",
+      "minimum": [
+        2,
+        2,
+        2
+      ]
+    },
+    "25896": {
+      "description": "Requires at least 3 Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        3
+      ]
+    },
+    "32409": {
+      "description": "Requires at least 2 Red Gems, at least 2 Yellow Gems, and at least 2 Blue Gems.",
+      "minimum": [
+        2,
+        2,
+        2
+      ]
+    },
+    "25894": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        2,
+        0
+      ]
+    },
+    "28557": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        2,
+        0
+      ]
+    },
+    "28556": {
+      "description": "Requires at least 2 Yellow Gems and at least 1 Red Gem.",
+      "minimum": [
+        1,
+        2,
+        0
+      ]
+    },
+    "25898": {
+      "description": "Requires at least 5 Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        5
+      ]
+    },
+    "32410": {
+      "description": "Requires at least 2 Red Gems, at least 2 Yellow Gems, and at least 2 Blue Gems.",
+      "minimum": [
+        2,
+        2,
+        2
+      ]
+    },
+    "25897": {
+      "description": "Requires more Red Gems than Blue Gems.",
+      "minimum": [
+        0,
+        0,
+        0
+      ],
+      "greater": 0,
+      "lesser": 2
+    },
+    "25895": {
+      "description": "Requires more Red Gems than Yellow Gems.",
+      "minimum": [
+        0,
+        0,
+        0
+      ],
+      "greater": 0,
+      "lesser": 1
+    },
+    "25893": {
+      "description": "Requires more Blue Gems than Yellow Gems.",
+      "minimum": [
+        0,
+        0,
+        0
+      ],
+      "greater": 2,
+      "lesser": 1
+    },
+    "32640": {
+      "description": "Requires more Blue Gems than Yellow Gems.",
+      "minimum": [
+        0,
+        0,
+        0
+      ],
+      "greater": 2,
+      "lesser": 1
+    }
+  }
+}

@@ -27,6 +27,16 @@ export type ItemInstance = {
   equippedSlot?: Slot;
 };
 export type Loadout = Record<Slot, string | null>; // instance IDs; explicit empty slots
+export type GemmingSettings = {
+  enabled: boolean;
+  defaultGemId: number;
+  metaGemId: number;
+  jcGemId: number;
+};
+// Keyed by physical item instance, so ring/trinket alignment cannot move gems
+// onto the wrong item. Stored results retain the exact simulated arrangement.
+export type GemOverrides = Record<string, number[]>;
+export type EnchantOverrides = Record<string, number>;
 export type Versions = {
   engine: string;
   schema: string;
@@ -41,6 +51,8 @@ export type Snapshot = {
   itemVersion?: ItemVersion;
   itemDataRevision?: string;
   professionLevels?: Record<string, number>;
+  gemming?: GemmingSettings;
+  autoEnchant?: boolean;
   settings: IndividualSimSettings;
   inventory: ItemInstance[];
   equipped: Loadout;
@@ -66,6 +78,10 @@ export type Diagnostic = {
 export type Metric = { mean: number; stdev: number | null; iterations: number };
 export type SimulationResult = {
   loadout: Loadout;
+  gemOverrides?: GemOverrides;
+  enchantOverrides?: EnchantOverrides;
+  enchantWarnings?: string[];
+  gemWarnings?: string[];
   inputHash: string;
   metric: Metric;
   stats: number[];
@@ -100,6 +116,10 @@ export type RunPlan = {
 export type SetRow = {
   id: string;
   loadout: Loadout;
+  gemOverrides?: GemOverrides;
+  enchantOverrides?: EnchantOverrides;
+  enchantWarnings?: string[];
+  gemWarnings?: string[];
   dps: number;
   gain: number | null;
   percent: number | null;

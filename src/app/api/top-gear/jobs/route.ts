@@ -1,3 +1,4 @@
+import { wakeDispatcher } from "@/server/jobs/wake";
 import { NextRequest, NextResponse } from "next/server";
 import { admitJob } from "@/server/jobs/admit";
 import {
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest) {
       ownerKey: requireOwner(request),
       idempotencyKey: request.headers.get("idempotency-key") ?? "",
     });
+    wakeDispatcher();
     return NextResponse.json(
       { ...result, reportUrl: `/reports/${result.reportToken}` },
       { status: 202, headers: privateHeaders },

@@ -20,6 +20,7 @@ import { slots } from "@/domain/top-gear/slots";
 import rules from "../../../data/wotlk/equipment-rules.json";
 import { getCatalog, type Catalog } from "./catalog";
 import { readTalents } from "@/features/settings/talents";
+import { itemSockets } from "./sockets";
 export function eligibleSlots(item: UIItem): Slot[] {
   if (item.type === ItemType.ItemTypeFinger) return ["finger1", "finger2"];
   if (item.type === ItemType.ItemTypeTrinket) return ["trinket1", "trinket2"];
@@ -96,7 +97,11 @@ export function canEquip(
     return false;
   return true;
 }
-function enchantApplies(enchant: UIEnchant, item: UIItem, snapshot: Snapshot) {
+export function enchantApplies(
+  enchant: UIEnchant,
+  item: UIItem,
+  snapshot: Snapshot,
+) {
   const p = snapshot.settings.player!;
   if (
     enchant.classAllowlist.length &&
@@ -181,13 +186,7 @@ export function validateItem(
       "enchant",
       `Enchant ${instance.enchantId} is not legal on ${item.name}`,
     );
-  const sockets = [...item.gemSockets];
-  if (
-    item.type === ItemType.ItemTypeWaist ||
-    (professions.includes(Profession.Blacksmithing) &&
-      [ItemType.ItemTypeWrist, ItemType.ItemTypeHands].includes(item.type))
-  )
-    sockets.push(GemColor.GemColorPrismatic);
+  const sockets = itemSockets(snapshot, item);
   instance.gemIds.forEach((id, i) => {
     if (!id) return;
     const gem = catalog.gems.get(id);

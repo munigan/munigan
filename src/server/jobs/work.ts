@@ -12,7 +12,7 @@ import type {
   SimulationResult,
   TopGearReport,
 } from "@/domain/top-gear/model";
-import { planRun } from "@/domain/equipment/enumerate";
+import { planRun, loadoutKey } from "@/domain/equipment/enumerate";
 import { rankResults } from "@/domain/top-gear/report";
 import { evaluate } from "@/server/simulator/evaluate";
 import { digest } from "./capabilities";
@@ -102,7 +102,7 @@ async function projection(job: Job): Promise<TopGearReport> {
       planned: job.plan?.simulations.length ?? null,
       succeeded: results.length,
       failed: work.rows.filter((r) => r.error && !r.result).length,
-      returned: results.length,
+      returned: ranked.rows.length,
       exhaustive: job.status === "complete",
     },
     termination: job.termination,
@@ -344,7 +344,38 @@ export async function readReport(token: string, ownerKey?: string) {
   const job = r.rows[0] as Job;
   if (job.expires_at.getTime() < Date.now())
     throw new AdmissionError("This report has expired", 410);
-  const report = job.report ?? encodeReport(await projection(job));
+  let report = job.report ?? encodeReport(await projection(job));
+  const snapshot = decodeSnapshot(report.snapshot);
+  if (
+    new Set(report.rows.map((row) => loadoutKey(snapshot, row.loadout))).size <
+    report.rows.length
+  ) {
+    // Normalize the read projection of historical reports before pagination.
+    // Preserve the frozen stored report and each chosen simulation's metrics.
+    const ranked = rankResults(
+      snapshot,
+      report.rows.map((row) => ({
+        loadout: row.loadout,
+        gemOverrides: row.gemOverrides,
+        enchantOverrides: row.enchantOverrides,
+        enchantWarnings: row.enchantWarnings,
+        gemWarnings: row.gemWarnings,
+        inputHash: row.inputHash,
+        metric: {
+          mean: row.dps,
+          stdev: row.stdev ?? null,
+          iterations: row.iterations,
+        },
+        stats: row.stats ?? [],
+      })),
+      report.rows.filter((row) => row.eligible).map((row) => row.loadout),
+    );
+    report = {
+      ...report,
+      ...ranked,
+      coverage: { ...report.coverage, returned: ranked.rows.length },
+    };
+  }
   return {
     jobId: job.id,
     report: { ...report, token },

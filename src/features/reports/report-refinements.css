@@ -1,0 +1,212 @@
+.report-view .report-preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  font-size: 12px;
+}
+.report-view .required-changes {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.report-view .report-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-canvas);
+}
+.report-view .report-segmented button,
+.report-view .report-segmented label > span {
+  display: block;
+  padding: 6px 11px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.report-view .report-segmented label {
+  position: relative;
+}
+.report-view .report-segmented input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.report-view .report-segmented button[aria-pressed="true"],
+.report-view .report-segmented input:checked + span {
+  background: #423a2d;
+  color: #efd099;
+}
+.report-view .report-segmented input:focus-visible + span {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+.report-view .gear-strip {
+  margin-top: 16px;
+}
+.report-view .gear-strip--changes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.report-view .gear-strip--changes .gear-slot {
+  width: 50px;
+  flex: 0 0 50px;
+}
+.report-view .report-zero-changes {
+  margin: 0;
+  padding: 14px 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.report-view .dps-heading strong,
+.report-view .combination-row > strong {
+  font-variant-numeric: tabular-nums;
+}
+.report-view .combination-row > strong,
+.report-view .combination-row > .dps-change,
+.report-view .table-heading > :nth-child(n + 3) {
+  text-align: right;
+}
+.report-view .combination-row > .dps-change small {
+  padding-left: 0;
+}
+.report-view .report-row-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.report-view .report-row-badges .badge {
+  padding: 3px 7px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.report-view .highest-badge {
+  border-color: #7f6742;
+  background: #42382a;
+  color: #efd099;
+}
+.report-view .tied-badge {
+  border-color: #555b70;
+  background: #303343;
+  color: #c3c7e0;
+}
+.report-view .report-fewer-swaps {
+  color: var(--color-muted);
+  font-size: 11px;
+}
+.report-view .report-state {
+  border-left: 3px solid #759aaf;
+  margin-bottom: 24px;
+}
+.report-view .report-state h2 {
+  margin: 6px 0 10px;
+}
+.report-view .report-state p:last-child {
+  margin-bottom: 0;
+}
+.report-view .report-state--partial {
+  border-left-color: #d9b573;
+}
+.report-view .report-state--failed {
+  border-left-color: var(--color-danger);
+}
+.report-view .report-state--canceled {
+  border-left-color: var(--color-muted);
+}
+.report-view .report-loading-bar {
+  width: min(360px, 100%);
+  height: 6px;
+  margin-top: 20px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #334652, #759aaf, #334652);
+}
+.report-view .full-set-header {
+  position: sticky;
+  top: -24px;
+  z-index: 2;
+  margin: -24px -24px 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.report-view .full-set-header h2 {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.report-view .full-set-dialog .full-gear-row {
+  grid-template-columns: 82px 44px minmax(0, 1fr);
+}
+.report-view .full-gear-description {
+  min-width: 0;
+}
+.report-view .full-gear-enhancements {
+  display: grid;
+  gap: 5px;
+  margin: 5px 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.report-view .full-gear-enchant {
+  color: #83dfa1;
+}
+.report-view .full-gear-gems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+}
+.report-view .full-gear-gems > a,
+.report-view .full-gear-gems > .original-item-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-muted);
+}
+.report-view .full-gear-gems .item-icon {
+  flex-shrink: 0;
+}
+.report-view .full-gear-description .item-details {
+  margin-top: 6px;
+  font-size: 11px;
+}
+@media (max-width: 767px) {
+  .report-view .combination-row {
+    grid-template-rows: 24px minmax(0, 1fr);
+    height: 126px;
+  }
+  .report-view .report-row-badges {
+    gap: 4px;
+  }
+  .report-view .report-row-badges .badge {
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+  .report-view .report-fewer-swaps {
+    padding: 2px 5px;
+    border: 1px solid #7f6742;
+    border-radius: 4px;
+    color: #efd099;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .report-view .full-set-dialog .full-gear-row {
+    grid-template-columns: 42px 36px minmax(0, 1fr);
+  }
+  .report-view .full-set-header {
+    top: -18px;
+    margin: -18px -18px 0;
+    padding: 16px 18px;
+    gap: 10px;
+  }
+  .report-view .full-set-header h2 {
+    font-size: 20px;
+  }
+}

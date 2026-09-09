@@ -1,0 +1,3052 @@
+{
+  "revision": "563e4a08cb15729f1fdcbcf68e6d68224553bfef",
+  "buffs": {
+    "raidBuffs.giftOfTheWild": {
+      "name": "Gift of the Wild",
+      "icon": "spell_nature_giftofthewild"
+    },
+    "raidBuffs.drumsOfTheWild": {
+      "name": "Drums of the Wild",
+      "icon": "inv_misc_drum_07"
+    },
+    "buffs.blessingOfKings": {
+      "name": "Greater Blessing of Kings",
+      "icon": "spell_magic_greaterblessingofkings"
+    },
+    "raidBuffs.drumsOfForgottenKings": {
+      "name": "Drums of Forgotten Kings",
+      "icon": "inv_misc_drum_03"
+    },
+    "buffs.blessingOfSanctuary": {
+      "name": "Greater Blessing of Sanctuary",
+      "icon": "spell_holy_greaterblessingofsanctuary"
+    },
+    "raidBuffs.devotionAura": {
+      "name": "Devotion Aura",
+      "icon": "spell_holy_devotionaura"
+    },
+    "raidBuffs.stoneskinTotem": {
+      "name": "Stoneskin Totem",
+      "icon": "spell_nature_stoneskintotem"
+    },
+    "raidBuffs.scrollOfProtection": {
+      "name": "Scroll of Protection VIII",
+      "icon": "inv_scroll_07"
+    },
+    "buffs.blessingOfMight": {
+      "name": "Greater Blessing of Might",
+      "icon": "spell_holy_greaterblessingofkings"
+    },
+    "raidBuffs.battleShout": {
+      "name": "Battle Shout",
+      "icon": "ability_warrior_battleshout"
+    },
+    "raidBuffs.abominationsMight": {
+      "name": "Abomination's Might",
+      "icon": "ability_warrior_intensifyrage"
+    },
+    "raidBuffs.unleashedRage": {
+      "name": "Unleashed Rage",
+      "icon": "spell_nature_unleashedrage"
+    },
+    "raidBuffs.trueshotAura": {
+      "name": "Trueshot Aura",
+      "icon": "ability_trueshot"
+    },
+    "raidBuffs.bloodlust": {
+      "name": "Bloodlust",
+      "icon": "spell_nature_bloodlust"
+    },
+    "raidBuffs.sanctifiedRetribution": {
+      "name": "Sanctified Retribution",
+      "icon": "spell_holy_mindvision"
+    },
+    "raidBuffs.arcaneEmpowerment": {
+      "name": "Arcane Empowerment",
+      "icon": "spell_nature_starfall"
+    },
+    "raidBuffs.ferociousInspiration": {
+      "name": "Ferocious Inspiration",
+      "icon": "ability_hunter_ferociousinspiration"
+    },
+    "buffs.renewedHope": {
+      "name": "Renewed Hope",
+      "icon": "spell_holy_holyprotection"
+    },
+    "buffs.vigilance": {
+      "name": "Vigilance",
+      "icon": "ability_warrior_vigilance"
+    },
+    "buffs.handOfSacrifices": {
+      "max": 10,
+      "step": 1
+    },
+    "buffs.divineGuardians": {
+      "name": "Divine Guardian",
+      "icon": "spell_holy_powerwordbarrier",
+      "max": 10,
+      "step": 1
+    },
+    "buffs.painSuppressions": {
+      "name": "Pain Suppression",
+      "icon": "spell_holy_painsupression",
+      "max": 10,
+      "step": 1
+    },
+    "buffs.guardianSpirits": {
+      "name": "Guardian Spirit",
+      "icon": "spell_holy_guardianspirit",
+      "max": 10,
+      "step": 1
+    },
+    "raidBuffs.swiftRetribution": {
+      "name": "Swift Retribution",
+      "icon": "ability_paladin_swiftretribution"
+    },
+    "raidBuffs.moonkinAura": {
+      "name": "Moonkin Aura",
+      "icon": "spell_nature_moonglow"
+    },
+    "raidBuffs.commandingShout": {
+      "name": "Commanding Shout",
+      "icon": "ability_warrior_rallyingcry"
+    },
+    "raidBuffs.bloodPact": {
+      "name": "Blood Pact",
+      "icon": "spell_shadow_bloodboil"
+    },
+    "raidBuffs.arcaneBrilliance": {
+      "name": "Arcane Brilliance",
+      "icon": "spell_holy_arcaneintellect"
+    },
+    "raidBuffs.felIntelligence": {
+      "name": "Fel Intelligence",
+      "icon": "spell_shadow_brainwash"
+    },
+    "raidBuffs.scrollOfIntellect": {
+      "name": "Scroll of Intellect VIII",
+      "icon": "inv_scroll_01"
+    },
+    "raidBuffs.leaderOfThePack": {
+      "name": "Leader of the Pack",
+      "icon": "spell_nature_unyeildingstamina"
+    },
+    "raidBuffs.rampage": {
+      "name": "Rampage",
+      "icon": "ability_warrior_rampage"
+    },
+    "raidBuffs.icyTalons": {
+      "name": "Improved Icy Talons",
+      "icon": "spell_deathknight_icytalons"
+    },
+    "raidBuffs.windfuryTotem": {
+      "name": "Windfury Totem",
+      "icon": "spell_nature_windfury"
+    },
+    "buffs.blessingOfWisdom": {
+      "name": "Greater Blessing of Wisdom",
+      "icon": "spell_holy_greaterblessingofwisdom"
+    },
+    "raidBuffs.manaSpringTotem": {
+      "name": "Mana Spring Totem",
+      "icon": "spell_nature_manaregentotem"
+    },
+    "buffs.vampiricTouch": {
+      "name": "Vampiric Touch",
+      "icon": "spell_holy_stoicism"
+    },
+    "buffs.judgementsOfTheWise": {
+      "name": "Judgements of the Wise",
+      "icon": "ability_paladin_judgementofthewise"
+    },
+    "buffs.huntingParty": {
+      "name": "Hunting Party",
+      "icon": "ability_hunter_huntingparty"
+    },
+    "buffs.improvedSoulLeech": {
+      "name": "Improved Soul Leech",
+      "icon": "ability_warlock_improvedsoulleech"
+    },
+    "buffs.enduringWinter": {
+      "name": "Enduring Winter",
+      "icon": "spell_frost_summonwaterelemental_2"
+    },
+    "raidBuffs.shadowProtection": {
+      "name": "Prayer of Shadow Protection",
+      "icon": "spell_holy_prayerofshadowprotection"
+    },
+    "raidBuffs.natureResistanceTotem": {
+      "name": "Nature Resistance Totem",
+      "icon": "spell_nature_natureresistancetotem"
+    },
+    "raidBuffs.aspectOfTheWild": {
+      "name": "Aspect of the Wild",
+      "icon": "spell_nature_protectionformnature"
+    },
+    "raidBuffs.frostResistanceAura": {},
+    "raidBuffs.frostResistanceTotem": {},
+    "buffs.revitalizeRejuvination": {
+      "name": "Rejuvenation",
+      "icon": "spell_nature_rejuvenation",
+      "max": 100,
+      "step": 10
+    },
+    "buffs.revitalizeWildGrowth": {
+      "name": "Wild Growth",
+      "icon": "ability_druid_flourish",
+      "max": 100,
+      "step": 10
+    },
+    "raidBuffs.elementalOath": {
+      "name": "Elemental Oath",
+      "icon": "spell_shaman_elementaloath"
+    },
+    "raidBuffs.wrathOfAirTotem": {
+      "name": "Wrath of Air Totem",
+      "icon": "spell_nature_slowingtotem"
+    },
+    "raidBuffs.demonicPactSp": {
+      "name": "Demonic Pact",
+      "icon": "spell_shadow_demonicpact",
+      "max": 1999,
+      "step": 20
+    },
+    "raidBuffs.totemOfWrath": {
+      "name": "Totem of Wrath",
+      "icon": "spell_fire_totemofwrath"
+    },
+    "raidBuffs.flametongueTotem": {
+      "name": "Flametongue Totem",
+      "icon": "spell_nature_guardianward"
+    },
+    "raidBuffs.divineSpirit": {
+      "name": "Divine Spirit",
+      "icon": "spell_holy_divinespirit"
+    },
+    "raidBuffs.scrollOfSpirit": {
+      "name": "Scroll of Spirit VIII",
+      "icon": "inv_scroll_01"
+    },
+    "raidBuffs.powerWordFortitude": {
+      "name": "Power Word: Fortitude",
+      "icon": "spell_holy_wordfortitude"
+    },
+    "raidBuffs.scrollOfStamina": {
+      "name": "Scroll of Stamina VIII",
+      "icon": "inv_scroll_07"
+    },
+    "raidBuffs.strengthOfEarthTotem": {
+      "name": "Strength of Earth Totem",
+      "icon": "spell_nature_earthbindtotem"
+    },
+    "raidBuffs.hornOfWinter": {
+      "name": "Horn of Winter",
+      "icon": "inv_misc_horn_02"
+    },
+    "raidBuffs.scrollOfAgility": {
+      "name": "Scroll of Agility VIII",
+      "icon": "inv_scroll_02"
+    },
+    "raidBuffs.scrollOfStrength": {
+      "name": "Scroll of Strength VIII",
+      "icon": "inv_scroll_02"
+    },
+    "raidBuffs.strengthOfWrynn": {},
+    "raidBuffs.retributionAura": {
+      "name": "Retribution Aura",
+      "icon": "spell_holy_auraoflight"
+    },
+    "partyBuffs.braidedEterniumChain": {
+      "name": "Braided Eternium Chain",
+      "icon": "inv_jewelry_necklace_08"
+    },
+    "partyBuffs.chainOfTheTwilightOwl": {
+      "name": "Chain of the Twilight Owl",
+      "icon": "inv_jewelry_necklace_ahnqiraj_02"
+    },
+    "partyBuffs.heroicPresence": {
+      "name": "Heroic Presence",
+      "icon": "inv_helmet_21"
+    },
+    "partyBuffs.eyeOfTheNight": {
+      "name": "Eye of the Night",
+      "icon": "inv_jewelry_necklace_28"
+    },
+    "raidBuffs.thorns": {
+      "name": "Thorns",
+      "icon": "spell_nature_thorns"
+    },
+    "partyBuffs.manaTideTotems": {
+      "name": "Mana Tide Totem",
+      "icon": "spell_frost_summonwaterelemental",
+      "max": 4,
+      "step": 1
+    },
+    "buffs.innervates": {
+      "name": "Innervate",
+      "icon": "spell_nature_lightning",
+      "max": 10,
+      "step": 1
+    },
+    "buffs.powerInfusions": {
+      "name": "Power Infusion",
+      "icon": "spell_holy_powerinfusion",
+      "max": 10,
+      "step": 1
+    },
+    "buffs.focusMagic": {
+      "name": "Focus Magic",
+      "icon": "spell_arcane_studentofmagic"
+    },
+    "buffs.tricksOfTheTrades": {
+      "name": "Tricks of the Trade",
+      "icon": "ability_rogue_tricksofthetrade",
+      "max": 19,
+      "step": 1
+    },
+    "buffs.unholyFrenzy": {
+      "name": "Unholy Frenzy",
+      "icon": "spell_deathknight_bladedarmor",
+      "max": 10,
+      "step": 1
+    },
+    "debuffs.sunderArmor": {
+      "name": "Sunder Armor",
+      "icon": "ability_warrior_sunder"
+    },
+    "debuffs.exposeArmor": {
+      "name": "Expose Armor",
+      "icon": "ability_warrior_riposte"
+    },
+    "debuffs.acidSpit": {
+      "name": "Acid Spit",
+      "icon": "spell_nature_acid_01"
+    },
+    "debuffs.faerieFire": {
+      "name": "Improved Faerie Fire",
+      "icon": "spell_nature_faeriefire"
+    },
+    "debuffs.curseOfWeakness": {
+      "name": "Curse of Weakness",
+      "icon": "spell_shadow_curseofmannoroth"
+    },
+    "debuffs.sting": {
+      "name": "Sting",
+      "icon": "spell_nature_slowpoison"
+    },
+    "debuffs.sporeCloud": {
+      "name": "Spore Cloud",
+      "icon": "creature_sporemushroom"
+    },
+    "debuffs.vindication": {
+      "name": "Vindication",
+      "icon": "spell_holy_vindication"
+    },
+    "debuffs.demoralizingShout": {
+      "name": "Demoralizing Shout",
+      "icon": "ability_warrior_warcry"
+    },
+    "debuffs.demoralizingRoar": {
+      "name": "Demoralizing Roar",
+      "icon": "classic_ability_druid_demoralizingroar"
+    },
+    "debuffs.demoralizingScreech": {
+      "name": "Demoralizing Screech",
+      "icon": "ability_hunter_pet_vulture"
+    },
+    "debuffs.mangle": {
+      "name": "Mangle (Bear)",
+      "icon": "ability_druid_mangle2"
+    },
+    "debuffs.trauma": {
+      "name": "Trauma",
+      "icon": "ability_warrior_bloodnova"
+    },
+    "debuffs.stampede": {
+      "name": "Stampede",
+      "icon": "spell_shaman_astralshift"
+    },
+    "debuffs.totemOfWrath": {
+      "name": "Totem of Wrath",
+      "icon": "spell_fire_totemofwrath"
+    },
+    "debuffs.heartOfTheCrusader": {
+      "name": "Heart of the Crusader",
+      "icon": "spell_holy_holysmite"
+    },
+    "debuffs.masterPoisoner": {
+      "name": "Master Poisoner",
+      "icon": "ability_creature_poison_06"
+    },
+    "debuffs.thunderClap": {
+      "name": "Thunder Clap",
+      "icon": "spell_nature_thunderclap"
+    },
+    "debuffs.frostFever": {
+      "name": "Frost Fever",
+      "icon": "spell_deathknight_frostfever"
+    },
+    "debuffs.judgementsOfTheJust": {
+      "name": "Judgements of the Just",
+      "icon": "ability_paladin_judgementsofthejust"
+    },
+    "debuffs.infectedWounds": {
+      "name": "Infected Wounds",
+      "icon": "ability_druid_infectedwound"
+    },
+    "debuffs.insectSwarm": {
+      "name": "Insect Swarm",
+      "icon": "spell_nature_insectswarm"
+    },
+    "debuffs.scorpidSting": {
+      "name": "Scorpid Sting",
+      "icon": "ability_hunter_criticalshot"
+    },
+    "debuffs.bloodFrenzy": {
+      "name": "Blood Frenzy",
+      "icon": "ability_warrior_bloodfrenzy"
+    },
+    "debuffs.savageCombat": {
+      "name": "Savage Combat",
+      "icon": "ability_creature_disease_03"
+    },
+    "debuffs.shadowMastery": {
+      "name": "Improved Shadow Bolt",
+      "icon": "spell_shadow_shadowbolt"
+    },
+    "debuffs.improvedScorch": {
+      "name": "Improved Scorch",
+      "icon": "spell_fire_soulburn"
+    },
+    "debuffs.wintersChill": {
+      "name": "Winter's Chill",
+      "icon": "spell_frost_chillingblast"
+    },
+    "debuffs.misery": {
+      "name": "Misery",
+      "icon": "spell_shadow_misery"
+    },
+    "debuffs.ebonPlaguebringer": {
+      "name": "Ebon Plaguebringer",
+      "icon": "ability_creature_cursed_03"
+    },
+    "debuffs.earthAndMoon": {
+      "name": "Earth and Moon",
+      "icon": "ability_druid_earthandsky"
+    },
+    "debuffs.curseOfElements": {
+      "name": "Curse of the Elements",
+      "icon": "spell_shadow_chilltouch"
+    },
+    "debuffs.huntersMark": {
+      "kind": "quad"
+    },
+    "debuffs.judgementOfWisdom": {
+      "name": "Judgement of Wisdom",
+      "icon": "ability_paladin_judgementblue"
+    },
+    "debuffs.judgementOfLight": {
+      "name": "Judgement of Light",
+      "icon": "spell_holy_righteousfury"
+    },
+    "buffs.shatteringThrows": {
+      "name": "Shattering Throw",
+      "icon": "ability_warrior_shatteringthrow",
+      "max": 19,
+      "step": 1
+    },
+    "debuffs.giftOfArthas": {
+      "name": "Gift of Arthas",
+      "icon": "spell_nature_nullifydisease"
+    },
+    "debuffs.crystalYield": {
+      "name": "Crystal Yield",
+      "icon": "inv_misc_gem_amethyst_01"
+    }
+  },
+  "consumes": {
+    "Conjured": {
+      "1": {
+        "itemId": 12662,
+        "name": "Demonic Rune",
+        "icon": "inv_misc_rune_04"
+      },
+      "2": {
+        "itemId": 22788,
+        "name": "Flame Cap",
+        "icon": "inv_misc_herb_flamecap"
+      },
+      "4": {
+        "itemId": 7676,
+        "name": "Thistle Tea",
+        "icon": "inv_drink_milk_05"
+      },
+      "5": {
+        "itemId": 22105,
+        "name": "Master Healthstone",
+        "icon": "inv_stone_04"
+      }
+    },
+    "Explosive": {
+      "1": {
+        "itemId": 41119,
+        "name": "Saronite Bomb",
+        "icon": "inv_misc_enggizmos_32"
+      },
+      "2": {
+        "itemId": 40771,
+        "name": "Cobalt Frag Bomb",
+        "icon": "inv_misc_enggizmos_31"
+      }
+    },
+    "boolean": {
+      "thermalSapper": {
+        "itemId": 42641,
+        "name": "Global Thermal Sapper Charge",
+        "icon": "inv_gizmo_supersappercharge"
+      },
+      "explosiveDecoy": {
+        "itemId": 40536,
+        "name": "Explosive Decoy",
+        "icon": "ability_seal"
+      },
+      "petFood": {
+        "itemId": 43005,
+        "name": "Spiced Mammoth Treats",
+        "icon": "inv_misc_food_123_roast"
+      }
+    },
+    "Flask": {
+      "1": {
+        "itemId": 46376,
+        "name": "Flask of the Frost Wyrm",
+        "icon": "inv_alchemy_endlessflask_04"
+      },
+      "2": {
+        "itemId": 46377,
+        "name": "Flask of Endless Rage",
+        "icon": "inv_alchemy_endlessflask_06"
+      },
+      "3": {
+        "itemId": 46378,
+        "name": "Flask of Pure Mojo",
+        "icon": "inv_alchemy_endlessflask_03"
+      },
+      "4": {
+        "itemId": 46379,
+        "name": "Flask of Stoneblood",
+        "icon": "inv_alchemy_endlessflask_05"
+      },
+      "5": {
+        "itemId": 40079,
+        "name": "Lesser Flask of Toughness",
+        "icon": "inv_alchemy_endlessflask_02"
+      },
+      "6": {
+        "itemId": 44939,
+        "name": "Lesser Flask of Resistance",
+        "icon": "inv_potion_118"
+      },
+      "7": {
+        "itemId": 22861,
+        "name": "Flask of Blinding Light",
+        "icon": "inv_potion_116"
+      },
+      "8": {
+        "itemId": 22853,
+        "name": "Flask of Mighty Restoration",
+        "icon": "inv_potion_118"
+      },
+      "9": {
+        "itemId": 22866,
+        "name": "Flask of Pure Death",
+        "icon": "inv_potion_115"
+      },
+      "10": {
+        "itemId": 22854,
+        "name": "Flask of Relentless Assault",
+        "icon": "inv_potion_117"
+      },
+      "11": {
+        "itemId": 13512,
+        "name": "Flask of Supreme Power",
+        "icon": "inv_potion_41"
+      },
+      "12": {
+        "itemId": 22851,
+        "name": "Flask of Fortification",
+        "icon": "inv_potion_119"
+      },
+      "13": {
+        "itemId": 33208,
+        "name": "Flask of Chromatic Wonder",
+        "icon": "inv_potion_48"
+      }
+    },
+    "BattleElixir": {
+      "1": {
+        "itemId": 44325,
+        "name": "Elixir of Accuracy",
+        "icon": "inv_potion_61"
+      },
+      "2": {
+        "itemId": 44330,
+        "name": "Elixir of Armor Piercing",
+        "icon": "inv_alchemy_potion_06"
+      },
+      "3": {
+        "itemId": 44327,
+        "name": "Elixir of Deadly Strikes",
+        "icon": "inv_alchemy_potion_02"
+      },
+      "4": {
+        "itemId": 44329,
+        "name": "Elixir of Expertise",
+        "icon": "inv_alchemy_potion_01"
+      },
+      "5": {
+        "itemId": 44331,
+        "name": "Elixir of Lightning Speed",
+        "icon": "inv_alchemy_potion_04"
+      },
+      "6": {
+        "itemId": 39666,
+        "name": "Elixir of Mighty Agility",
+        "icon": "inv_potion_162"
+      },
+      "7": {
+        "itemId": 40073,
+        "name": "Elixir of Mighty Strength",
+        "icon": "inv_potion_165"
+      },
+      "8": {
+        "itemId": 40076,
+        "name": "Guru's Elixir",
+        "icon": "inv_potion_112"
+      },
+      "9": {
+        "itemId": 40070,
+        "name": "Spellpower Elixir",
+        "icon": "inv_alchemy_potion_05"
+      },
+      "10": {
+        "itemId": 40068,
+        "name": "Wrath Elixir",
+        "icon": "inv_potion_114"
+      },
+      "11": {
+        "itemId": 28103,
+        "name": "Adept's Elixir",
+        "icon": "inv_potion_96"
+      },
+      "12": {
+        "itemId": 9224,
+        "name": "Elixir of Demonslaying",
+        "icon": "inv_potion_27"
+      },
+      "13": {
+        "itemId": 22831,
+        "name": "Elixir of Major Agility",
+        "icon": "inv_potion_127"
+      },
+      "14": {
+        "itemId": 22833,
+        "name": "Elixir of Major Firepower",
+        "icon": "inv_potion_146"
+      },
+      "15": {
+        "itemId": 22827,
+        "name": "Elixir of Major Frost Power",
+        "icon": "inv_potion_148"
+      },
+      "16": {
+        "itemId": 22835,
+        "name": "Elixir of Major Shadow Power",
+        "icon": "inv_potion_145"
+      },
+      "17": {
+        "itemId": 22824,
+        "name": "Elixir of Major Strength",
+        "icon": "inv_potion_147"
+      },
+      "18": {
+        "itemId": 28104,
+        "name": "Elixir of Mastery",
+        "icon": "inv_potion_111"
+      },
+      "19": {
+        "itemId": 13452,
+        "name": "Elixir of the Mongoose",
+        "icon": "inv_potion_32"
+      },
+      "20": {
+        "itemId": 31679,
+        "name": "Fel Strength Elixir",
+        "icon": "inv_potion_152"
+      },
+      "21": {
+        "itemId": 13454,
+        "name": "Greater Arcane Elixir",
+        "icon": "inv_potion_25"
+      }
+    },
+    "GuardianElixir": {
+      "1": {
+        "itemId": 44328,
+        "name": "Elixir of Mighty Defense",
+        "icon": "inv_alchemy_potion_03"
+      },
+      "2": {
+        "itemId": 40078,
+        "name": "Elixir of Mighty Fortitude",
+        "icon": "inv_potion_164"
+      },
+      "3": {
+        "itemId": 40109,
+        "name": "Elixir of Mighty Mageblood",
+        "icon": "inv_potion_129"
+      },
+      "4": {
+        "itemId": 44332,
+        "name": "Elixir of Mighty Thoughts",
+        "icon": "inv_potion_161"
+      },
+      "5": {
+        "itemId": 40097,
+        "name": "Elixir of Protection",
+        "icon": "inv_alchemy_potion_empty"
+      },
+      "6": {
+        "itemId": 40072,
+        "name": "Elixir of Spirit",
+        "icon": "inv_potion_02"
+      },
+      "7": {
+        "itemId": 9088,
+        "name": "Gift of Arthas",
+        "icon": "inv_potion_28"
+      },
+      "8": {
+        "itemId": 32067,
+        "name": "Elixir of Draenic Wisdom",
+        "icon": "inv_potion_155"
+      },
+      "9": {
+        "itemId": 32068,
+        "name": "Elixir of Ironskin",
+        "icon": "inv_potion_159"
+      },
+      "10": {
+        "itemId": 22834,
+        "name": "Elixir of Major Defense",
+        "icon": "inv_potion_122"
+      },
+      "11": {
+        "itemId": 32062,
+        "name": "Elixir of Major Fortitude",
+        "icon": "inv_potion_158"
+      },
+      "12": {
+        "itemId": 22840,
+        "name": "Elixir of Major Mageblood",
+        "icon": "inv_potion_151"
+      }
+    },
+    "Food": {
+      "1": {
+        "itemId": 43015,
+        "name": "Fish Feast",
+        "icon": "inv_misc_fish_52"
+      },
+      "2": {
+        "itemId": 34753,
+        "name": "Great Feast",
+        "icon": "ability_hunter_pet_boar"
+      },
+      "3": {
+        "itemId": 42999,
+        "name": "Blackened Dragonfin",
+        "icon": "inv_misc_food_142_fish"
+      },
+      "4": {
+        "itemId": 42995,
+        "name": "Hearty Rhino",
+        "icon": "inv_misc_food_115_condorsoup"
+      },
+      "5": {
+        "itemId": 34754,
+        "name": "Mega Mammoth Meal",
+        "icon": "inv_misc_food_108_meadcaribou"
+      },
+      "6": {
+        "itemId": 34756,
+        "name": "Spiced Worm Burger",
+        "icon": "inv_misc_food_65"
+      },
+      "7": {
+        "itemId": 42994,
+        "name": "Rhinolicious Wormsteak",
+        "icon": "inv_misc_food_47"
+      },
+      "8": {
+        "itemId": 34769,
+        "name": "Imperial Manta Steak",
+        "icon": "inv_misc_food_121_buttermeat"
+      },
+      "9": {
+        "itemId": 42996,
+        "name": "Snapper Extreme",
+        "icon": "inv_misc_food_129_fish"
+      },
+      "10": {
+        "itemId": 34758,
+        "name": "Mighty Rhino Dogs",
+        "icon": "inv_misc_food_66"
+      },
+      "11": {
+        "itemId": 34767,
+        "name": "Firecracker Salmon",
+        "icon": "inv_misc_food_141_fish"
+      },
+      "12": {
+        "itemId": 42998,
+        "name": "Cuttlesteak",
+        "icon": "inv_misc_food_133_meat"
+      },
+      "13": {
+        "itemId": 43000,
+        "name": "Dragonfin Filet",
+        "icon": "inv_misc_food_75"
+      },
+      "14": {
+        "itemId": 27657,
+        "name": "Blackened Basilisk",
+        "icon": "inv_misc_food_86_basilisk"
+      },
+      "15": {
+        "itemId": 27664,
+        "name": "Grilled Mudfish",
+        "icon": "inv_misc_food_78"
+      },
+      "16": {
+        "itemId": 27655,
+        "name": "Ravager Dog",
+        "icon": "inv_misc_food_53"
+      },
+      "17": {
+        "itemId": 27658,
+        "name": "Roasted Clefthoof",
+        "icon": "inv_misc_food_60"
+      },
+      "18": {
+        "itemId": 33825,
+        "name": "Skullfish Soup",
+        "icon": "inv_misc_food_63"
+      },
+      "19": {
+        "itemId": 33872,
+        "name": "Spicy Hot Talbuk",
+        "icon": "inv_misc_food_84_roastclefthoof"
+      },
+      "20": {
+        "itemId": 33052,
+        "name": "Fisherman's Feast",
+        "icon": "inv_misc_food_88_ravagernuggets"
+      }
+    },
+    "PetFood": {
+      "1": {
+        "itemId": 43005,
+        "name": "Spiced Mammoth Treats",
+        "icon": "inv_misc_food_123_roast"
+      }
+    },
+    "Potions": {
+      "1": {
+        "itemId": 33447,
+        "name": "Runic Healing Potion",
+        "icon": "inv_alchemy_elixir_05"
+      },
+      "2": {
+        "itemId": 33448,
+        "name": "Runic Mana Potion",
+        "icon": "inv_alchemy_elixir_02"
+      },
+      "3": {
+        "itemId": 40093,
+        "name": "Indestructible Potion",
+        "icon": "inv_alchemy_elixir_empty"
+      },
+      "4": {
+        "itemId": 40211,
+        "name": "Potion of Speed",
+        "icon": "inv_alchemy_elixir_04"
+      },
+      "5": {
+        "itemId": 40212,
+        "name": "Potion of Wild Magic",
+        "icon": "inv_alchemy_elixir_01"
+      },
+      "6": {
+        "itemId": 22839,
+        "name": "Destruction Potion",
+        "icon": "inv_potion_107"
+      },
+      "7": {
+        "itemId": 22832,
+        "name": "Super Mana Potion",
+        "icon": "inv_potion_137"
+      },
+      "8": {
+        "itemId": 22838,
+        "name": "Haste Potion",
+        "icon": "inv_potion_108"
+      },
+      "9": {
+        "itemId": 13442,
+        "name": "Mighty Rage Potion",
+        "icon": "inv_potion_41"
+      },
+      "10": {
+        "itemId": 31677,
+        "name": "Fel Mana Potion",
+        "icon": "inv_potion_138"
+      },
+      "11": {
+        "itemId": 22828,
+        "name": "Insane Strength Potion",
+        "icon": "inv_potion_109"
+      },
+      "12": {
+        "itemId": 22849,
+        "name": "Ironshield Potion",
+        "icon": "inv_potion_133"
+      },
+      "13": {
+        "itemId": 22837,
+        "name": "Heroic Potion",
+        "icon": "inv_potion_106"
+      },
+      "14": {
+        "itemId": 42545,
+        "name": "Runic Mana Injector",
+        "icon": "inv_gizmo_runicmanainjector"
+      },
+      "15": {
+        "itemId": 41166,
+        "name": "Runic Healing Injector",
+        "icon": "inv_gizmo_runichealthinjector"
+      }
+    }
+  },
+  "glyphs": {
+    "1": {
+      "40896": {
+        "kind": "major",
+        "name": "Glyph of Frenzied Regeneration",
+        "description": "While Frenzied Regeneration is active, healing effects on you are 20% more powerful.",
+        "icon": "ability_bullrush"
+      },
+      "40897": {
+        "kind": "major",
+        "name": "Glyph of Maul",
+        "description": "Your Maul ability now hits 1 additional target.",
+        "icon": "ability_druid_maul"
+      },
+      "40899": {
+        "kind": "major",
+        "name": "Glyph of Growling",
+        "description": "Increases the chance for your Growl ability to work successfully by 8%.",
+        "icon": "ability_physical_taunt"
+      },
+      "40900": {
+        "kind": "major",
+        "name": "Glyph of Mangle",
+        "description": "Increases the damage done by Mangle by 10%.",
+        "icon": "ability_druid_mangle2"
+      },
+      "40901": {
+        "kind": "major",
+        "name": "Glyph of Shred",
+        "description": "Each time you Shred, the duration of your Rip on the target is extended 2 sec, up to a maximum of 6 sec.",
+        "icon": "spell_shadow_vampiricaura"
+      },
+      "40902": {
+        "kind": "major",
+        "name": "Glyph of Rip",
+        "description": "Increases the duration of your Rip ability by 4 sec.",
+        "icon": "ability_ghoulfrenzy"
+      },
+      "40903": {
+        "kind": "major",
+        "name": "Glyph of Rake",
+        "description": "Your Rake ability prevents targets from fleeing.",
+        "icon": "ability_druid_disembowel"
+      },
+      "40906": {
+        "kind": "major",
+        "name": "Glyph of Swiftmend",
+        "description": "Your Swiftmend ability no longer consumes a Rejuvenation or Regrowth effect from the target.",
+        "icon": "inv_relics_idolofrejuvenation"
+      },
+      "40908": {
+        "kind": "major",
+        "name": "Glyph of Innervate",
+        "description": "Innervate now grants the caster 45% of <dfn title=\"her\">his</dfn> base mana pool over 10 sec in addition to the normal effects of Innervate.",
+        "icon": "spell_nature_lightning"
+      },
+      "40909": {
+        "kind": "major",
+        "name": "Glyph of Rebirth",
+        "description": "Players resurrected by Rebirth are returned to life with 100% health.",
+        "icon": "spell_nature_reincarnation"
+      },
+      "40912": {
+        "kind": "major",
+        "name": "Glyph of Regrowth",
+        "description": "Increases the healing of your Regrowth spell by 20% if your Regrowth effect is still active on the target.",
+        "icon": "spell_nature_resistnature"
+      },
+      "40913": {
+        "kind": "major",
+        "name": "Glyph of Rejuvenation",
+        "description": "While your Rejuvenation targets are below 50% health, you will heal them for an additional 50% health.",
+        "icon": "spell_nature_rejuvenation"
+      },
+      "40914": {
+        "kind": "major",
+        "name": "Glyph of Healing Touch",
+        "description": "Decreases the cast time of Healing Touch by 1.5 sec, the mana cost by 25%, and the amount healed by 50%.",
+        "icon": "spell_nature_healingtouch"
+      },
+      "40915": {
+        "kind": "major",
+        "name": "Glyph of Lifebloom",
+        "description": "Increases the duration of Lifebloom by 1 sec.",
+        "icon": "inv_misc_herb_felblossom"
+      },
+      "40916": {
+        "kind": "major",
+        "name": "Glyph of Starfire",
+        "description": "Your Starfire ability increases the duration of your Moonfire effect on the target by 3 sec, up to a maximum of 9 additional seconds.",
+        "icon": "spell_arcane_starfire"
+      },
+      "40919": {
+        "kind": "major",
+        "name": "Glyph of Insect Swarm",
+        "description": "Increases the damage of your Insect Swarm ability by 30%, but it no longer affects your victim's chance to hit.",
+        "icon": "spell_nature_insectswarm"
+      },
+      "40920": {
+        "kind": "major",
+        "name": "Glyph of Hurricane",
+        "description": "Your Hurricane ability now also slows the movement speed of its victims by 20%.",
+        "icon": "spell_nature_cyclone"
+      },
+      "40921": {
+        "kind": "major",
+        "name": "Glyph of Starfall",
+        "description": "Reduces the cooldown of Starfall by 30 sec.",
+        "icon": "ability_druid_starfall"
+      },
+      "40922": {
+        "kind": "major",
+        "name": "Glyph of Wrath",
+        "description": "Reduces the pushback suffered from damaging attacks while casting your Wrath spell by 50%.",
+        "icon": "spell_nature_abolishmagic"
+      },
+      "40923": {
+        "kind": "major",
+        "name": "Glyph of Moonfire",
+        "description": "Increases the periodic damage of your Moonfire ability by 75%, but initial damage is decreased by 90%.",
+        "icon": "spell_nature_starfall"
+      },
+      "40924": {
+        "kind": "major",
+        "name": "Glyph of Entangling Roots",
+        "description": "Increases the damage your Entangling Roots victims can take before the Entangling Roots automatically breaks by 20%.",
+        "icon": "spell_nature_stranglevines"
+      },
+      "43316": {
+        "kind": "minor",
+        "name": "Glyph of Aquatic Form",
+        "description": "Increases your swim speed by 50% while in Aquatic Form.",
+        "icon": "ability_druid_aquaticform"
+      },
+      "43331": {
+        "kind": "minor",
+        "name": "Glyph of Unburdened Rebirth",
+        "description": "Your Rebirth spell no longer requires a reagent.",
+        "icon": "spell_nature_reincarnation"
+      },
+      "43332": {
+        "kind": "minor",
+        "name": "Glyph of Thorns",
+        "description": "Increases the duration of your Thorns ability by 50 min when cast on yourself.",
+        "icon": "spell_nature_thorns"
+      },
+      "43334": {
+        "kind": "minor",
+        "name": "Glyph of Challenging Roar",
+        "description": "Reduces the cooldown of your Challenging Roar ability by 30 sec.",
+        "icon": "ability_druid_challangingroar"
+      },
+      "43335": {
+        "kind": "minor",
+        "name": "Glyph of the Wild",
+        "description": "Mana cost of your Mark of the Wild and Gift of the Wild spells reduced by 50%.",
+        "icon": "spell_nature_regeneration"
+      },
+      "43674": {
+        "kind": "minor",
+        "name": "Glyph of Dash",
+        "description": "Reduces the cooldown of your Dash ability by 20%.",
+        "icon": "ability_druid_dash"
+      },
+      "44922": {
+        "kind": "minor",
+        "name": "Glyph of Typhoon",
+        "description": "Reduces the cost of your Typhoon spell by 8% and increases its radius by 10 yards, but it no longer knocks enemies back.",
+        "icon": "ability_druid_typhoon"
+      },
+      "44928": {
+        "kind": "major",
+        "name": "Glyph of Focus",
+        "description": "Increases the damage done by Starfall by 10%, but decreases its radius by 50%.",
+        "icon": "ability_druid_starfall"
+      },
+      "45601": {
+        "kind": "major",
+        "name": "Glyph of Berserk",
+        "description": "Increases the duration of Berserk by 5 sec.",
+        "icon": "ability_druid_berserk"
+      },
+      "45602": {
+        "kind": "major",
+        "name": "Glyph of Wild Growth",
+        "description": "Wild Growth can affect 1 additional target.",
+        "icon": "ability_druid_flourish"
+      },
+      "45603": {
+        "kind": "major",
+        "name": "Glyph of Nourish",
+        "description": "Your Nourish heals an additional 6% for each of your heal over time effects present on the target.",
+        "icon": "ability_druid_nourish"
+      },
+      "45604": {
+        "kind": "major",
+        "name": "Glyph of Savage Roar",
+        "description": "Your Savage Roar ability grants an additional 3% bonus damage done.",
+        "icon": "ability_druid_skinteeth"
+      },
+      "45622": {
+        "kind": "major",
+        "name": "Glyph of Monsoon",
+        "description": "Reduces the cooldown of your Typhoon spell by 3 sec.",
+        "icon": "ability_druid_typhoon"
+      },
+      "45623": {
+        "kind": "major",
+        "name": "Glyph of Barkskin",
+        "description": "Reduces the chance you'll be critically hit by 25% while Barkskin is active.",
+        "icon": "spell_nature_stoneclawtotem"
+      },
+      "46372": {
+        "kind": "major",
+        "name": "Glyph of Survival Instincts",
+        "description": "Your Survival Instincts ability grants an additional 15% of your maximum health.",
+        "icon": "ability_druid_tigersroar"
+      },
+      "48720": {
+        "kind": "major",
+        "name": "Glyph of Claw",
+        "description": "Reduces the energy cost of your Claw ability by 5.",
+        "icon": "ability_druid_rake"
+      },
+      "50125": {
+        "kind": "major",
+        "name": "Glyph of Rapid Rejuvenation",
+        "description": "Your haste now reduces the time between the periodic healing ticks of your Rejuvenation spell.",
+        "icon": "spell_nature_rejuvenation"
+      },
+      "206580": {
+        "kind": "major",
+        "name": "Glyph of Omen of Clarity",
+        "description": "Your Omen of Clarity talent has a 100% chance to be triggered by successfully casting Faerie Fire (Feral). Does not trigger on players or player-controlled pets.",
+        "icon": "spell_nature_faeriefire"
+      }
+    },
+    "2": {
+      "42897": {
+        "kind": "major",
+        "name": "Glyph of Aimed Shot",
+        "description": "Reduces the cooldown of your Aimed Shot ability by 2 sec.",
+        "icon": "inv_spear_07"
+      },
+      "42898": {
+        "kind": "major",
+        "name": "Glyph of Arcane Shot",
+        "description": "Your Arcane Shot refunds 20% of its mana cost if the target has one of your Stings active on it.",
+        "icon": "ability_impalingbolt"
+      },
+      "42899": {
+        "kind": "major",
+        "name": "Glyph of the Beast",
+        "description": "Increases the attack power bonus of Aspect of the Beast for you and your pet by an additional 2%.",
+        "icon": "ability_mount_pinktiger"
+      },
+      "42900": {
+        "kind": "major",
+        "name": "Glyph of Mending",
+        "description": "Increases the healing done by your Mend Pet ability by 40%.",
+        "icon": "ability_hunter_mendpet"
+      },
+      "42901": {
+        "kind": "major",
+        "name": "Glyph of Aspect of the Viper",
+        "description": "Increases the amount of mana gained from attacks while Aspect of the Viper is active by 10%.",
+        "icon": "ability_hunter_aspectoftheviper"
+      },
+      "42902": {
+        "kind": "major",
+        "name": "Glyph of Bestial Wrath",
+        "description": "Decreases the cooldown of Bestial Wrath by 20 sec.",
+        "icon": "ability_druid_ferociousbite"
+      },
+      "42903": {
+        "kind": "major",
+        "name": "Glyph of Deterrence",
+        "description": "Decreases the cooldown of Deterrence by 10 sec.",
+        "icon": "ability_whirlwind"
+      },
+      "42904": {
+        "kind": "major",
+        "name": "Glyph of Disengage",
+        "description": "Decreases the cooldown of Disengage by 5 sec.",
+        "icon": "ability_rogue_feint"
+      },
+      "42905": {
+        "kind": "major",
+        "name": "Glyph of Freezing Trap",
+        "description": "When your Freezing Trap breaks, the victim's movement speed is reduced by 30% for 4 sec.",
+        "icon": "spell_frost_chainsofice"
+      },
+      "42906": {
+        "kind": "major",
+        "name": "Glyph of Frost Trap",
+        "description": "Increases the radius of the effect from your Frost Trap by 2 yards.",
+        "icon": "spell_frost_freezingbreath"
+      },
+      "42907": {
+        "kind": "major",
+        "name": "Glyph of Hunter's Mark",
+        "description": "Increases the attack power bonus of your Hunter's Mark by 20%.",
+        "icon": "ability_hunter_snipershot"
+      },
+      "42908": {
+        "kind": "major",
+        "name": "Glyph of Immolation Trap",
+        "description": "Decreases the duration of the effect from your Immolation Trap by 6 sec., but damage while active is increased by 100%.",
+        "icon": "spell_fire_flameshock"
+      },
+      "42909": {
+        "kind": "major",
+        "name": "Glyph of the Hawk",
+        "description": "Increases the haste bonus of the Improved Aspect of the Hawk effect by an additional 6%.",
+        "icon": "spell_nature_ravenform"
+      },
+      "42910": {
+        "kind": "major",
+        "name": "Glyph of Multi-Shot",
+        "description": "Decreases the cooldown of Multi-Shot by 1 sec.",
+        "icon": "ability_upgrademoonglaive"
+      },
+      "42911": {
+        "kind": "major",
+        "name": "Glyph of Rapid Fire",
+        "description": "Increases the haste from Rapid Fire by an additional 8%.",
+        "icon": "ability_hunter_runningshot"
+      },
+      "42912": {
+        "kind": "major",
+        "name": "Glyph of Serpent Sting",
+        "description": "Increases the duration of your Serpent Sting by 6 sec.",
+        "icon": "ability_hunter_quickshot"
+      },
+      "42913": {
+        "kind": "major",
+        "name": "Glyph of Snake Trap",
+        "description": "Snakes from your Snake Trap take 90% reduced damage from area of effect spells.",
+        "icon": "ability_hunter_snaketrap"
+      },
+      "42914": {
+        "kind": "major",
+        "name": "Glyph of Steady Shot",
+        "description": "Increases the damage dealt by Steady Shot by 10% when your target is afflicted with Serpent Sting.",
+        "icon": "ability_hunter_steadyshot"
+      },
+      "42915": {
+        "kind": "major",
+        "name": "Glyph of Trueshot Aura",
+        "description": "While your Trueshot Aura is active, you have 10% increased critical strike chance on your Aimed Shot.",
+        "icon": "ability_trueshot"
+      },
+      "42916": {
+        "kind": "major",
+        "name": "Glyph of Volley",
+        "description": "Decreases the mana cost of Volley by 20%.",
+        "icon": "ability_marksmanship"
+      },
+      "42917": {
+        "kind": "major",
+        "name": "Glyph of Wyvern Sting",
+        "description": "Decreases the cooldown of your Wyvern Sting by 6 sec.",
+        "icon": "inv_spear_02"
+      },
+      "43338": {
+        "kind": "minor",
+        "name": "Glyph of Revive Pet",
+        "description": "Reduces the pushback suffered from damaging attacks while casting Revive Pet by 100%.",
+        "icon": "ability_hunter_beastsoothe"
+      },
+      "43350": {
+        "kind": "minor",
+        "name": "Glyph of Mend Pet",
+        "description": "Your Mend Pet spell increases your pet's happiness slightly.",
+        "icon": "ability_hunter_mendpet"
+      },
+      "43351": {
+        "kind": "minor",
+        "name": "Glyph of Feign Death",
+        "description": "Reduces the cooldown of your Feign Death spell by 5 sec.",
+        "icon": "ability_rogue_feigndeath"
+      },
+      "43354": {
+        "kind": "minor",
+        "name": "Glyph of Possessed Strength",
+        "description": "Increases the damage your pet inflicts while using Eyes of the Beast by 50%.",
+        "icon": "ability_eyeoftheowl"
+      },
+      "43355": {
+        "kind": "minor",
+        "name": "Glyph of the Pack",
+        "description": "Increases the range of your Aspect of the Pack ability by 15 yards.",
+        "icon": "ability_mount_jungletiger"
+      },
+      "43356": {
+        "kind": "minor",
+        "name": "Glyph of Scare Beast",
+        "description": "Reduces the pushback suffered from damaging attacks while casting Scare Beast by 75%.",
+        "icon": "ability_druid_cower"
+      },
+      "45625": {
+        "kind": "major",
+        "name": "Glyph of Chimera Shot",
+        "description": "Reduces the cooldown of Chimera Shot by 1 sec.",
+        "icon": "ability_hunter_chimerashot2"
+      },
+      "45731": {
+        "kind": "major",
+        "name": "Glyph of Explosive Shot",
+        "description": "Increases the critical strike chance of Explosive Shot by 4%.",
+        "icon": "ability_hunter_explosiveshot"
+      },
+      "45732": {
+        "kind": "major",
+        "name": "Glyph of Kill Shot",
+        "description": "Reduces the cooldown of Kill Shot by 6 sec.",
+        "icon": "ability_hunter_assassinate2"
+      },
+      "45733": {
+        "kind": "major",
+        "name": "Glyph of Explosive Trap",
+        "description": "The periodic damage from your Explosive Trap can now be critical strikes.",
+        "icon": "spell_fire_selfdestruct"
+      },
+      "45734": {
+        "kind": "major",
+        "name": "Glyph of Scatter Shot",
+        "description": "Increases the range of Scatter Shot by 3 yards.",
+        "icon": "ability_golemstormbolt"
+      },
+      "45735": {
+        "kind": "major",
+        "name": "Glyph of Raptor Strike",
+        "description": "Reduces damage taken by 20% for 3 sec after using Raptor Strike.",
+        "icon": "ability_meleedamage"
+      }
+    },
+    "3": {
+      "42734": {
+        "kind": "major",
+        "name": "Glyph of Arcane Explosion",
+        "description": "Reduces mana cost of Arcane Explosion by 10%.",
+        "icon": "spell_nature_wispsplode"
+      },
+      "42735": {
+        "kind": "major",
+        "name": "Glyph of Arcane Missiles",
+        "description": "Increases the critical strike damage bonus of Arcane Missiles by 25%.",
+        "icon": "spell_nature_starfall"
+      },
+      "42736": {
+        "kind": "major",
+        "name": "Glyph of Arcane Power",
+        "description": "Increases the duration of Arcane Power by 3 sec.",
+        "icon": "spell_nature_lightning"
+      },
+      "42737": {
+        "kind": "major",
+        "name": "Glyph of Blink",
+        "description": "Increases the distance you travel with the Blink spell by 5 yards.",
+        "icon": "spell_arcane_blink"
+      },
+      "42738": {
+        "kind": "major",
+        "name": "Glyph of Evocation",
+        "description": "Your Evocation ability also causes you to regain 60% of your health over its duration.",
+        "icon": "spell_nature_purge"
+      },
+      "42739": {
+        "kind": "major",
+        "name": "Glyph of Fireball",
+        "description": "Reduces the casting time of your Fireball spell by 0.15 sec, but removes the damage over time effect.",
+        "icon": "spell_fire_flamebolt"
+      },
+      "42740": {
+        "kind": "major",
+        "name": "Glyph of Fire Blast",
+        "description": "Increases the critical strike chance of Fire Blast by 50% when the target is stunned or incapacitated.",
+        "icon": "spell_fire_fireball"
+      },
+      "42741": {
+        "kind": "major",
+        "name": "Glyph of Frost Nova",
+        "description": "Your Frost Nova targets can take an additional 20% damage before the Frost Nova effect automatically breaks.",
+        "icon": "spell_frost_frostnova"
+      },
+      "42742": {
+        "kind": "major",
+        "name": "Glyph of Frostbolt",
+        "description": "Increases the damage dealt by Frostbolt by 5%, but removes the slowing effect.",
+        "icon": "spell_frost_frostbolt02"
+      },
+      "42743": {
+        "kind": "major",
+        "name": "Glyph of Ice Armor",
+        "description": "Your Ice Armor and Frost Armor spells grant an additional 50% armor and resistance.",
+        "icon": "spell_frost_frostarmor02"
+      },
+      "42744": {
+        "kind": "major",
+        "name": "Glyph of Ice Block",
+        "description": "Your Frost Nova cooldown is now reset every time you use Ice Block.",
+        "icon": "spell_frost_frost"
+      },
+      "42745": {
+        "kind": "major",
+        "name": "Glyph of Ice Lance",
+        "description": "Your Ice Lance now causes 4 times damage against frozen targets higher level than you instead of triple damage.",
+        "icon": "spell_frost_frostblast"
+      },
+      "42746": {
+        "kind": "major",
+        "name": "Glyph of Icy Veins",
+        "description": "Your Icy Veins ability also removes all movement slowing and cast time slowing effects.",
+        "icon": "spell_frost_coldhearted"
+      },
+      "42747": {
+        "kind": "major",
+        "name": "Glyph of Scorch",
+        "description": "Increases the damage of your Scorch spell by 20%.",
+        "icon": "spell_fire_soulburn"
+      },
+      "42748": {
+        "kind": "major",
+        "name": "Glyph of Invisibility",
+        "description": "Increases the duration of the Invisibility effect by 10 sec.",
+        "icon": "ability_mage_invisibility"
+      },
+      "42749": {
+        "kind": "major",
+        "name": "Glyph of Mage Armor",
+        "description": "Your Mage Armor spell grants an additional 20% mana regeneration while casting.",
+        "icon": "spell_magearmor"
+      },
+      "42750": {
+        "kind": "major",
+        "name": "Glyph of Mana Gem",
+        "description": "Increases the mana received from using a mana gem by 40%.",
+        "icon": "inv_misc_gem_stone_01"
+      },
+      "42751": {
+        "kind": "major",
+        "name": "Glyph of Molten Armor",
+        "description": "Your Molten Armor grants an additional 20% of your spirit as critical strike rating.",
+        "icon": "ability_mage_moltenarmor"
+      },
+      "42752": {
+        "kind": "major",
+        "name": "Glyph of Polymorph",
+        "description": "Your Polymorph spell also removes all damage over time effects from the target.",
+        "icon": "spell_nature_polymorph"
+      },
+      "42753": {
+        "kind": "major",
+        "name": "Glyph of Remove Curse",
+        "description": "Your Remove Curse spell also makes the target immune to all curses for 4 sec.",
+        "icon": "spell_nature_removecurse"
+      },
+      "42754": {
+        "kind": "major",
+        "name": "Glyph of Water Elemental",
+        "description": "Reduces the cooldown of your Summon Water Elemental spell by 30 sec.",
+        "icon": "spell_frost_summonwaterelemental_2"
+      },
+      "43339": {
+        "kind": "minor",
+        "name": "Glyph of Arcane Intellect",
+        "description": "Reduces the mana cost of your Arcane Intellect and Arcane Brilliance spells by 50%.",
+        "icon": "spell_holy_magicalsentry"
+      },
+      "43357": {
+        "kind": "minor",
+        "name": "Glyph of Fire Ward",
+        "description": "You have an additional 5% chance to reflect Fire spells while your Fire Ward is active.",
+        "icon": "spell_fire_firearmor"
+      },
+      "43359": {
+        "kind": "minor",
+        "name": "Glyph of Frost Armor",
+        "description": "Increases the duration of your Frost Armor and Ice Armor spells by 30 min.",
+        "icon": "spell_frost_frostarmor02"
+      },
+      "43360": {
+        "kind": "minor",
+        "name": "Glyph of Frost Ward",
+        "description": "You have an additional 5% chance to reflect Frost spells while your Frost Ward is active.",
+        "icon": "spell_frost_frostward"
+      },
+      "43361": {
+        "kind": "minor",
+        "name": "Glyph of the Penguin",
+        "description": "Your Polymorph: Sheep spell polymorphs the target into a penguin instead.",
+        "icon": "inv_misc_penguinpet"
+      },
+      "43364": {
+        "kind": "minor",
+        "name": "Glyph of Slow Fall",
+        "description": "Your Slow Fall spell no longer requires a reagent.",
+        "icon": "spell_magic_featherfall"
+      },
+      "44684": {
+        "kind": "major",
+        "name": "Glyph of Frostfire",
+        "description": "Increases the initial damage dealt by Frostfire Bolt by 2% and its critical strike chance by 2%.",
+        "icon": "ability_mage_frostfirebolt"
+      },
+      "44920": {
+        "kind": "minor",
+        "name": "Glyph of Blast Wave",
+        "description": "The mana cost of your Blast Wave spell is reduced by 15%, but it no longer knocks enemies back.",
+        "icon": "spell_holy_excorcism_02"
+      },
+      "44955": {
+        "kind": "major",
+        "name": "Glyph of Arcane Blast",
+        "description": "Increases the damage from your Arcane Blast buff by 3%.",
+        "icon": "spell_arcane_blast"
+      },
+      "45736": {
+        "kind": "major",
+        "name": "Glyph of Deep Freeze",
+        "description": "Increases the range of Deep Freeze by 10 yards.",
+        "icon": "ability_mage_deepfreeze"
+      },
+      "45737": {
+        "kind": "major",
+        "name": "Glyph of Living Bomb",
+        "description": "The periodic damage from your Living Bomb can now be critical strikes.",
+        "icon": "ability_mage_livingbomb"
+      },
+      "45738": {
+        "kind": "major",
+        "name": "Glyph of Arcane Barrage",
+        "description": "Reduces the mana cost of Arcane Barrage by 20%.",
+        "icon": "ability_mage_arcanebarrage"
+      },
+      "45739": {
+        "kind": "major",
+        "name": "Glyph of Mirror Image",
+        "description": "Your Mirror Image spell now creates a 4th copy.",
+        "icon": "spell_magic_lesserinvisibilty"
+      },
+      "45740": {
+        "kind": "major",
+        "name": "Glyph of Ice Barrier",
+        "description": "Increases the amount of damage absorbed by your Ice Barrier by 30%.",
+        "icon": "spell_ice_lament"
+      },
+      "50045": {
+        "kind": "major",
+        "name": "Glyph of Eternal Water",
+        "description": "Your Summon Water Elemental now lasts indefinitely, but your Water Elemental can no longer cast Freeze.",
+        "icon": "spell_frost_summonwaterelemental_2"
+      }
+    },
+    "4": {
+      "41092": {
+        "kind": "major",
+        "name": "Glyph of Judgement",
+        "description": "Your Judgements deal 10% more damage.",
+        "icon": "ability_paladin_judgementred"
+      },
+      "41094": {
+        "kind": "major",
+        "name": "Glyph of Seal of Command",
+        "description": "You gain 8% of your base mana each time you use a Judgement with Seal of Command active.",
+        "icon": "ability_warrior_innerrage"
+      },
+      "41095": {
+        "kind": "major",
+        "name": "Glyph of Hammer of Justice",
+        "description": "Increases your Hammer of Justice range by 5 yards.",
+        "icon": "spell_holy_sealofmight"
+      },
+      "41096": {
+        "kind": "major",
+        "name": "Glyph of Spiritual Attunement",
+        "description": "Increases the amount of mana gained from your Spiritual Attunement spell by an additional 2%.",
+        "icon": "spell_holy_revivechampion"
+      },
+      "41097": {
+        "kind": "major",
+        "name": "Glyph of Hammer of Wrath",
+        "description": "Reduces the mana cost of Hammer of Wrath by 100%.",
+        "icon": "ability_thunderclap"
+      },
+      "41098": {
+        "kind": "major",
+        "name": "Glyph of Crusader Strike",
+        "description": "Reduces the mana cost of your Crusader Strike ability by 20%.",
+        "icon": "spell_holy_crusaderstrike"
+      },
+      "41099": {
+        "kind": "major",
+        "name": "Glyph of Consecration",
+        "description": "Increases the duration and cooldown of Consecration by 2 sec.",
+        "icon": "spell_holy_innerfire"
+      },
+      "41100": {
+        "kind": "major",
+        "name": "Glyph of Righteous Defense",
+        "description": "Increases the chance for your Righteous Defense and Hand of Reckoning abilities to work successfully by 8% on each target.",
+        "icon": "inv_shoulder_37"
+      },
+      "41101": {
+        "kind": "major",
+        "name": "Glyph of Avenger's Shield",
+        "description": "Your Avenger's Shield hits 2 fewer targets, but for 100% more damage.",
+        "icon": "spell_holy_avengersshield"
+      },
+      "41102": {
+        "kind": "major",
+        "name": "Glyph of Turn Evil",
+        "description": "Reduces the casting time of your Turn Evil spell by 100%, but increases the cooldown by 8 sec.",
+        "icon": "spell_holy_turnundead"
+      },
+      "41103": {
+        "kind": "major",
+        "name": "Glyph of Exorcism",
+        "description": "Increases damage done by Exorcism by 20%.",
+        "icon": "spell_holy_excorcism_02"
+      },
+      "41104": {
+        "kind": "major",
+        "name": "Glyph of Cleansing",
+        "description": "Reduces the mana cost of your Cleanse and Purify spells by 20%.",
+        "icon": "spell_holy_purify"
+      },
+      "41105": {
+        "kind": "major",
+        "name": "Glyph of Flash of Light",
+        "description": "Your Flash of Light has an additional 5% critical strike chance.",
+        "icon": "spell_holy_flashheal"
+      },
+      "41106": {
+        "kind": "major",
+        "name": "Glyph of Holy Light",
+        "description": "Your Holy Light grants 10% of its heal amount to up to 5 friendly targets within 8 yards of the initial target.",
+        "icon": "spell_holy_holybolt"
+      },
+      "41107": {
+        "kind": "major",
+        "name": "Glyph of Avenging Wrath",
+        "description": "Reduces the cooldown of your Hammer of Wrath spell by 50% while Avenging Wrath is active.",
+        "icon": "spell_holy_avenginewrath"
+      },
+      "41108": {
+        "kind": "major",
+        "name": "Glyph of Divinity",
+        "description": "Your Lay on Hands grants twice as much mana as normal and also grants you as much mana as it grants your target.",
+        "icon": "spell_holy_layonhands"
+      },
+      "41109": {
+        "kind": "major",
+        "name": "Glyph of Seal of Wisdom",
+        "description": "While Seal of Wisdom is active, the cost of your healing spells is reduced by 5%.",
+        "icon": "spell_holy_righteousnessaura"
+      },
+      "41110": {
+        "kind": "major",
+        "name": "Glyph of Seal of Light",
+        "description": "While Seal of Light is active, the effect of your healing spells is increased by 5%.",
+        "icon": "spell_holy_healingaura"
+      },
+      "43340": {
+        "kind": "minor",
+        "name": "Glyph of Blessing of Might",
+        "description": "Increases the duration of your Blessing of Might spell by 20 min when cast on yourself.",
+        "icon": "spell_holy_fistofjustice"
+      },
+      "43365": {
+        "kind": "minor",
+        "name": "Glyph of Blessing of Kings",
+        "description": "Reduces the mana cost of your Blessing of Kings and Greater Blessing of Kings spells by 50%.",
+        "icon": "spell_magic_magearmor"
+      },
+      "43366": {
+        "kind": "minor",
+        "name": "Glyph of Blessing of Wisdom",
+        "description": "Increases the duration of your Blessing of Wisdom spell by 20 min when cast on yourself.",
+        "icon": "spell_holy_sealofwisdom"
+      },
+      "43367": {
+        "kind": "minor",
+        "name": "Glyph of Lay on Hands",
+        "description": "Reduces the cooldown of your Lay on Hands spell by 5 min.",
+        "icon": "spell_holy_layonhands"
+      },
+      "43368": {
+        "kind": "minor",
+        "name": "Glyph of Sense Undead",
+        "description": "Damage against Undead increased by 1% while your Sense Undead ability is active.",
+        "icon": "spell_holy_senseundead"
+      },
+      "43369": {
+        "kind": "minor",
+        "name": "Glyph of the Wise",
+        "description": "Reduces the mana cost of your Seal of Wisdom spell by 50%.",
+        "icon": "spell_holy_righteousnessaura"
+      },
+      "43867": {
+        "kind": "major",
+        "name": "Glyph of Holy Wrath",
+        "description": "Reduces the cooldown of your Holy Wrath spell by 15 sec.",
+        "icon": "spell_holy_excorcism"
+      },
+      "43868": {
+        "kind": "major",
+        "name": "Glyph of Seal of Righteousness",
+        "description": "Increases the damage done by Seal of Righteousness by 10%.",
+        "icon": "ability_thunderbolt"
+      },
+      "43869": {
+        "kind": "major",
+        "name": "Glyph of Seal of Vengeance",
+        "description": "Your Seal of Vengeance or Seal of Corruption also grants 10 expertise while active.",
+        "icon": "spell_holy_sealofvengeance"
+      },
+      "45741": {
+        "kind": "major",
+        "name": "Glyph of Beacon of Light",
+        "description": "Increases the duration of Beacon of Light by 30 sec.",
+        "icon": "ability_paladin_beaconoflight"
+      },
+      "45742": {
+        "kind": "major",
+        "name": "Glyph of Hammer of the Righteous",
+        "description": "Your Hammer of the Righteous hits 1 additional target.",
+        "icon": "ability_paladin_hammeroftherighteous"
+      },
+      "45743": {
+        "kind": "major",
+        "name": "Glyph of Divine Storm",
+        "description": "Your Divine Storm now heals for an additional 15% of the damage it causes.",
+        "icon": "ability_paladin_divinestorm"
+      },
+      "45744": {
+        "kind": "major",
+        "name": "Glyph of Shield of Righteousness",
+        "description": "Reduces the mana cost of Shield of Righteousness by 80%.",
+        "icon": "ability_paladin_shieldofvengeance"
+      },
+      "45745": {
+        "kind": "major",
+        "name": "Glyph of Divine Plea",
+        "description": "While Divine Plea is active, you take 3% reduced damage from all sources.",
+        "icon": "spell_holy_aspiration"
+      },
+      "45746": {
+        "kind": "major",
+        "name": "Glyph of Holy Shock",
+        "description": "Reduces the cooldown of Holy Shock by 1 sec.",
+        "icon": "spell_holy_searinglight"
+      },
+      "45747": {
+        "kind": "major",
+        "name": "Glyph of Salvation",
+        "description": "When you cast Hand of Salvation on yourself, it also reduces damage taken by 20%.",
+        "icon": "spell_holy_sealofsalvation"
+      },
+      "204385": {
+        "kind": "major",
+        "name": "Glyph of Reckoning",
+        "description": "Your Hand of Reckoning spell no longer taunts the target and can deal damage to untauntable targets.",
+        "icon": "spell_holy_unyieldingfaith"
+      }
+    },
+    "5": {
+      "42396": {
+        "kind": "major",
+        "name": "Glyph of Circle of Healing",
+        "description": "Your Circle of Healing spell heals 1 additional target.",
+        "icon": "spell_holy_circleofrenewal"
+      },
+      "42397": {
+        "kind": "major",
+        "name": "Glyph of Dispel Magic",
+        "description": "Your Dispel Magic spell also heals your target for 3% of maximum health.",
+        "icon": "spell_holy_dispelmagic"
+      },
+      "42398": {
+        "kind": "major",
+        "name": "Glyph of Fade",
+        "description": "Reduces the cooldown of your Fade spell by 9 sec.",
+        "icon": "spell_magic_lesserinvisibilty"
+      },
+      "42399": {
+        "kind": "major",
+        "name": "Glyph of Fear Ward",
+        "description": "Reduces cooldown and duration of Fear Ward by 60 sec.",
+        "icon": "spell_holy_excorcism"
+      },
+      "42400": {
+        "kind": "major",
+        "name": "Glyph of Flash Heal",
+        "description": "Reduces the mana cost of your Flash Heal by 10%.",
+        "icon": "spell_holy_flashheal"
+      },
+      "42401": {
+        "kind": "major",
+        "name": "Glyph of Holy Nova",
+        "description": "Increases the damage and healing of your Holy Nova spell by an additional 20%.",
+        "icon": "spell_holy_holynova"
+      },
+      "42402": {
+        "kind": "major",
+        "name": "Glyph of Inner Fire",
+        "description": "Increases the armor from your Inner Fire spell by 50%.",
+        "icon": "spell_holy_innerfire"
+      },
+      "42403": {
+        "kind": "major",
+        "name": "Glyph of Lightwell",
+        "description": "Increases the amount healed by your Lightwell by 20%",
+        "icon": "spell_holy_summonlightwell"
+      },
+      "42404": {
+        "kind": "major",
+        "name": "Glyph of Mass Dispel",
+        "description": "Reduces the mana cost of Mass Dispel by 35%.",
+        "icon": "spell_arcane_massdispel"
+      },
+      "42405": {
+        "kind": "major",
+        "name": "Glyph of Mind Control",
+        "description": "Reduces the chance targets will resist or break your Mind Control spell by an additional 17%.",
+        "icon": "spell_shadow_shadowworddominate"
+      },
+      "42406": {
+        "kind": "major",
+        "name": "Glyph of Shadow Word: Pain",
+        "description": "The periodic damage ticks of your Shadow Word: Pain spell restore 1% of your base mana.",
+        "icon": "spell_shadow_shadowwordpain"
+      },
+      "42407": {
+        "kind": "major",
+        "name": "Glyph of Shadow",
+        "description": "While in Shadowform, your non-periodic spell critical strikes increase your spell power by 30% of your Spirit for 10 sec.",
+        "icon": "spell_holy_mindsooth"
+      },
+      "42408": {
+        "kind": "major",
+        "name": "Glyph of Power Word: Shield",
+        "description": "Your Power Word: Shield also heals the target for 20% of the absorption amount.",
+        "icon": "spell_holy_powerwordshield"
+      },
+      "42409": {
+        "kind": "major",
+        "name": "Glyph of Prayer of Healing",
+        "description": "Your Prayer of Healing spell also heals an additional 20% of its initial heal over 6 sec.",
+        "icon": "spell_holy_prayerofhealing02"
+      },
+      "42410": {
+        "kind": "major",
+        "name": "Glyph of Psychic Scream",
+        "description": "Increases the duration of your Psychic Scream by 2 sec. and increases its cooldown by 8 sec.",
+        "icon": "spell_shadow_psychicscream"
+      },
+      "42411": {
+        "kind": "major",
+        "name": "Glyph of Renew",
+        "description": "Reduces the duration of your Renew by 3 sec. but increases the amount healed each tick by 25%.",
+        "icon": "spell_holy_renew"
+      },
+      "42412": {
+        "kind": "major",
+        "name": "Glyph of Scourge Imprisonment",
+        "description": "Reduces the cast time of your Shackle Undead by 1.0 sec.",
+        "icon": "spell_nature_slow"
+      },
+      "42414": {
+        "kind": "major",
+        "name": "Glyph of Shadow Word: Death",
+        "description": "Targets below 35% health take an additional 10% damage from your Shadow Word: Death spell.",
+        "icon": "spell_shadow_demonicfortitude"
+      },
+      "42415": {
+        "kind": "major",
+        "name": "Glyph of Mind Flay",
+        "description": "Increases the damage done by your Mind Flay spell by 10% when your target is afflicted with Shadow Word: Pain.",
+        "icon": "spell_shadow_siphonmana"
+      },
+      "42416": {
+        "kind": "major",
+        "name": "Glyph of Smite",
+        "description": "Your Smite spell inflicts an additional 20% damage against targets afflicted by Holy Fire.",
+        "icon": "spell_holy_holysmite"
+      },
+      "42417": {
+        "kind": "major",
+        "name": "Glyph of Spirit of Redemption",
+        "description": "Increases the duration of Spirit of Redemption by 6 sec.",
+        "icon": "inv_enchant_essenceeternallarge"
+      },
+      "43342": {
+        "kind": "minor",
+        "name": "Glyph of Fading",
+        "description": "Reduces the mana cost of your Fade spell by 30%.",
+        "icon": "spell_magic_lesserinvisibilty"
+      },
+      "43370": {
+        "kind": "minor",
+        "name": "Glyph of Levitate",
+        "description": "Your Levitate spell no longer requires a reagent.",
+        "icon": "spell_holy_layonhands"
+      },
+      "43371": {
+        "kind": "minor",
+        "name": "Glyph of Fortitude",
+        "description": "Reduces the mana cost of your Power Word: Fortitude and Prayer of Fortitude spells by 50%.",
+        "icon": "spell_holy_wordfortitude"
+      },
+      "43372": {
+        "kind": "minor",
+        "name": "Glyph of Shadow Protection",
+        "description": "Increases the duration of your Shadow Protection and Prayer of Shadow Protection spells by 10 min.",
+        "icon": "spell_shadow_antishadow"
+      },
+      "43373": {
+        "kind": "minor",
+        "name": "Glyph of Shackle Undead",
+        "description": "Increases the range of your Shackle Undead spell by 5 yards.",
+        "icon": "spell_nature_slow"
+      },
+      "43374": {
+        "kind": "minor",
+        "name": "Glyph of Shadowfiend",
+        "description": "Receive 5% of your maximum mana if your Shadowfiend dies from damage.",
+        "icon": "spell_shadow_shadowfiend"
+      },
+      "45753": {
+        "kind": "major",
+        "name": "Glyph of Dispersion",
+        "description": "Reduces the cooldown on Dispersion by 45 sec.",
+        "icon": "spell_shadow_dispersion"
+      },
+      "45755": {
+        "kind": "major",
+        "name": "Glyph of Guardian Spirit",
+        "description": "If your Guardian Spirit lasts its entire duration without being triggered, the cooldown is reset to 1 min.",
+        "icon": "spell_holy_guardianspirit"
+      },
+      "45756": {
+        "kind": "major",
+        "name": "Glyph of Penance",
+        "description": "Reduces the cooldown of Penance by 2 sec.",
+        "icon": "spell_holy_penance"
+      },
+      "45757": {
+        "kind": "major",
+        "name": "Glyph of Mind Sear",
+        "description": "Increases the radius of effect on Mind Sear by 5 yards.",
+        "icon": "spell_shadow_mindshear"
+      },
+      "45758": {
+        "kind": "major",
+        "name": "Glyph of Hymn of Hope",
+        "description": "Your Hymn of Hope lasts an additional 2 sec.",
+        "icon": "spell_holy_symbolofhope"
+      },
+      "45760": {
+        "kind": "major",
+        "name": "Glyph of Pain Suppression",
+        "description": "Allows Pain Suppression to be cast while stunned.",
+        "icon": "spell_holy_painsupression"
+      }
+    },
+    "6": {
+      "42954": {
+        "kind": "major",
+        "name": "Glyph of Adrenaline Rush",
+        "description": "Increases the duration of Adrenaline Rush by 5 sec.",
+        "icon": "spell_shadow_shadowworddominate"
+      },
+      "42955": {
+        "kind": "major",
+        "name": "Glyph of Ambush",
+        "description": "Increases the range on Ambush by 5 yards.",
+        "icon": "ability_rogue_ambush"
+      },
+      "42956": {
+        "kind": "major",
+        "name": "Glyph of Backstab",
+        "description": "Your Backstab increases the duration of your Rupture effect on the target by 2 sec, up to a maximum of 6 additional sec.",
+        "icon": "ability_backstab"
+      },
+      "42957": {
+        "kind": "major",
+        "name": "Glyph of Blade Flurry",
+        "description": "Reduces the energy cost of Blade Flurry by 100%.",
+        "icon": "ability_warrior_punishingblow"
+      },
+      "42958": {
+        "kind": "major",
+        "name": "Glyph of Crippling Poison",
+        "description": "Increases the chance to inflict your target with Crippling Poison by an additional 20%.",
+        "icon": "ability_poisonsting"
+      },
+      "42959": {
+        "kind": "major",
+        "name": "Glyph of Deadly Throw",
+        "description": "Increases the slowing effect on Deadly Throw by 20%.",
+        "icon": "inv_throwingknife_06"
+      },
+      "42960": {
+        "kind": "major",
+        "name": "Glyph of Evasion",
+        "description": "Increases the duration of Evasion by 5 sec.",
+        "icon": "spell_shadow_shadowward"
+      },
+      "42961": {
+        "kind": "major",
+        "name": "Glyph of Eviscerate",
+        "description": "Increases the critical strike chance of Eviscerate by 10%.",
+        "icon": "ability_rogue_eviscerate"
+      },
+      "42962": {
+        "kind": "major",
+        "name": "Glyph of Expose Armor",
+        "description": "Increases the duration of Expose Armor by 12 sec.",
+        "icon": "ability_warrior_riposte"
+      },
+      "42963": {
+        "kind": "major",
+        "name": "Glyph of Feint",
+        "description": "Reduces the energy cost of Feint by 20.",
+        "icon": "ability_rogue_feint"
+      },
+      "42964": {
+        "kind": "major",
+        "name": "Glyph of Garrote",
+        "description": "Reduces the duration of your Garrote ability by 3 sec and increases the total damage it deals by 20%.",
+        "icon": "ability_rogue_garrote"
+      },
+      "42965": {
+        "kind": "major",
+        "name": "Glyph of Ghostly Strike",
+        "description": "Increases the damage dealt by Ghostly Strike by 40% and the duration of its effect by 4 sec, but increases its cooldown by 10 sec.",
+        "icon": "spell_shadow_curse"
+      },
+      "42966": {
+        "kind": "major",
+        "name": "Glyph of Gouge",
+        "description": "Reduces the energy cost of Gouge by 15.",
+        "icon": "ability_gouge"
+      },
+      "42967": {
+        "kind": "major",
+        "name": "Glyph of Hemorrhage",
+        "description": "Increases the damage bonus against targets afflicted by Hemorrhage by 40%.",
+        "icon": "spell_shadow_lifedrain"
+      },
+      "42968": {
+        "kind": "major",
+        "name": "Glyph of Preparation",
+        "description": "Your Preparation ability also instantly resets the cooldown of Blade Flurry, Dismantle, and Kick.",
+        "icon": "spell_shadow_antishadow"
+      },
+      "42969": {
+        "kind": "major",
+        "name": "Glyph of Rupture",
+        "description": "Increases the duration of Rupture by 4 sec.",
+        "icon": "ability_rogue_rupture"
+      },
+      "42970": {
+        "kind": "major",
+        "name": "Glyph of Sap",
+        "description": "Increases the duration of Sap by 20 sec.",
+        "icon": "ability_sap"
+      },
+      "42971": {
+        "kind": "major",
+        "name": "Glyph of Vigor",
+        "description": "Vigor grants an additional 10 maximum energy.",
+        "icon": "spell_nature_earthbindtotem"
+      },
+      "42972": {
+        "kind": "major",
+        "name": "Glyph of Sinister Strike",
+        "description": "Your Sinister Strike critical strikes have a 50% chance to add an additional combo point.",
+        "icon": "spell_shadow_ritualofsacrifice"
+      },
+      "42973": {
+        "kind": "major",
+        "name": "Glyph of Slice and Dice",
+        "description": "Increases the duration of Slice and Dice by 3 sec.",
+        "icon": "ability_rogue_slicedice"
+      },
+      "42974": {
+        "kind": "major",
+        "name": "Glyph of Sprint",
+        "description": "Increases the movement speed of your Sprint ability by an additional 30%.",
+        "icon": "ability_rogue_sprint"
+      },
+      "43343": {
+        "kind": "minor",
+        "name": "Glyph of Pick Pocket",
+        "description": "Increases the range of your Pick Pocket ability by 5 yards.",
+        "icon": "inv_misc_bag_11"
+      },
+      "43376": {
+        "kind": "minor",
+        "name": "Glyph of Distract",
+        "description": "Increases the range of your Distract ability by 5 yards.",
+        "icon": "ability_rogue_distract"
+      },
+      "43377": {
+        "kind": "minor",
+        "name": "Glyph of Pick Lock",
+        "description": "Reduces the cast time of your Pick Lock ability by 100%.",
+        "icon": "spell_nature_moonkey"
+      },
+      "43378": {
+        "kind": "minor",
+        "name": "Glyph of Safe Fall",
+        "description": "Increases the distance your Safe Fall ability allows you to fall without taking damage.",
+        "icon": "inv_feather_01"
+      },
+      "43379": {
+        "kind": "minor",
+        "name": "Glyph of Blurred Speed",
+        "description": "Enables you to walk on water while your Sprint ability is active.",
+        "icon": "ability_rogue_sprint"
+      },
+      "43380": {
+        "kind": "minor",
+        "name": "Glyph of Vanish",
+        "description": "Increases your movement speed by 30% while the Vanish effect is active.",
+        "icon": "ability_vanish"
+      },
+      "45761": {
+        "kind": "major",
+        "name": "Glyph of Hunger For Blood",
+        "description": "Increases the bonus damage from Hunger For Blood by 3%.",
+        "icon": "ability_rogue_hungerforblood"
+      },
+      "45762": {
+        "kind": "major",
+        "name": "Glyph of Killing Spree",
+        "description": "Reduces the cooldown on Killing Spree by 45 sec.",
+        "icon": "ability_rogue_murderspree"
+      },
+      "45764": {
+        "kind": "major",
+        "name": "Glyph of Shadow Dance",
+        "description": "Increases the duration of Shadow Dance by 2 sec.",
+        "icon": "ability_rogue_shadowdance"
+      },
+      "45766": {
+        "kind": "major",
+        "name": "Glyph of Fan of Knives",
+        "description": "Increases the damage done by Fan of Knives by 20%.",
+        "icon": "ability_rogue_fanofknives"
+      },
+      "45767": {
+        "kind": "major",
+        "name": "Glyph of Tricks of the Trade",
+        "description": "The bonus damage and threat redirection granted by your Tricks of the Trade ability lasts an additional 4 sec.",
+        "icon": "ability_rogue_tricksofthetrade"
+      },
+      "45768": {
+        "kind": "major",
+        "name": "Glyph of Mutilate",
+        "description": "Reduces the cost of Mutilate by 5 energy.",
+        "icon": "ability_rogue_shadowstrikes"
+      },
+      "45769": {
+        "kind": "major",
+        "name": "Glyph of Cloak of Shadows",
+        "description": "While Cloak of Shadows is active, you take 40% less physical damage.",
+        "icon": "spell_shadow_nethercloak"
+      }
+    },
+    "7": {
+      "41517": {
+        "kind": "major",
+        "name": "Glyph of Chain Heal",
+        "description": "Your Chain Heal heals 1 additional target.",
+        "icon": "spell_nature_healingwavegreater"
+      },
+      "41518": {
+        "kind": "major",
+        "name": "Glyph of Chain Lightning",
+        "description": "Your Chain Lightning strikes 1 additional target.",
+        "icon": "spell_nature_chainlightning"
+      },
+      "41524": {
+        "kind": "major",
+        "name": "Glyph of Lava",
+        "description": "Your Lava Burst spell gains an additional 10% of your spellpower.",
+        "icon": "spell_shaman_lavaburst"
+      },
+      "41526": {
+        "kind": "major",
+        "name": "Glyph of Shocking",
+        "description": "Reduces your global cooldown when casting your shock spells by 0.5 sec.",
+        "icon": "spell_nature_earthshock"
+      },
+      "41527": {
+        "kind": "major",
+        "name": "Glyph of Earthliving Weapon",
+        "description": "Increases the chance for your Earthliving weapon to trigger by 5%.",
+        "icon": "spell_shaman_earthlivingweapon"
+      },
+      "41529": {
+        "kind": "major",
+        "name": "Glyph of Fire Elemental Totem",
+        "description": "Reduces the cooldown of your Fire Elemental Totem by 5 min.",
+        "icon": "spell_fire_elemental_totem"
+      },
+      "41530": {
+        "kind": "major",
+        "name": "Glyph of Fire Nova",
+        "description": "Reduces the cooldown of your Fire Nova spell by 3 seconds.",
+        "icon": "spell_fire_sealoffire"
+      },
+      "41531": {
+        "kind": "major",
+        "name": "Glyph of Flame Shock",
+        "description": "Increases the critical strike damage bonus of your Flame Shock damage by 60%.",
+        "icon": "spell_fire_flameshock"
+      },
+      "41532": {
+        "kind": "major",
+        "name": "Glyph of Flametongue Weapon",
+        "description": "Increases your spell critical strike chance by 2% on each of your weapons with Flametongue Weapon active.",
+        "icon": "spell_fire_flametounge"
+      },
+      "41533": {
+        "kind": "major",
+        "name": "Glyph of Healing Stream Totem",
+        "description": "Your Healing Stream Totem heals for an additional 20%.",
+        "icon": "inv_spear_04"
+      },
+      "41534": {
+        "kind": "major",
+        "name": "Glyph of Healing Wave",
+        "description": "Your Healing Wave also heals you for 20% of the healing effect when you heal someone else.",
+        "icon": "spell_nature_magicimmunity"
+      },
+      "41535": {
+        "kind": "major",
+        "name": "Glyph of Lesser Healing Wave",
+        "description": "Your Lesser Healing Wave heals for 20% more if the target is also affected by Earth Shield.",
+        "icon": "spell_nature_healingwavelesser"
+      },
+      "41536": {
+        "kind": "major",
+        "name": "Glyph of Lightning Bolt",
+        "description": "Increases the damage dealt by Lightning Bolt by 4%.",
+        "icon": "spell_nature_lightning"
+      },
+      "41537": {
+        "kind": "major",
+        "name": "Glyph of Lightning Shield",
+        "description": "Increases the damage from Lightning Shield by 20%.",
+        "icon": "spell_nature_lightningshield"
+      },
+      "41538": {
+        "kind": "major",
+        "name": "Glyph of Mana Tide",
+        "description": "Your Mana Tide Totem grants an additional 1% of each target's maximum mana each time it pulses.",
+        "icon": "spell_nature_healingwavegreater"
+      },
+      "41539": {
+        "kind": "major",
+        "name": "Glyph of Stormstrike",
+        "description": "Increases the Nature damage bonus from your Stormstrike ability by an additional 8%.",
+        "icon": "ability_shaman_stormstrike"
+      },
+      "41540": {
+        "kind": "major",
+        "name": "Glyph of Lava Lash",
+        "description": "Damage on your Lava Lash is increased by an additional 10% if your weapon is enchanted with Flametongue.",
+        "icon": "ability_shaman_lavalash"
+      },
+      "41541": {
+        "kind": "major",
+        "name": "Glyph of Water Mastery",
+        "description": "Increases the passive mana regeneration of your Water Shield spell by 30%.",
+        "icon": "ability_shaman_watershield"
+      },
+      "41542": {
+        "kind": "major",
+        "name": "Glyph of Windfury Weapon",
+        "description": "Increases the chance per swing for Windfury Weapon to trigger by 2%.",
+        "icon": "spell_nature_cyclone"
+      },
+      "41547": {
+        "kind": "major",
+        "name": "Glyph of Frost Shock",
+        "description": "Increases the duration of your Frost Shock by 2 sec.",
+        "icon": "spell_frost_frostshock"
+      },
+      "41552": {
+        "kind": "major",
+        "name": "Glyph of Elemental Mastery",
+        "description": "Reduces the cooldown of your Elemental Mastery ability by 30 sec.",
+        "icon": "spell_nature_wispheal"
+      },
+      "43344": {
+        "kind": "minor",
+        "name": "Glyph of Water Breathing",
+        "description": "Your Water Breathing spell no longer requires a reagent.",
+        "icon": "spell_shadow_demonbreath"
+      },
+      "43381": {
+        "kind": "minor",
+        "name": "Glyph of Astral Recall",
+        "description": "Cooldown of your Astral Recall spell reduced by 7.5 min.",
+        "icon": "spell_nature_astralrecal"
+      },
+      "43385": {
+        "kind": "minor",
+        "name": "Glyph of Renewed Life",
+        "description": "Your Reincarnation spell no longer requires a reagent.",
+        "icon": "spell_nature_reincarnation"
+      },
+      "43386": {
+        "kind": "minor",
+        "name": "Glyph of Water Shield",
+        "description": "Increases the number of charges on your Water Shield spell by 1.",
+        "icon": "ability_shaman_watershield"
+      },
+      "43388": {
+        "kind": "minor",
+        "name": "Glyph of Water Walking",
+        "description": "Your Water Walking spell no longer requires a reagent.",
+        "icon": "spell_frost_windwalkon"
+      },
+      "43725": {
+        "kind": "minor",
+        "name": "Glyph of Ghost Wolf",
+        "description": "Your Ghost Wolf form regenerates an additional 1% of your maximum health every 5 sec.",
+        "icon": "spell_nature_spiritwolf"
+      },
+      "44923": {
+        "kind": "minor",
+        "name": "Glyph of Thunderstorm",
+        "description": "Increases the mana you receive from your Thunderstorm spell by 2%, but it no longer knocks enemies back.",
+        "icon": "spell_shaman_thunderstorm"
+      },
+      "45770": {
+        "kind": "major",
+        "name": "Glyph of Thunder",
+        "description": "Reduces the cooldown on Thunderstorm by 10 sec.",
+        "icon": "spell_shaman_thunderstorm"
+      },
+      "45771": {
+        "kind": "major",
+        "name": "Glyph of Feral Spirit",
+        "description": "Your spirit wolves gain an additional 30% of your attack power.",
+        "icon": "spell_shaman_feralspirit"
+      },
+      "45772": {
+        "kind": "major",
+        "name": "Glyph of Riptide",
+        "description": "Increases the duration of Riptide by 6 sec.",
+        "icon": "spell_nature_riptide"
+      },
+      "45775": {
+        "kind": "major",
+        "name": "Glyph of Earth Shield",
+        "description": "Increases the amount healed by your Earth Shield by 20%.",
+        "icon": "spell_nature_skinofearth"
+      },
+      "45776": {
+        "kind": "major",
+        "name": "Glyph of Totem of Wrath",
+        "description": "When you cast Totem of Wrath, you gain 30% of the totem's bonus spell power for 5 min.",
+        "icon": "spell_fire_totemofwrath"
+      },
+      "45777": {
+        "kind": "major",
+        "name": "Glyph of Hex",
+        "description": "Increases the damage your Hex target can take before the Hex effect is removed by 20%.",
+        "icon": "spell_shaman_hex"
+      },
+      "45778": {
+        "kind": "major",
+        "name": "Glyph of Stoneclaw Totem",
+        "description": "Your Stoneclaw Totem also places a damage absorb shield on you, equal to 4 times the strength of the shield it places on your totems.",
+        "icon": "spell_nature_stoneclawtotem"
+      }
+    },
+    "8": {
+      "42453": {
+        "kind": "major",
+        "name": "Glyph of Incinerate",
+        "description": "Increases the damage done by Incinerate by 5%.",
+        "icon": "spell_fire_burnout"
+      },
+      "42454": {
+        "kind": "major",
+        "name": "Glyph of Conflagrate",
+        "description": "Your Conflagrate spell no longer consumes your Immolate or Shadowflame spell from the target.",
+        "icon": "spell_fire_fireball"
+      },
+      "42455": {
+        "kind": "major",
+        "name": "Glyph of Corruption",
+        "description": "Your Corruption spell has a 4% chance to cause you to enter a Shadow Trance state after damaging the opponent. The Shadow Trance state reduces the casting time of your next Shadow Bolt spell by 100%.",
+        "icon": "spell_shadow_abominationexplosion"
+      },
+      "42456": {
+        "kind": "major",
+        "name": "Glyph of Curse of Agony",
+        "description": "Increases the duration of your Curse of Agony by 4 sec.",
+        "icon": "spell_shadow_curseofsargeras"
+      },
+      "42457": {
+        "kind": "major",
+        "name": "Glyph of Death Coil",
+        "description": "Increases the duration of your Death Coil by 0.5 sec.",
+        "icon": "spell_shadow_deathcoil"
+      },
+      "42458": {
+        "kind": "major",
+        "name": "Glyph of Fear",
+        "description": "Increases the damage your Fear target can take before the Fear effect is removed by 20%.",
+        "icon": "spell_shadow_possession"
+      },
+      "42459": {
+        "kind": "major",
+        "name": "Glyph of Felguard",
+        "description": "Increases the Felguard's total attack power by 20%.",
+        "icon": "spell_shadow_summonfelguard"
+      },
+      "42460": {
+        "kind": "major",
+        "name": "Glyph of Felhunter",
+        "description": "When your Felhunter uses Devour Magic, you will also be healed for that amount.",
+        "icon": "spell_shadow_summonfelhunter"
+      },
+      "42461": {
+        "kind": "major",
+        "name": "Glyph of Health Funnel",
+        "description": "Reduces the pushback suffered from damaging attacks while channeling your Health Funnel spell by 100%.",
+        "icon": "spell_shadow_lifedrain"
+      },
+      "42462": {
+        "kind": "major",
+        "name": "Glyph of Healthstone",
+        "description": "You receive 30% more healing from using a healthstone.",
+        "icon": "inv_stone_04"
+      },
+      "42463": {
+        "kind": "major",
+        "name": "Glyph of Howl of Terror",
+        "description": "Reduces the cooldown on your Howl of Terror spell by 8 sec.",
+        "icon": "spell_shadow_deathscream"
+      },
+      "42464": {
+        "kind": "major",
+        "name": "Glyph of Immolate",
+        "description": "Increases the periodic damage of your Immolate by 10%.",
+        "icon": "spell_fire_immolation"
+      },
+      "42465": {
+        "kind": "major",
+        "name": "Glyph of Imp",
+        "description": "Increases the damage done by your Imp's Firebolt spell by 20%.",
+        "icon": "spell_shadow_summonimp"
+      },
+      "42466": {
+        "kind": "major",
+        "name": "Glyph of Searing Pain",
+        "description": "Increases the critical strike bonus of your Searing Pain by 20%.",
+        "icon": "spell_fire_soulburn"
+      },
+      "42467": {
+        "kind": "major",
+        "name": "Glyph of Shadow Bolt",
+        "description": "Reduces the mana cost of your Shadow Bolt by 10%.",
+        "icon": "spell_shadow_shadowbolt"
+      },
+      "42468": {
+        "kind": "major",
+        "name": "Glyph of Shadowburn",
+        "description": "Increases the critical strike chance of Shadowburn by 20% when the target is below 35% health.",
+        "icon": "spell_shadow_scourgebuild"
+      },
+      "42469": {
+        "kind": "major",
+        "name": "Glyph of Siphon Life",
+        "description": "Increases the healing you receive from your Siphon Life talent by 25%.",
+        "icon": "spell_shadow_requiem"
+      },
+      "42470": {
+        "kind": "major",
+        "name": "Glyph of Soulstone",
+        "description": "Increases the amount of health you gain from resurrecting via a Soulstone by 300%.",
+        "icon": "spell_shadow_soulgem"
+      },
+      "42471": {
+        "kind": "major",
+        "name": "Glyph of Succubus",
+        "description": "Your Succubus's Seduction ability also removes all damage over time effects from the target.",
+        "icon": "spell_shadow_summonsuccubus"
+      },
+      "42472": {
+        "kind": "major",
+        "name": "Glyph of Unstable Affliction",
+        "description": "Decreases the casting time of your Unstable Affliction by 0.2 sec.",
+        "icon": "spell_shadow_unstableaffliction_3"
+      },
+      "42473": {
+        "kind": "major",
+        "name": "Glyph of Voidwalker",
+        "description": "Increases your Voidwalker's total Stamina by 20%.",
+        "icon": "spell_shadow_summonvoidwalker"
+      },
+      "43389": {
+        "kind": "minor",
+        "name": "Glyph of Unending Breath",
+        "description": "Increases the swim speed of targets affected by your Unending Breath spell by 20%.",
+        "icon": "spell_shadow_demonbreath"
+      },
+      "43390": {
+        "kind": "minor",
+        "name": "Glyph of Drain Soul",
+        "description": "Your Drain Soul ability occasionally creates an additional soul shard.",
+        "icon": "spell_shadow_haunting"
+      },
+      "43391": {
+        "kind": "minor",
+        "name": "Glyph of Kilrogg",
+        "description": "Increases the movement speed of your Eye of Kilrogg by 50% and allows it to fly in areas where flying mounts are enabled.",
+        "icon": "spell_shadow_evileye"
+      },
+      "43392": {
+        "kind": "minor",
+        "name": "Glyph of Curse of Exhausion",
+        "description": "Increases the range of your Curse of Exhaustion spell by 5 yards.",
+        "icon": "spell_shadow_grimward"
+      },
+      "43393": {
+        "kind": "minor",
+        "name": "Glyph of Subjugate Demon",
+        "description": "Reduces the cast time of your Subjugate Demon spell by 50%.",
+        "icon": "spell_shadow_enslavedemon"
+      },
+      "43394": {
+        "kind": "minor",
+        "name": "Glyph of Souls",
+        "description": "Reduces the mana cost of your Ritual of Souls spell by 70%.",
+        "icon": "spell_shadow_shadesofdarkness"
+      },
+      "45779": {
+        "kind": "major",
+        "name": "Glyph of Haunt",
+        "description": "The bonus damage granted by your Haunt spell is increased by an additional 3%.",
+        "icon": "ability_warlock_haunt"
+      },
+      "45780": {
+        "kind": "major",
+        "name": "Glyph of Metamorphosis",
+        "description": "Increases the duration of your Metamorphosis by 6 sec.",
+        "icon": "spell_shadow_demonform"
+      },
+      "45781": {
+        "kind": "major",
+        "name": "Glyph of Chaos Bolt",
+        "description": "Reduces the cooldown on Chaos Bolt by 2 sec.",
+        "icon": "ability_warlock_chaosbolt"
+      },
+      "45782": {
+        "kind": "major",
+        "name": "Glyph of Demonic Circle",
+        "description": "Reduces the cooldown on Demonic Circle by 4 sec.",
+        "icon": "spell_shadow_demoniccirclesummon"
+      },
+      "45783": {
+        "kind": "major",
+        "name": "Glyph of Shadowflame",
+        "description": "Your Shadowflame also applies a 70% movement speed slow on its victims.",
+        "icon": "ability_warlock_shadowflame"
+      },
+      "45785": {
+        "kind": "major",
+        "name": "Glyph of Life Tap",
+        "description": "When you use Life Tap or Dark Pact, you gain 20% of your Spirit as spell power for 40 sec.",
+        "icon": "spell_shadow_burningspirit"
+      },
+      "45789": {
+        "kind": "major",
+        "name": "Glyph of Soul Link",
+        "description": "Increases the percentage of damage shared via your Soul Link by an additional 5%.",
+        "icon": "spell_shadow_gathershadows"
+      },
+      "50077": {
+        "kind": "major",
+        "name": "Glyph of Quick Decay",
+        "description": "Your haste now reduces the time between periodic damage ticks of your Corruption spell.",
+        "icon": "spell_shadow_abominationexplosion"
+      }
+    },
+    "9": {
+      "43395": {
+        "kind": "minor",
+        "name": "Glyph of Battle",
+        "description": "Increases the duration of your Battle Shout ability by 2 min.",
+        "icon": "ability_warrior_battleshout"
+      },
+      "43396": {
+        "kind": "minor",
+        "name": "Glyph of Bloodrage",
+        "description": "Reduces the health cost of your Bloodrage ability by 100%.",
+        "icon": "ability_racial_bloodrage"
+      },
+      "43397": {
+        "kind": "minor",
+        "name": "Glyph of Charge",
+        "description": "Increases the range of your Charge ability by 5 yards.",
+        "icon": "ability_warrior_charge"
+      },
+      "43398": {
+        "kind": "minor",
+        "name": "Glyph of Mocking Blow",
+        "description": "Increases the damage of your Mocking Blow ability by 25%.",
+        "icon": "ability_warrior_punishingblow"
+      },
+      "43399": {
+        "kind": "minor",
+        "name": "Glyph of Thunder Clap",
+        "description": "Increases the radius of your Thunder Clap ability by 2 yards.",
+        "icon": "spell_nature_thunderclap"
+      },
+      "43400": {
+        "kind": "minor",
+        "name": "Glyph of Enduring Victory",
+        "description": "Increases the window of opportunity in which you can use Victory Rush by 5 sec.",
+        "icon": "ability_warrior_devastate"
+      },
+      "43412": {
+        "kind": "major",
+        "name": "Glyph of Bloodthirst",
+        "description": "Increases the healing you receive from your Bloodthirst ability by 100%.",
+        "icon": "spell_nature_bloodlust"
+      },
+      "43413": {
+        "kind": "major",
+        "name": "Glyph of Rapid Charge",
+        "description": "Reduces the cooldown of your Charge ability by 7%.",
+        "icon": "ability_warrior_charge"
+      },
+      "43414": {
+        "kind": "major",
+        "name": "Glyph of Cleaving",
+        "description": "Increases the number of targets your Cleave hits by 1.",
+        "icon": "ability_warrior_cleave"
+      },
+      "43415": {
+        "kind": "major",
+        "name": "Glyph of Devastate",
+        "description": "Your Devastate ability now applies two stacks of Sunder Armor.",
+        "icon": "inv_sword_11"
+      },
+      "43416": {
+        "kind": "major",
+        "name": "Glyph of Execution",
+        "description": "Your Execute ability deals damage as if you had 10 additional rage.",
+        "icon": "inv_sword_48"
+      },
+      "43417": {
+        "kind": "major",
+        "name": "Glyph of Hamstring",
+        "description": "Gives your Hamstring ability a 10% chance to immobilize the target for 5 sec.",
+        "icon": "ability_shockwave"
+      },
+      "43418": {
+        "kind": "major",
+        "name": "Glyph of Heroic Strike",
+        "description": "You gain 10 rage when you critically strike with your Heroic Strike ability.",
+        "icon": "ability_rogue_ambush"
+      },
+      "43419": {
+        "kind": "major",
+        "name": "Glyph of Intervene",
+        "description": "Increases the number attacks you intercept for your Intervene target by 1.",
+        "icon": "ability_warrior_victoryrush"
+      },
+      "43420": {
+        "kind": "major",
+        "name": "Glyph of Barbaric Insults",
+        "description": "Your Mocking Blow ability generates 100% additional threat.",
+        "icon": "ability_warrior_punishingblow"
+      },
+      "43421": {
+        "kind": "major",
+        "name": "Glyph of Mortal Strike",
+        "description": "Increases the damage of your Mortal Strike ability by 10%.",
+        "icon": "ability_warrior_savageblow"
+      },
+      "43422": {
+        "kind": "major",
+        "name": "Glyph of Overpower",
+        "description": "Adds a 100% chance to enable your Overpower when your attacks are parried.",
+        "icon": "ability_meleedamage"
+      },
+      "43423": {
+        "kind": "major",
+        "name": "Glyph of Rending",
+        "description": "Increases the duration of your Rend ability by 6 sec.",
+        "icon": "ability_gouge"
+      },
+      "43424": {
+        "kind": "major",
+        "name": "Glyph of Revenge",
+        "description": "After using Revenge, your next Heroic Strike costs no rage.",
+        "icon": "ability_warrior_revenge"
+      },
+      "43425": {
+        "kind": "major",
+        "name": "Glyph of Blocking",
+        "description": "Increases your block value by 10% for 10 sec after using your Shield Slam ability.",
+        "icon": "inv_shield_05"
+      },
+      "43426": {
+        "kind": "major",
+        "name": "Glyph of Last Stand",
+        "description": "Reduces the cooldown of your Last Stand ability by 1 min.",
+        "icon": "spell_holy_ashestoashes"
+      },
+      "43427": {
+        "kind": "major",
+        "name": "Glyph of Sunder Armor",
+        "description": "Your Sunder Armor ability affects a second nearby target.",
+        "icon": "ability_warrior_sunder"
+      },
+      "43428": {
+        "kind": "major",
+        "name": "Glyph of Sweeping Strikes",
+        "description": "Reduces the rage cost of your Sweeping Strikes ability by 100%.",
+        "icon": "ability_rogue_slicedice"
+      },
+      "43429": {
+        "kind": "major",
+        "name": "Glyph of Taunt",
+        "description": "Increases the chance for your Taunt ability to succeed by 8%.",
+        "icon": "spell_nature_reincarnation"
+      },
+      "43430": {
+        "kind": "major",
+        "name": "Glyph of Resonating Power",
+        "description": "Reduces the rage cost of your Thunder Clap ability by 5.",
+        "icon": "spell_nature_thunderclap"
+      },
+      "43431": {
+        "kind": "major",
+        "name": "Glyph of Victory Rush",
+        "description": "Your Victory Rush ability has a 30% increased critical strike chance.",
+        "icon": "ability_warrior_devastate"
+      },
+      "43432": {
+        "kind": "major",
+        "name": "Glyph of Whirlwind",
+        "description": "Reduces the cooldown of your Whirlwind by 2 sec.",
+        "icon": "ability_whirlwind"
+      },
+      "45790": {
+        "kind": "major",
+        "name": "Glyph of Bladestorm",
+        "description": "Reduces the cooldown on Bladestorm by 15 sec.",
+        "icon": "ability_warrior_bladestorm"
+      },
+      "45792": {
+        "kind": "major",
+        "name": "Glyph of Shockwave",
+        "description": "Reduces the cooldown on Shockwave by 3 sec.",
+        "icon": "ability_warrior_shockwave"
+      },
+      "45793": {
+        "kind": "major",
+        "name": "Glyph of Vigilance",
+        "description": "Your Vigilance ability transfers an additional 5% of your target's threat to you.",
+        "icon": "ability_warrior_vigilance"
+      },
+      "45794": {
+        "kind": "major",
+        "name": "Glyph of Enraged Regeneration",
+        "description": "Your Enraged Regeneration ability heals for an additional 10% of your health over its duration.",
+        "icon": "ability_warrior_focusedrage"
+      },
+      "45795": {
+        "kind": "major",
+        "name": "Glyph of Spell Reflection",
+        "description": "Reduces the cooldown on Spell Reflection by 1 sec.",
+        "icon": "ability_warrior_shieldreflection"
+      },
+      "45797": {
+        "kind": "major",
+        "name": "Glyph of Shield Wall",
+        "description": "Reduces the cooldown on Shield Wall by 2 min, but Shield Wall now only reduces damage taken by 40%.",
+        "icon": "ability_warrior_shieldwall"
+      },
+      "49084": {
+        "kind": "minor",
+        "name": "Glyph of Command",
+        "description": "Increases the duration of your Commanding Shout ability by 2 min.",
+        "icon": "ability_warrior_rallyingcry"
+      },
+      "206953": {
+        "kind": "minor",
+        "name": "Glyph of Shattering Throw",
+        "description": "Your Shattering Throw is now instant and can be used in any stance, but it no longer removes invulnerabilities and cannot be used on players or player-controlled targets.",
+        "icon": "ability_warrior_shatteringthrow"
+      }
+    },
+    "10": {
+      "43533": {
+        "kind": "major",
+        "name": "Glyph of Anti-Magic Shell",
+        "description": "Increases the duration of your Anti-Magic Shell by 2 sec.",
+        "icon": "spell_shadow_antimagicshell"
+      },
+      "43534": {
+        "kind": "major",
+        "name": "Glyph of Heart Strike",
+        "description": "Your Heart Strike also reduces the movement speed of your target by 50% for 10 sec.",
+        "icon": "inv_weapon_shortblade_40"
+      },
+      "43535": {
+        "kind": "minor",
+        "name": "Glyph of Blood Tap",
+        "description": "Your Blood Tap no longer causes damage to you.",
+        "icon": "spell_deathknight_bloodtap"
+      },
+      "43536": {
+        "kind": "major",
+        "name": "Glyph of Bone Shield",
+        "description": "Adds 1 additional charge to your Bone Shield.",
+        "icon": "inv_chest_leather_13"
+      },
+      "43537": {
+        "kind": "major",
+        "name": "Glyph of Chains of Ice",
+        "description": "Your Chains of Ice also causes 144 to 156 Frost damage, increased by your attack power.",
+        "icon": "spell_frost_chainsofice"
+      },
+      "43538": {
+        "kind": "major",
+        "name": "Glyph of Dark Command",
+        "description": "Increases the chance for your Dark Command ability to work successfully by 8%.",
+        "icon": "spell_nature_shamanrage"
+      },
+      "43539": {
+        "kind": "minor",
+        "name": "Glyph of Death's Embrace",
+        "description": "Your Death Coil refunds 20 runic power when used to heal.",
+        "icon": "spell_shadow_deathcoil"
+      },
+      "43541": {
+        "kind": "major",
+        "name": "Glyph of Death Grip",
+        "description": "When you deal a killing blow that grants honor or experience, the cooldown of your Death Grip is refreshed.",
+        "icon": "spell_deathknight_strangulate"
+      },
+      "43542": {
+        "kind": "major",
+        "name": "Glyph of Death and Decay",
+        "description": "Damage of your Death and Decay spell increased by 20%.",
+        "icon": "spell_shadow_deathanddecay"
+      },
+      "43543": {
+        "kind": "major",
+        "name": "Glyph of Frost Strike",
+        "description": "Reduces the cost of your Frost Strike by 8 Runic Power.",
+        "icon": "spell_deathknight_empowerruneblade2"
+      },
+      "43544": {
+        "kind": "minor",
+        "name": "Glyph of Horn of Winter",
+        "description": "Increases the duration of your Horn of Winter ability by 1 min.",
+        "icon": "inv_misc_horn_02"
+      },
+      "43545": {
+        "kind": "major",
+        "name": "Glyph of Icebound Fortitude",
+        "description": "Your Icebound Fortitude now always grants at least 40% damage reduction, regardless of your defense skill.",
+        "icon": "spell_deathknight_iceboundfortitude"
+      },
+      "43546": {
+        "kind": "major",
+        "name": "Glyph of Icy Touch",
+        "description": "Your Frost Fever disease deals 20% additional damage.",
+        "icon": "spell_deathknight_icetouch"
+      },
+      "43547": {
+        "kind": "major",
+        "name": "Glyph of Obliterate",
+        "description": "Increases the damage of your Obliterate ability by 25%.",
+        "icon": "spell_deathknight_classicon"
+      },
+      "43548": {
+        "kind": "major",
+        "name": "Glyph of Plague Strike",
+        "description": "Your Plague Strike does 20% additional damage.",
+        "icon": "spell_deathknight_empowerruneblade"
+      },
+      "43549": {
+        "kind": "major",
+        "name": "Glyph of the Ghoul",
+        "description": "Your Ghoul receives an additional 40% of your Strength and 40% of your Stamina.",
+        "icon": "spell_shadow_animatedead"
+      },
+      "43550": {
+        "kind": "major",
+        "name": "Glyph of Rune Strike",
+        "description": "Increases the critical strike chance of your Rune Strike by 10%.",
+        "icon": "spell_deathknight_darkconviction"
+      },
+      "43551": {
+        "kind": "major",
+        "name": "Glyph of Scourge Strike",
+        "description": "Your Scourge Strike increases the duration of your diseases on the target by 3 sec, up to a maximum of 9 additional seconds.",
+        "icon": "spell_deathknight_scourgestrike"
+      },
+      "43552": {
+        "kind": "major",
+        "name": "Glyph of Strangulate",
+        "description": "Reduces the cooldown of your Strangulate by 20 sec.",
+        "icon": "spell_shadow_soulleech_3"
+      },
+      "43553": {
+        "kind": "major",
+        "name": "Glyph of Unbreakable Armor",
+        "description": "Increases the total armor granted by Unbreakable Armor to 30%.",
+        "icon": "inv_armor_helm_plate_naxxramas_raidwarrior_c_01"
+      },
+      "43554": {
+        "kind": "major",
+        "name": "Glyph of Vampiric Blood",
+        "description": "Increases the duration of your Vampiric Blood by 5 sec.",
+        "icon": "spell_shadow_lifedrain"
+      },
+      "43671": {
+        "kind": "minor",
+        "name": "Glyph of Corpse Explosion",
+        "description": "Increases the radius of effect on Corpse Explosion by 5 yards.",
+        "icon": "ability_creature_disease_02"
+      },
+      "43672": {
+        "kind": "minor",
+        "name": "Glyph of Pestilence",
+        "description": "Increases the radius of your Pestilence effect by 5 yards.",
+        "icon": "spell_shadow_plaguecloud"
+      },
+      "43673": {
+        "kind": "minor",
+        "name": "Glyph of Raise Dead",
+        "description": "Your Raise Dead spell no longer requires a reagent.",
+        "icon": "spell_shadow_animatedead"
+      },
+      "43825": {
+        "kind": "major",
+        "name": "Glyph of Rune Tap",
+        "description": "Your Rune Tap now heals you for an additional 1% of your maximum health, and also heals your party for 10% of their maximum health.",
+        "icon": "spell_deathknight_runetap"
+      },
+      "43826": {
+        "kind": "major",
+        "name": "Glyph of Blood Strike",
+        "description": "Your Blood Strike causes an additional 20% damage to snared targets.",
+        "icon": "spell_deathknight_deathstrike"
+      },
+      "43827": {
+        "kind": "major",
+        "name": "Glyph of Death Strike",
+        "description": "Increases your Death Strike's damage by 1% for every 1 runic power you currently have (up to a maximum of 25%). The runic power is not consumed by this effect.",
+        "icon": "spell_deathknight_butcher2"
+      },
+      "45799": {
+        "kind": "major",
+        "name": "Glyph of Dancing Rune Weapon",
+        "description": "Increases the duration of Dancing Rune Weapon by 5 sec.",
+        "icon": "inv_sword_07"
+      },
+      "45800": {
+        "kind": "major",
+        "name": "Glyph of Hungering Cold",
+        "description": "Reduces the cost of Hungering Cold by 40 runic power.",
+        "icon": "inv_staff_15"
+      },
+      "45803": {
+        "kind": "major",
+        "name": "Glyph of Unholy Blight",
+        "description": "Increases the damage done by Unholy Blight by 40%.",
+        "icon": "spell_shadow_contagion"
+      },
+      "45804": {
+        "kind": "major",
+        "name": "Glyph of Dark Death",
+        "description": "Increases the damage or healing done by Death Coil by 15%.",
+        "icon": "spell_shadow_deathcoil"
+      },
+      "45805": {
+        "kind": "major",
+        "name": "Glyph of Disease",
+        "description": "Your Pestilence ability now refreshes disease durations and secondary effects of diseases on your primary target back to their maximum duration.",
+        "icon": "spell_shadow_plaguecloud"
+      },
+      "45806": {
+        "kind": "major",
+        "name": "Glyph of Howling Blast",
+        "description": "Your Howling Blast ability now infects your targets with Frost Fever.",
+        "icon": "spell_frost_arcticwinds"
+      }
+    }
+  }
+}

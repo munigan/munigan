@@ -1,0 +1,9 @@
+.git
+.cache
+.superpowers
+.trigger
+.env*
+dist
+node_modules
+tests
+docs

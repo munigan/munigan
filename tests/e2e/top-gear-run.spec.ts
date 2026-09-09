@@ -23,13 +23,29 @@ test("runs real local DPS and compares complete owned sets", async ({
   );
   await page.getByLabel("Bag export", { exact: true }).fill(
     JSON.stringify({
-      items: [{ id: 40528, enchant: 3817, gems: [41285, 39996] }],
+      items: [{ id: 40528, enchant: 0, gems: [] }],
     }),
   );
   await page.getByRole("button", { name: "Review import" }).click();
   await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
   await page.getByRole("button", { name: "Select gear" }).click();
-  await page.getByLabel("Item version", { exact: true }).selectOption("classic");
+  await page
+    .getByRole("button", { name: "Gems, enchants & sockets", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Copy enchants & profession bonuses"),
+  ).toBeChecked();
+  await expect(
+    page.getByLabel("Automatically fill empty sockets"),
+  ).toBeChecked();
+  await page.getByLabel("Default gem", { exact: true }).selectOption("40111");
+  await expect(page.getByLabel("Default gem", { exact: true })).toHaveValue(
+    "40111",
+  );
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByLabel("Item version", { exact: true })
+    .selectOption("classic");
   await page
     .getByRole("checkbox", { name: /Select Valorous Dreadnaught Helmet, bag/ })
     .check();
@@ -68,6 +84,18 @@ test("runs real local DPS and compares complete owned sets", async ({
   await expect(
     page.locator(".full-gear-row a[data-wowhead]").first(),
   ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 320 });
+  await page.locator(".full-gear-row a[data-wowhead]").first().focus();
+  const tooltip = page
+    .getByRole("dialog")
+    .locator(".wowhead-tooltip[data-visible=yes]");
+  await expect(tooltip).toBeVisible();
+  await tooltip.hover();
+  await page.mouse.wheel(0, 200);
+  await expect
+    .poll(() => tooltip.evaluate((node) => node.scrollTop))
+    .toBeGreaterThan(0);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await page.screenshot({
     path: "tests/artifacts/top-gear-report-desktop.png",
@@ -92,11 +120,11 @@ test("runs real local DPS and compares complete owned sets", async ({
     ).toBe(true);
   }
   const gains = await page
-    .locator(".combination-row > .gain")
+    .locator(".combination-row > .dps-change")
     .allTextContents();
   await page.getByLabel("Top set", { exact: true }).check();
   expect(
-    await page.locator(".combination-row > .gain").allTextContents(),
+    await page.locator(".combination-row > .dps-change").allTextContents(),
   ).toEqual(gains);
   await expect(page.getByText("vs. equipped", { exact: true })).toBeVisible();
   const reportUrl = page.url();
@@ -105,7 +133,27 @@ test("runs real local DPS and compares complete owned sets", async ({
   const publicReport = await (await shared.request.get(apiUrl)).json();
   expect(publicReport.canManage).toBe(false);
   expect(publicReport.report.coverage.exhaustive).toBe(true);
-  expect(publicReport.report.rows).toHaveLength(8);
+  expect(publicReport.report.rows).toHaveLength(2);
+  expect(publicReport.report.snapshot.gemming.defaultGemId).toBe(40111);
+  const candidate = publicReport.report.rows.find(
+    (row: { isEquipped: boolean }) => !row.isEquipped,
+  );
+  expect(candidate.gemOverrides[candidate.loadout.head][0]).toBe(41285);
+  expect(candidate.enchantOverrides[candidate.loadout.head]).toBe(3817);
+  await expect(page.locator(".combination-table")).toHaveCSS(
+    "border-radius",
+    "8px",
+  );
+  await expect(page.locator(".combination-table")).toHaveCSS(
+    "border-left-width",
+    "1px",
+  );
+  expect(candidate.gemOverrides[candidate.loadout.head][1]).toBeGreaterThan(0);
+  expect(
+    publicReport.report.rows.find(
+      (row: { isEquipped: boolean }) => row.isEquipped,
+    ).gemOverrides,
+  ).toEqual({});
   const sharedPage = await shared.newPage();
   await sharedPage.goto(reportUrl);
   await expect(

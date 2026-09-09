@@ -15,6 +15,11 @@ import { getCatalog } from "@/domain/equipment/catalog";
 import { autoRotations } from "@/generated/wotlk/auto-rotations";
 import { runCli } from "./cli";
 import { itemVersionOf, itemVersions } from "@/domain/top-gear/item-version";
+import { prepareGems, inactiveMetaIds } from "@/domain/equipment/gemming";
+import {
+  prepareEnchants,
+  withEnhancements,
+} from "@/domain/equipment/enhancements";
 export function simulationInput(
   snapshot: Snapshot,
   loadout: Loadout,
@@ -25,14 +30,24 @@ export function simulationInput(
   if (!s.player || !s.encounter)
     throw new Error("Missing simulation configuration");
   const player = Player.clone(s.player);
-  const inventory = new Map(snapshot.inventory.map((i) => [i.instanceId, i]));
+  const resolved = withEnhancements(
+    snapshot,
+    prepareGems(snapshot, loadout).overrides,
+    prepareEnchants(snapshot, loadout).overrides,
+  );
+  const inventory = new Map(resolved.inventory.map((i) => [i.instanceId, i]));
+  // The native engine applies meta effects unconditionally; its browser UI
+  // removes inactive metas before submitting, and automatic gemming does too.
+  const inactive = snapshot.gemming?.enabled
+    ? inactiveMetaIds(resolved, loadout)
+    : new Set<number>();
   player.equipment = {
     items: slots.map((slot) => {
       const i = inventory.get(loadout[slot] ?? "");
       return {
         id: i?.itemId ?? 0,
         enchant: i?.enchantId ?? 0,
-        gems: i?.gemIds ?? [],
+        gems: i?.gemIds.map((id) => (inactive.has(id) ? 0 : id)) ?? [],
       };
     }),
   };
@@ -111,8 +126,31 @@ export async function evaluate(
   }
   const result = await runCli(input, options),
     metric = result.raidResult.raidMetrics!.parties[0].players[0].dps!;
+  const gemPlan = prepareGems(snapshot, loadout);
+  const enchantPlan = prepareEnchants(snapshot, loadout);
+  const inactive = snapshot.gemming?.enabled
+    ? inactiveMetaIds(snapshot, loadout, gemPlan.overrides)
+    : new Set<number>();
   return {
     loadout,
+    ...(snapshot.autoEnchant
+      ? {
+          enchantOverrides: enchantPlan.overrides,
+          enchantWarnings: enchantPlan.warnings,
+        }
+      : {}),
+    ...(snapshot.gemming?.enabled
+      ? {
+          gemOverrides: gemPlan.overrides,
+          gemWarnings: [
+            ...gemPlan.warnings,
+            ...[...inactive].map(
+              (id) =>
+                `${getCatalog(snapshot.itemVersion).gems.get(id)?.name ?? id} is inactive; its stats and effect are excluded from this simulation.`,
+            ),
+          ],
+        }
+      : {}),
     inputHash: createHash("sha256")
       .update(
         `${options.itemVersion}:${snapshot.itemDataRevision ?? itemVersions[options.itemVersion].revision}:`,

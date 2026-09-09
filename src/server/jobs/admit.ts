@@ -5,10 +5,9 @@ import {
   validateRequest,
   encodeRequest,
 } from "@/domain/top-gear/request-schema";
-import { estimateAllowance } from "@/domain/equipment/enumerate";
+import { estimateAllowance, loadoutKey } from "@/domain/equipment/enumerate";
 import { workPolicy, limits } from "./policy";
 import { digest, capability, encrypt, decrypt } from "./capabilities";
-import { itemVersions } from "@/domain/top-gear/item-version";
 function sameRequest(
   previous: unknown,
   current: ReturnType<typeof encodeRequest>,
@@ -141,12 +140,14 @@ export async function admitJob(args: {
         prior.rows[0].policy.iterationsPerSet === policy.iterationsPerSet
       )
         await c.query(
-          "INSERT INTO tg_work(job_id,work_key,result) SELECT $1,CASE WHEN $3::boolean AND left(work_key,1)='[' THEN $4 || work_key ELSE work_key END,result FROM tg_work WHERE job_id=$2 AND result IS NOT NULL",
+          // Ordered-pair results predate this optimizer and must be recomputed.
+          "INSERT INTO tg_work(job_id,work_key,result) SELECT $1,work_key,result FROM tg_work WHERE job_id=$2 AND result IS NOT NULL AND work_key LIKE $3",
           [
             jobId,
             args.priorJob,
-            !prior.rows[0].request.snapshot.itemVersion,
-            `classic:${itemVersions.classic.revision}:`,
+            loadoutKey(request.snapshot, request.snapshot.equipped).split(
+              "[",
+            )[0] + "%",
           ],
         );
     }

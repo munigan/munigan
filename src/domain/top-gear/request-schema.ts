@@ -11,6 +11,7 @@ import type { TopGearRequest, Snapshot } from "./model";
 import { validateItem, validateLoadout } from "@/domain/equipment/validate";
 import versions from "../../../data/wotlk/versions.json";
 import { itemVersions, itemVersionOf } from "./item-version";
+import { validateGemming } from "@/domain/equipment/gemming";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -34,6 +35,16 @@ const shape = z
       professionLevels: z
         .record(z.string(), z.number().int().min(1).max(450))
         .optional(),
+      gemming: z
+        .object({
+          enabled: z.boolean(),
+          defaultGemId: numericId,
+          metaGemId: numericId,
+          jcGemId: numericId,
+        })
+        .strict()
+        .optional(),
+      autoEnchant: z.boolean().optional(),
       inventory: z
         .array(
           z
@@ -181,6 +192,7 @@ export function validateRequest(input: unknown): TopGearRequest {
   )
     throw new Error("Invalid target configuration");
   const snapshot: Snapshot = { ...s, settings };
+  validateGemming(snapshot);
   const talentErrors = validateTalents(snapshot);
   if (talentErrors.length) throw new Error(talentErrors[0]);
   // core/professions.go applies these gathering bonuses unconditionally.

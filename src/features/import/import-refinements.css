@@ -1,0 +1,215 @@
+.import-refinement {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+}
+.import-refinement .import-card {
+  gap: 20px;
+  padding: 28px;
+}
+.import-refinement .import-input-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.import-refinement .import-field-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.import-refinement .import-field-title label {
+  font-weight: 600;
+}
+.import-refinement .import-field-title > .small {
+  margin-left: auto;
+}
+.import-refinement .import-step {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  font-size: 11px;
+  color: var(--color-action);
+}
+.import-refinement textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 86px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.import-refinement [aria-invalid="true"] {
+  border-color: #ed8796;
+}
+.import-refinement .import-field-error {
+  font-size: 12px;
+  color: #ffa6b3;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.import-refinement .import-addon-help {
+  margin-top: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  font-size: 13px;
+}
+.import-refinement .import-addon-help summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  color: var(--color-muted);
+}
+.import-refinement .import-addon-help > div {
+  padding: 0 20px 20px;
+  display: grid;
+  gap: 12px;
+  line-height: 1.6;
+}
+.import-refinement .import-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  border-radius: 5px;
+  gap: 12px;
+}
+.import-refinement .import-command code {
+  color: var(--color-action);
+  font-size: 16px;
+}
+.import-refinement .import-command button {
+  font-size: 12px;
+}
+.import-refinement .import-identity {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.import-refinement .import-identity > img {
+  border-radius: 7px;
+  border: 1px solid var(--color-border);
+}
+.import-refinement .import-identity h2 {
+  font-size: 28px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.import-refinement .import-identity p {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.import-refinement .import-identity .badge {
+  margin-left: auto;
+}
+.import-refinement .import-review-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.import-refinement .import-review-heading h3 {
+  font-size: 13px;
+  font-family: inherit;
+}
+.import-refinement .import-equipment {
+  padding: 16px 0;
+  border-block: 1px solid var(--color-border);
+}
+.import-refinement .import-equipped-icons {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.import-refinement .import-equipped-icons > a {
+  display: inline-flex;
+}
+.import-refinement .import-preset {
+  display: grid;
+  gap: 8px;
+}
+.import-refinement .import-preset label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.import-refinement .import-bag-status {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 14px 16px;
+  border-radius: 5px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+}
+.import-refinement .import-bag-status > .small {
+  flex-basis: 100%;
+}
+.import-refinement .import-setting-sources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: -6px;
+}
+.import-refinement .import-setting-sources dt {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.import-refinement .import-setting-sources dd {
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+.import-refinement .import-professions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.import-refinement .import-professions > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.import-refinement .import-professions img {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+.import-refinement .import-professions small {
+  display: block;
+  color: var(--color-muted);
+  margin-top: 3px;
+}
+.import-refinement .actions {
+  justify-content: space-between;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+}
+@media (max-width: 600px) {
+  .import-refinement .import-card {
+    padding: 18px;
+    gap: 18px;
+  }
+  .import-refinement .import-setting-sources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .import-refinement .import-identity .badge {
+    margin-left: 0;
+  }
+  .import-refinement .actions {
+    flex-wrap: wrap;
+  }
+  .import-refinement .actions button {
+    flex: 1 1 140px;
+  }
+  .import-refinement .segmented button {
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+}

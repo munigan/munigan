@@ -1,7 +1,7 @@
 import { it, expect } from "vitest";
-import { rankResults, compareMetrics } from "./report";
+import { rankResults, compareMetrics, changedSlots } from "./report";
 import { emptyLoadout } from "./slots";
-import type { Snapshot, SimulationResult } from "./model";
+import type { Snapshot, SimulationResult, Loadout } from "./model";
 const equipped = { ...emptyLoadout(), head: "a", chest: "b" };
 const snapshot = {
   equipped,
@@ -13,7 +13,7 @@ const snapshot = {
   ],
 } as unknown as Snapshot;
 const row = (
-  loadout: typeof equipped,
+  loadout: Loadout,
   mean: number,
   stdev: number | null = 100,
 ): SimulationResult => ({
@@ -62,4 +62,46 @@ it("does not invent uncertainty or percentages for a zero baseline", () => {
       { mean: 0, stdev: 0, iterations: 5 },
     ),
   ).toEqual({ gain: 1, percent: null, tied: null });
+});
+it("ignores pair permutations in changes and counts a single ring replacement once", () => {
+  const base = {
+    ...emptyLoadout(),
+    finger1: "a",
+    finger2: "b",
+    trinket1: "x",
+    trinket2: "y",
+  };
+  expect(
+    changedSlots(snapshot, base, {
+      ...base,
+      finger1: "b",
+      finger2: "a",
+      trinket1: "y",
+      trinket2: "x",
+    }),
+  ).toEqual([]);
+  expect(
+    changedSlots(snapshot, base, { ...base, finger1: "b", finger2: "x" }),
+  ).toEqual(["finger1"]);
+});
+it("collapses legacy permutations without picking their lucky higher DPS over the equipped baseline", () => {
+  const base = { ...emptyLoadout(), finger1: "a", finger2: "b" };
+  const s = { ...snapshot, equipped: base };
+  const swapped = { ...base, finger1: "b", finger2: "a" };
+  const replaced = { ...base, finger1: "x" };
+  const r = rankResults(
+    s,
+    [row(swapped, 10100), row(replaced, 9900), row(base, 10000)],
+    [base, swapped, replaced],
+  );
+  expect(r.rows).toHaveLength(2);
+  expect(r.rows[0]).toMatchObject({
+    isEquipped: true,
+    dps: 10000,
+    gain: 0,
+    swaps: 0,
+    loadout: base,
+  });
+  expect(r.rows[1]).toMatchObject({ gain: -100, swaps: 1 });
+  expect(r.highestId).toBe(r.equippedId);
 });

@@ -10,6 +10,8 @@ import { ImportPanel } from "@/features/import/ImportPanel";
 import { InventorySelector } from "./InventorySelector";
 import { PresetPanel } from "@/features/settings/PresetPanel";
 import { ItemVersionContext } from "./ItemVersionContext";
+import { GemmingPanel, EnhancementSummary } from "./GemmingPanel";
+import { defaultGemming } from "@/domain/equipment/gemming";
 import {
   itemVersions,
   itemVersionOf,
@@ -33,6 +35,7 @@ export function TopGearApp() {
   const [request, setRequest] = useState<TopGearRequest | null>(null),
     [policy, setPolicy] = useState<WorkPolicy | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
+    [enhancementsOpen, setEnhancementsOpen] = useState(false),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false),
     [hasDraft, setHasDraft] = useState(false),
@@ -67,6 +70,11 @@ export function TopGearApp() {
       .map((i) => i.instanceId);
     next = {
       ...next,
+      snapshot: {
+        ...next.snapshot,
+        gemming: next.snapshot.gemming ?? defaultGemming(next.snapshot),
+        autoEnchant: next.snapshot.autoEnchant ?? true,
+      },
       selection: {
         ...next.selection,
         selectedInstanceIds: next.selection.selectedInstanceIds.filter(
@@ -221,121 +229,154 @@ export function TopGearApp() {
         ) : (
           <div className="gear-layout">
             <InventorySelector request={request} onChange={change} />
-            <aside className="run-summary panel">
-              <div className="section-top">
-                <div>
-                  <h2>
-                    {request.snapshot.settings.player!.name || "Your character"}
-                  </h2>
-                  <p className="muted">
-                    {spec!.name} {spec!.className} · 80
+            <aside className="run-summary panel" aria-label="Simulation setup">
+              <div className="run-configuration">
+                <div className="run-character section-top">
+                  <div>
+                    <h2>
+                      {request.snapshot.settings.player!.name ||
+                        "Your character"}
+                    </h2>
+                    <p className="muted small">
+                      {spec!.name} {spec!.className} · 80
+                    </p>
+                  </div>
+                  <button
+                    className="text-button"
+                    onClick={() => setReplace(true)}
+                  >
+                    Edit
+                  </button>
+                </div>
+                <label className="item-version-select">
+                  Item version
+                  <select
+                    aria-label="Item version"
+                    value={itemVersionOf(request.snapshot)}
+                    onChange={(event) => {
+                      const itemVersion = event.target.value as ItemVersion;
+                      change({
+                        ...request,
+                        snapshot: {
+                          ...request.snapshot,
+                          itemVersion,
+                          itemDataRevision: itemVersions[itemVersion].revision,
+                          provenance: {
+                            ...request.snapshot.provenance,
+                            itemVersion: "edited",
+                          },
+                        },
+                      });
+                    }}
+                  >
+                    {Object.entries(itemVersions).map(([id, profile]) => (
+                      <option key={id} value={id}>
+                        {profile.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="simulation-settings-summary">
+                  <div className="section-top">
+                    <span className="run-section-label">Simulation</span>
+                    <button
+                      className="text-button"
+                      onClick={() => setSettingsOpen(true)}
+                      aria-haspopup="dialog"
+                    >
+                      Buffs & settings <span aria-hidden="true">→</span>
+                    </button>
+                  </div>
+                  <p className="simulation-description">
+                    {request.snapshot.settings.encounter!.targets.length === 1
+                      ? "Single target"
+                      : `${request.snapshot.settings.encounter!.targets.length} targets`}{" "}
+                    · {request.snapshot.settings.encounter!.duration}s
                   </p>
                 </div>
-                <button
-                  className="text-button"
-                  onClick={() => setReplace(true)}
-                >
-                  Edit
-                </button>
-              </div>
-              <label className="item-version-select">
-                Item version
-                <select
-                  aria-label="Item version"
-                  value={itemVersionOf(request.snapshot)}
-                  onChange={(event) => {
-                    const itemVersion = event.target.value as ItemVersion;
-                    change({
-                      ...request,
-                      snapshot: {
-                        ...request.snapshot,
-                        itemVersion,
-                        itemDataRevision: itemVersions[itemVersion].revision,
-                        provenance: {
-                          ...request.snapshot.provenance,
-                          itemVersion: "edited",
-                        },
-                      },
-                    });
-                  }}
-                >
-                  {Object.entries(itemVersions).map(([id, profile]) => (
-                    <option key={id} value={id}>
-                      {profile.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="simulation-settings-summary">
-                <p className="muted">Simulation</p>
-                <p className="simulation-description">
-                  {request.snapshot.settings.encounter!.targets.length === 1
-                    ? "Single target"
-                    : `${request.snapshot.settings.encounter!.targets.length} targets`}{" "}
-                  · {request.snapshot.settings.encounter!.duration}s
-                </p>
-                <button
-                  className="text-button"
-                  onClick={() => setSettingsOpen(true)}
-                >
-                  Buffs & settings <span aria-hidden="true">→</span>
-                </button>
-              </div>
-              <div>
-                <div className="section-top">
-                  <span>
-                    {allowance
-                      ? `${Math.min(allowance.count, 999999).toLocaleString()} / ${Math.floor(policy!.maxUnits / policy!.unitsPerSet)} sets`
-                      : "Loading allowance…"}
-                  </span>
-                  <span className="accent">Free</span>
-                </div>
-                <progress
-                  aria-label="Free work allowance"
-                  max={policy?.maxUnits ?? 1}
-                  value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
+                <EnhancementSummary
+                  snapshot={request.snapshot}
+                  onOpen={() => setEnhancementsOpen(true)}
                 />
-                <p className="muted small">
-                  {allowance?.units.toLocaleString() ?? "—"} /{" "}
-                  {policy?.maxUnits.toLocaleString() ?? "—"} work units
-                </p>
                 <details className="allowance-help">
-                  <summary>About this estimate</summary>
+                  <summary>About the set limit</summary>
+                  <p>
+                    {allowance?.units.toLocaleString() ?? "—"} /{" "}
+                    {policy?.maxUnits.toLocaleString() ?? "—"} work units
+                  </p>
                   <p>
                     Upper bound, including equipped gear once. Illegal or
                     identical combinations are removed by the worker. Each
-                    admitted set receives {policy?.iterationsPerSet} simulation
+                    admitted set receives{" "}
+                    {policy?.iterationsPerSet.toLocaleString()} simulation
                     iterations.
                   </p>
                 </details>
               </div>
-              {allowance && !allowance.allowed && (
-                <p className="notice error">
-                  Reduce your selections to fit the free allowance.
-                </p>
-              )}
-              {readinessError && (
-                <p role="alert" className="notice error">
-                  {readinessError}
-                </p>
-              )}
-              <button
-                className="primary run-button"
-                disabled={pending || !allowance?.allowed || !!readinessError}
-                onClick={run}
+              <div
+                className="run-action"
+                data-over-limit={allowance ? !allowance.allowed : false}
               >
-                {pending ? "Submitting…" : "Find Top Gear"}{" "}
-                <span aria-hidden="true">→</span>
-              </button>
-              <p className="muted small">
-                {request.snapshot.inventory.some((i) => i.source === "bag")
-                  ? "Equipped + carried bags"
-                  : "Equipped only · no bags imported"}
-              </p>
+                <div
+                  className="run-budget"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <div className="section-top">
+                    <span className="set-count">
+                      {allowance ? (
+                        <>
+                          <strong>
+                            {Math.min(allowance.count, 999999).toLocaleString()}
+                          </strong>{" "}
+                          /{" "}
+                          {Math.floor(
+                            policy!.maxUnits / policy!.unitsPerSet,
+                          ).toLocaleString()}{" "}
+                          sets
+                        </>
+                      ) : (
+                        "Loading allowance…"
+                      )}
+                    </span>
+                    <span className="badge">Free</span>
+                  </div>
+                  <progress
+                    aria-label="Free work allowance"
+                    max={policy?.maxUnits ?? 1}
+                    value={Math.min(
+                      allowance?.units ?? 0,
+                      policy?.maxUnits ?? 1,
+                    )}
+                  />
+                </div>
+                {(error ||
+                  readinessError ||
+                  (allowance && !allowance.allowed)) && (
+                  <div className="run-feedback" role="alert">
+                    {error ||
+                      readinessError ||
+                      "Select fewer items to stay within the free set limit."}
+                  </div>
+                )}
+                <button
+                  className="primary run-button"
+                  disabled={pending || !allowance?.allowed || !!readinessError}
+                  onClick={run}
+                >
+                  {pending ? "Submitting…" : "Find Top Gear"}{" "}
+                  <span aria-hidden="true">→</span>
+                </button>
+                <p className="muted small run-caption">
+                  {request.snapshot.inventory.some((i) => i.source === "bag")
+                    ? "Equipped + carried bags"
+                    : "Equipped only · no bags imported"}
+                </p>
+              </div>
             </aside>
           </div>
         )}
-        {error && (
+        {error && (!request || replace) && (
           <p role="alert" className="notice error">
             {error}
           </p>
@@ -344,6 +385,13 @@ export function TopGearApp() {
           <p role="status" className="notice">
             {storageError}
           </p>
+        )}
+        {enhancementsOpen && request && (
+          <GemmingPanel
+            snapshot={request.snapshot}
+            onChange={(snapshot) => change({ ...request, snapshot })}
+            onClose={() => setEnhancementsOpen(false)}
+          />
         )}
         {settingsOpen && request && (
           <PresetPanel

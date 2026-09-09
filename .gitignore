@@ -12,3 +12,4 @@ __pycache__/
 .worktrees/
 
 tests/artifacts/
+.vercel

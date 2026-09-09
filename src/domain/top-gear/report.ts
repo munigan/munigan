@@ -4,9 +4,16 @@ import type {
   Loadout,
   SimulationResult,
   SetRow,
+  GemOverrides,
+  EnchantOverrides,
 } from "./model";
+import { withEnhancements } from "@/domain/equipment/enhancements";
 import { slots } from "./slots";
-import { loadoutKey } from "@/domain/equipment/enumerate";
+import {
+  loadoutKey,
+  itemKey,
+  alignPairedSlots,
+} from "@/domain/equipment/enumerate";
 export function compareMetrics(a: Metric, b: Metric) {
   for (const m of [a, b])
     if (
@@ -28,19 +35,50 @@ export function compareMetrics(a: Metric, b: Metric) {
   };
 }
 export function changedSlots(snapshot: Snapshot, a: Loadout, b: Loadout) {
-  return slots.filter((slot) => {
-    const x = { ...a },
-      y = { ...a };
-    x[slot] = a[slot];
-    y[slot] = b[slot];
-    return loadoutKey(snapshot, x) !== loadoutKey(snapshot, y);
-  });
+  const aligned = alignPairedSlots(snapshot, b, a);
+  return slots.filter(
+    (slot) => itemKey(snapshot, a[slot]) !== itemKey(snapshot, aligned[slot]),
+  );
+}
+export function changedResultSlots(
+  snapshot: Snapshot,
+  a: Loadout,
+  b: Loadout,
+  aGems: GemOverrides = {},
+  bGems: GemOverrides = {},
+  aEnchants: EnchantOverrides = {},
+  bEnchants: EnchantOverrides = {},
+) {
+  const aligned = alignPairedSlots(snapshot, b, a);
+  const from = withEnhancements(snapshot, aGems, aEnchants),
+    to = withEnhancements(snapshot, bGems, bEnchants);
+  return slots.filter(
+    (slot) => itemKey(from, a[slot]) !== itemKey(to, aligned[slot]),
+  );
 }
 export function rankResults(
   snapshot: Snapshot,
   results: SimulationResult[],
   candidates: Loadout[],
 ) {
+  // Older reports can contain multiple noisy simulations of the same pair.
+  // Choose by reference placement and hash, never by whichever DPS was luckiest.
+  const placementChanges = (r: SimulationResult) =>
+    slots.filter(
+      (slot) =>
+        itemKey(snapshot, r.loadout[slot]) !==
+        itemKey(snapshot, snapshot.equipped[slot]),
+    ).length;
+  const unique = new Map<string, SimulationResult>();
+  for (const r of [...results].sort(
+    (a, b) =>
+      placementChanges(a) - placementChanges(b) ||
+      a.inputHash.localeCompare(b.inputHash),
+  )) {
+    const key = loadoutKey(snapshot, r.loadout);
+    if (!unique.has(key)) unique.set(key, r);
+  }
+  results = [...unique.values()];
   const eligible = new Set(candidates.map((c) => loadoutKey(snapshot, c))),
     equippedKey = loadoutKey(snapshot, snapshot.equipped),
     baseline = results.find(
@@ -62,7 +100,16 @@ export function rankResults(
     const delta = baseline ? compareMetrics(r.metric, baseline.metric) : null;
     return {
       id: r.inputHash,
-      loadout: r.loadout,
+      loadout: alignPairedSlots(snapshot, r.loadout),
+      ...(r.enchantOverrides
+        ? {
+            enchantOverrides: r.enchantOverrides,
+            enchantWarnings: r.enchantWarnings,
+          }
+        : {}),
+      ...(r.gemOverrides
+        ? { gemOverrides: r.gemOverrides, gemWarnings: r.gemWarnings }
+        : {}),
       dps: r.metric.mean,
       gain: isEquipped ? 0 : (delta?.gain ?? null),
       percent:

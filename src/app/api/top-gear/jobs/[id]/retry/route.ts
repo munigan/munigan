@@ -1,3 +1,4 @@
+import { wakeDispatcher } from "@/server/jobs/wake";
 import { NextRequest, NextResponse } from "next/server";
 import { retryJob } from "@/server/jobs/work";
 import { AdmissionError } from "@/server/jobs/admit";
@@ -17,6 +18,7 @@ export async function POST(
       request.headers.get("idempotency-key") ?? "",
       sourceHash(request),
     );
+    wakeDispatcher();
     return NextResponse.json(
       { ...result, reportUrl: `/reports/${result.reportToken}` },
       { status: 202 },

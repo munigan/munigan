@@ -1,18 +1,22 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import type {
   TopGearReport,
   SetRow,
   Loadout,
   Snapshot,
+  Slot,
+  ItemInstance,
 } from "@/domain/top-gear/model";
 import {
   decodeSnapshot,
   encodeSnapshot,
 } from "@/domain/top-gear/request-schema";
 import { slots, slotNames } from "@/domain/top-gear/slots";
-import { changedSlots } from "@/domain/top-gear/report";
+import { changedSlots, changedResultSlots } from "@/domain/top-gear/report";
+import { withEnhancements } from "@/domain/equipment/enhancements";
+import { alignPairedSlots } from "@/domain/equipment/enumerate";
 import { ItemVersionContext } from "@/features/inventory/ItemVersionContext";
 import { itemVersions, itemVersionOf } from "@/domain/top-gear/item-version";
 import { getCatalog } from "@/domain/equipment/catalog";
@@ -27,6 +31,16 @@ import { saveDraft } from "@/features/import/draft-store";
 import { IndividualSimSettings } from "@/generated/wotlk/ui";
 import { Stat } from "@/generated/wotlk/common";
 import { useReport } from "./use-report";
+import "./report-refinements.css";
+
+const mobileQuery = "(max-width: 767px)";
+function subscribeToViewport(onChange: () => void) {
+  const query = window.matchMedia(mobileQuery);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const isMobileViewport = () => window.matchMedia(mobileQuery).matches;
+const serverViewport = () => false;
 type ReportResponse = {
   jobId: string;
   report: Omit<TopGearReport, "snapshot"> & {
@@ -42,17 +56,92 @@ const number = (n: number) =>
   n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 const signed = (n: number | null) =>
   n === null ? "—" : `${n > 0 ? "+" : ""}${number(n)}`;
+const compactSlotNames: Record<Slot, string> = {
+  ...slotNames,
+  shoulder: "Shldr",
+  finger1: "Ring1",
+  finger2: "Ring2",
+  trinket1: "Trink1",
+  trinket2: "Trink2",
+  mainHand: "MHand",
+  offHand: "OHand",
+  ranged: "Range",
+};
+function DpsChange({
+  gain,
+  percent,
+  cell = false,
+}: {
+  gain: number | null;
+  percent: number | null;
+  cell?: boolean;
+}) {
+  const direction =
+    gain === null || gain === 0 ? "neutral" : gain > 0 ? "up" : "down";
+  return (
+    <span
+      className={`dps-change dps-change--${direction}`}
+      role={cell ? "cell" : undefined}
+    >
+      <span className="dps-change-value">
+        <svg
+          className="dps-change-icon"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d={
+              direction === "up"
+                ? "M8 13V3m-4 4 4-4 4 4"
+                : direction === "down"
+                  ? "M8 3v10m-4-4 4 4 4-4"
+                  : "M4 8h8"
+            }
+          />
+        </svg>
+        <span className="sr-only">
+          {gain === null
+            ? "DPS comparison unavailable: "
+            : direction === "up"
+              ? "DPS gain: "
+              : direction === "down"
+                ? "DPS loss: "
+                : "No DPS change: "}
+        </span>
+        {signed(gain)}
+      </span>
+      {percent !== null && (
+        <small className="dps-change-percent">
+          {percent > 0 ? "+" : ""}
+          {percent.toFixed(2)}%
+        </small>
+      )}
+    </span>
+  );
+}
 export function ReportView({ token }: { token: string }) {
   const router = useRouter(),
     [actionError, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [selectedId, setSelectedId] = useState(""),
     [difference, setDifference] = useState<"equipped" | "highest">("equipped"),
+    [preview, setPreview] = useState<"changes" | "full" | null>(null),
     [cursor, setCursor] = useState(0),
     [full, setFull] = useState(false),
     [preferFewer, setPreferFewer] = useState(true),
     [busy, setBusy] = useState(false),
     [reuse, setReuse] = useState(false);
+  const mobile = useSyncExternalStore(
+    subscribeToViewport,
+    isMobileViewport,
+    serverViewport,
+  );
+  const changesOnly = (preview ?? (mobile ? "changes" : "full")) === "changes";
   const retryIntent = useRef({ jobId: "", key: "" });
   const { data, error: refreshError } = useReport<ReportResponse>(
     `/api/reports/${token}?cursor=${cursor}`,
@@ -74,6 +163,41 @@ export function ReportView({ token }: { token: string }) {
   const highest = rows.find((r) => r.id === report?.highestId);
   const base =
     difference === "highest" && highest ? highest.loadout : snapshot?.equipped;
+  const baseGems = difference === "highest" ? highest?.gemOverrides : undefined;
+  const baseEnchants =
+    difference === "highest" ? highest?.enchantOverrides : undefined;
+  const selectedSnapshot =
+    snapshot && selected
+      ? withEnhancements(
+          snapshot,
+          selected.gemOverrides,
+          selected.enchantOverrides,
+        )
+      : snapshot;
+  const selectedChanges =
+    snapshot && selected && base
+      ? changedResultSlots(
+          snapshot,
+          base,
+          selected.loadout,
+          baseGems,
+          selected.gemOverrides,
+          baseEnchants,
+          selected.enchantOverrides,
+        )
+      : [];
+  const requiredChanges =
+    snapshot && selected
+      ? changedResultSlots(
+          snapshot,
+          snapshot.equipped,
+          selected.loadout,
+          undefined,
+          selected.gemOverrides,
+          undefined,
+          selected.enchantOverrides,
+        ).length
+      : 0;
   async function copy(text: string, message: string) {
     try {
       await navigator.clipboard.writeText(text);
@@ -112,7 +236,7 @@ export function ReportView({ token }: { token: string }) {
   function edit(useSelected = false) {
     if (!snapshot || !report || !selected) return;
     try {
-      let next = structuredClone(snapshot);
+      let next = structuredClone(useSelected ? selectedSnapshot! : snapshot);
       if (useSelected) {
         next = {
           ...next,
@@ -144,12 +268,26 @@ export function ReportView({ token }: { token: string }) {
   }
   if (!data || !snapshot || !report)
     return (
-      <section id="content">
+      <section id="content" className="report-view">
         <div className="page-heading">
           <h1>TOP GEAR</h1>
         </div>
-        <div className="panel" role="status">
-          {error || "Loading your report…"}
+        <div
+          className={`panel report-state ${error ? "report-state--failed" : "report-state--loading"}`}
+          role={error ? "alert" : "status"}
+          aria-busy={!error}
+        >
+          <p className="eyebrow">
+            {error ? "REPORT UNAVAILABLE" : "TOP GEAR REPORT"}
+          </p>
+          <h2>
+            {error ? "Could not load this report" : "Loading your report…"}
+          </h2>
+          {error ? (
+            <p>{error}</p>
+          ) : (
+            <div className="report-loading-bar" aria-hidden="true" />
+          )}
         </div>
         <p className="actions">
           <a href="/top-gear">Back to Top Gear</a>
@@ -160,7 +298,7 @@ export function ReportView({ token }: { token: string }) {
     spec = getSpec(snapshot.specId);
   return (
     <ItemVersionContext.Provider value={itemVersionOf(snapshot)}>
-      <section id="content">
+      <section id="content" className="report-view">
         <div className="page-heading">
           <h1>TOP GEAR</h1>
           <p>
@@ -186,7 +324,10 @@ export function ReportView({ token }: { token: string }) {
           </div>
         </div>
         {active && (
-          <div className="panel job-progress">
+          <div
+            className={`panel job-progress report-state report-state--${report.status}`}
+            role="status"
+          >
             <div className="section-top">
               <div>
                 <p className="eyebrow">
@@ -209,8 +350,12 @@ export function ReportView({ token }: { token: string }) {
             </div>
             <progress
               aria-label="Simulation progress"
-              value={report.coverage.succeeded}
-              max={report.coverage.planned ?? 1}
+              value={
+                report.status === "queued" || report.coverage.planned === null
+                  ? undefined
+                  : report.coverage.succeeded
+              }
+              max={Math.max(1, report.coverage.planned ?? 1)}
             />
             <p className="muted">
               You can leave this page and return using this report link.
@@ -223,7 +368,15 @@ export function ReportView({ token }: { token: string }) {
           </div>
         )}
         {!active && report.status !== "complete" && (
-          <div className="notice">
+          <div
+            className={`notice report-state report-state--${report.status}`}
+            role="status"
+          >
+            <p className="eyebrow">
+              {report.coverage.succeeded
+                ? "SAVED RESULTS"
+                : "SIMULATION STOPPED"}
+            </p>
             <h2>
               {report.status === "canceled"
                 ? "Run canceled"
@@ -264,12 +417,10 @@ export function ReportView({ token }: { token: string }) {
                   </p>
                   <div className="dps-heading">
                     <strong>{number(selected.dps)} DPS</strong>
-                    <span className="gain">
-                      {signed(selected.gain)}
-                      {selected.percent !== null
-                        ? ` · ${selected.percent.toFixed(2)}%`
-                        : ""}
-                    </span>
+                    <DpsChange
+                      gain={selected.gain}
+                      percent={selected.percent}
+                    />
                     <span className="muted">vs. equipped</span>
                   </div>
                 </div>
@@ -283,7 +434,7 @@ export function ReportView({ token }: { token: string }) {
                         JSON.stringify(
                           {
                             items: slots.map((slot) => {
-                              const i = snapshot.inventory.find(
+                              const i = selectedSnapshot!.inventory.find(
                                 (i) => i.instanceId === selected.loadout[slot],
                               );
                               return {
@@ -304,18 +455,68 @@ export function ReportView({ token }: { token: string }) {
                   </button>
                 </div>
               </div>
+              <div className="report-preview-controls">
+                <span className="required-changes">
+                  {requiredChanges} required{" "}
+                  {requiredChanges === 1 ? "change" : "changes"} vs. equipped
+                </span>
+                <div
+                  className="report-segmented"
+                  role="group"
+                  aria-label="Gear preview"
+                >
+                  <button
+                    aria-pressed={changesOnly}
+                    onClick={() => setPreview("changes")}
+                  >
+                    Changes
+                  </button>
+                  <button
+                    aria-pressed={!changesOnly}
+                    onClick={() => setPreview("full")}
+                  >
+                    Full set
+                  </button>
+                </div>
+              </div>
               <GearStrip
-                snapshot={snapshot}
+                snapshot={selectedSnapshot!}
                 loadout={selected.loadout}
                 base={base}
+                changes={selectedChanges}
+                changesOnly={changesOnly}
+                emptyLabel={
+                  difference === "highest"
+                    ? "Matches the top set"
+                    : "No changes from equipped"
+                }
               />
               <div className="section-top muted small">
                 <span className="gain">
-                  {changedSlots(snapshot, base, selected.loadout).length}{" "}
-                  changes highlighted
+                  {selectedChanges.length} highlighted vs.{" "}
+                  {difference === "highest" ? "top set" : "equipped"}
                 </span>
-                <span>Original gems & enchants</span>
+                <span>
+                  {[
+                    Object.keys(selected.gemOverrides ?? {}).length
+                      ? `${Object.keys(selected.gemOverrides!).length} ${Object.keys(selected.gemOverrides!).length === 1 ? "item" : "items"} regemmed`
+                      : "",
+                    Object.keys(selected.enchantOverrides ?? {}).length
+                      ? `${Object.keys(selected.enchantOverrides!).length} ${Object.keys(selected.enchantOverrides!).length === 1 ? "item" : "items"} enchanted`
+                      : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") || "Original gems & enchants"}
+                </span>
               </div>
+              {[
+                ...(selected.gemWarnings ?? []),
+                ...(selected.enchantWarnings ?? []),
+              ].map((warning) => (
+                <p className="notice small" key={warning}>
+                  {warning}
+                </p>
+              ))}
             </div>
             <div className="combinations-heading section-top">
               <h2>
@@ -326,24 +527,30 @@ export function ReportView({ token }: { token: string }) {
               </h2>
               <div className="difference-controls">
                 <span className="muted">Differences from</span>
-                <label>
-                  <input
-                    type="radio"
-                    name="difference"
-                    checked={difference === "equipped"}
-                    onChange={() => setDifference("equipped")}
-                  />{" "}
-                  Equipped
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="difference"
-                    checked={difference === "highest"}
-                    onChange={() => setDifference("highest")}
-                  />{" "}
-                  Top set
-                </label>
+                <div
+                  className="report-segmented"
+                  role="radiogroup"
+                  aria-label="Item differences from"
+                >
+                  <label>
+                    <input
+                      type="radio"
+                      name="difference"
+                      checked={difference === "equipped"}
+                      onChange={() => setDifference("equipped")}
+                    />
+                    <span>Equipped</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="difference"
+                      checked={difference === "highest"}
+                      onChange={() => setDifference("highest")}
+                    />
+                    <span>Top set</span>
+                  </label>
+                </div>
                 <button
                   className="text-button"
                   onClick={() => setSelectedId(report.equippedId)}
@@ -359,17 +566,31 @@ export function ReportView({ token }: { token: string }) {
             >
               <div className="combination-columns table-heading" role="row">
                 <span role="columnheader">SET</span>
-                <span role="columnheader">CHANGED ITEMS</span>
+                <span role="columnheader">ITEMS & ENHANCEMENTS</span>
                 <span role="columnheader">DPS</span>
                 <span role="columnheader">GAIN VS. EQUIPPED</span>
               </div>
               {report.rows.map((row, index) => {
-                const changes = changedSlots(snapshot, base, row.loadout);
+                const loadout = alignPairedSlots(snapshot, row.loadout, base);
+                const rowSnapshot = withEnhancements(
+                  snapshot,
+                  row.gemOverrides,
+                  row.enchantOverrides,
+                );
+                const changes = changedResultSlots(
+                  snapshot,
+                  base,
+                  loadout,
+                  baseGems,
+                  row.gemOverrides,
+                  baseEnchants,
+                  row.enchantOverrides,
+                );
                 return (
                   <div
                     key={row.id}
                     role="row"
-                    className={`combination-columns combination-row ${row.id === selected.id ? "selected" : ""}`}
+                    className={`combination-columns combination-row ${row.isEquipped ? "equipped-row" : ""} ${row.id === selected.id ? "selected" : ""}`}
                     onClick={() => setSelectedId(row.id)}
                   >
                     <span className="set-number" role="cell">
@@ -384,8 +605,8 @@ export function ReportView({ token }: { token: string }) {
                     <span className="set-changes" role="cell">
                       <span className="changed-icons">
                         {changes.slice(0, 5).map((slot) => {
-                          const i = snapshot.inventory.find(
-                            (i) => i.instanceId === row.loadout[slot],
+                          const i = rowSnapshot.inventory.find(
+                            (i) => i.instanceId === loadout[slot],
                           );
                           return (
                             <span
@@ -393,21 +614,20 @@ export function ReportView({ token }: { token: string }) {
                               title={`${slotNames[slot]}: ${i ? getCatalog(snapshot.itemVersion).items.get(i.itemId)?.name : "Empty"}`}
                             >
                               {i ? (
-                                <ItemLink
+                                <ItemIcon
                                   item={i}
+                                  size={40}
                                   aria-label={
                                     getCatalog(snapshot.itemVersion).items.get(
                                       i.itemId,
                                     )?.name
                                   }
                                   onClick={(event) => event.stopPropagation()}
-                                >
-                                  <ItemIcon itemId={i.itemId} size={40} />
-                                </ItemLink>
+                                />
                               ) : (
                                 <span className="empty-icon">—</span>
                               )}
-                              <small>{slotNames[slot]}</small>
+                              <small>{compactSlotNames[slot]}</small>
                             </span>
                           );
                         })}
@@ -415,36 +635,39 @@ export function ReportView({ token }: { token: string }) {
                           <span className="muted">+{changes.length - 5}</span>
                         )}
                       </span>
-                      <span
-                        className={
-                          row.id === report.recommendedId && preferFewer
-                            ? "gain"
-                            : "muted"
-                        }
-                      >
-                        {row.isEquipped
-                          ? "Equipped"
-                          : row.id === report.highestId
-                            ? report.coverage.exhaustive
+                      <span className="report-row-badges">
+                        {row.isEquipped && (
+                          <span className="badge equipped-badge">Equipped</span>
+                        )}
+                        {row.id === report.highestId && (
+                          <span className="badge highest-badge">
+                            {report.coverage.exhaustive
                               ? "Highest DPS"
-                              : "Best found"
-                            : row.id === report.recommendedId && preferFewer
-                              ? "Recommended · Tied"
-                              : row.tiedToHighest
-                                ? "Within uncertainty"
-                                : ""}
-                        {!row.eligible ? " · Reference only" : ""}
+                              : "Best found"}
+                          </span>
+                        )}
+                        {row.tiedToHighest && row.id !== report.highestId && (
+                          <span
+                            className="badge tied-badge"
+                            aria-describedby="report-tie-explanation"
+                          >
+                            Tied
+                          </span>
+                        )}
+                        {row.id === report.recommendedId &&
+                          preferFewer &&
+                          row.id !== report.highestId && (
+                            <span className="report-fewer-swaps">
+                              Fewer swaps
+                            </span>
+                          )}
+                        {!row.eligible && (
+                          <span className="muted">Reference only</span>
+                        )}
                       </span>
                     </span>
                     <strong role="cell">{number(row.dps)}</strong>
-                    <span className="gain" role="cell">
-                      {signed(row.gain)}
-                      <small>
-                        {row.percent === null
-                          ? ""
-                          : `${row.percent.toFixed(2)}%`}
-                      </small>
-                    </span>
+                    <DpsChange gain={row.gain} percent={row.percent} cell />
                   </div>
                 );
               })}
@@ -476,7 +699,10 @@ export function ReportView({ token }: { token: string }) {
                 </button>
               </div>
             </div>
-            <p className="muted small uncertainty-note">
+            <p
+              id="report-tie-explanation"
+              className="muted small uncertainty-note"
+            >
               “Tied” means the difference is within pairwise sampling
               uncertainty. It does not guarantee the same DPS. Numeric ranking
               stays unchanged.
@@ -536,7 +762,7 @@ export function ReportView({ token }: { token: string }) {
         )}
         {full && selected && (
           <FullSet
-            snapshot={snapshot}
+            snapshot={selectedSnapshot!}
             row={selected}
             onClose={() => setFull(false)}
           />
@@ -549,17 +775,32 @@ function GearStrip({
   snapshot,
   loadout,
   base,
+  changes,
+  changesOnly = false,
+  emptyLabel,
 }: {
   snapshot: Snapshot;
   loadout: Loadout;
   base: Loadout;
+  changes?: ReturnType<typeof changedSlots>;
+  changesOnly?: boolean;
+  emptyLabel?: string;
 }) {
-  const changed = changedSlots(snapshot, base, loadout);
+  const aligned = alignPairedSlots(snapshot, loadout, base);
+  const changed = changes ?? changedSlots(snapshot, base, aligned);
   return (
-    <div className="gear-strip" aria-label="Complete 17-slot gear set">
-      {slots.map((slot) => {
+    <div
+      className={`gear-strip ${changesOnly ? "gear-strip--changes" : ""}`}
+      aria-label={
+        changesOnly ? "Changed gear slots" : "Complete 17-slot gear set"
+      }
+    >
+      {changesOnly && changed.length === 0 && (
+        <p className="report-zero-changes">{emptyLabel}</p>
+      )}
+      {(changesOnly ? changed : slots).map((slot) => {
         const item = snapshot.inventory.find(
-          (i) => i.instanceId === loadout[slot],
+          (i) => i.instanceId === aligned[slot],
         );
         return (
           <div
@@ -575,14 +816,12 @@ function GearStrip({
           >
             <span>{slotNames[slot]}</span>
             {item ? (
-              <ItemLink
+              <ItemIcon
                 item={item}
                 aria-label={
                   getCatalog(snapshot.itemVersion).items.get(item.itemId)?.name
                 }
-              >
-                <ItemIcon itemId={item.itemId} />
-              </ItemLink>
+              />
             ) : (
               <span className="empty-icon">—</span>
             )}
@@ -609,17 +848,22 @@ function FullSet({
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const node = dialog.current;
+    const opener = document.activeElement;
     node?.showModal();
-    return () => node?.close();
+    return () => {
+      node?.close();
+      if (opener instanceof HTMLElement) opener.focus();
+    };
   }, []);
   return (
     <dialog
       ref={dialog}
       className="settings-dialog full-set-dialog"
+      aria-labelledby="full-gear-title"
       onCancel={onClose}
     >
-      <div className="section-top">
-        <h2>Full gear · {number(row.dps)} DPS</h2>
+      <div className="section-top full-set-header">
+        <h2 id="full-gear-title">Full gear · {number(row.dps)} DPS</h2>
         <button onClick={onClose}>Close</button>
       </div>
       <div className="full-gear-list">
@@ -632,19 +876,20 @@ function FullSet({
               <span className="muted">{slotNames[slot]}</span>
               {item ? (
                 <>
-                  <ItemLink
+                  <ItemIcon
                     item={item}
                     aria-label={
                       getCatalog(snapshot.itemVersion).items.get(item.itemId)
                         ?.name
                     }
-                  >
-                    <ItemIcon itemId={item.itemId} />
-                  </ItemLink>
-                  <ItemLink item={item}>
-                    <ItemName item={item} />
-                  </ItemLink>
-                  <ItemDetails item={item} />
+                  />
+                  <div className="full-gear-description">
+                    <ItemLink item={item}>
+                      <ItemName item={item} />
+                    </ItemLink>
+                    <FullSetEnhancements item={item} snapshot={snapshot} />
+                    <ItemDetails item={item} />
+                  </div>
                 </>
               ) : (
                 <span className="muted">Empty</span>
@@ -671,5 +916,51 @@ function FullSet({
         </dl>
       </details>
     </dialog>
+  );
+}
+
+function FullSetEnhancements({
+  item,
+  snapshot,
+}: {
+  item: ItemInstance;
+  snapshot: Snapshot;
+}) {
+  const catalog = getCatalog(snapshot.itemVersion);
+  return (
+    <div className="full-gear-enhancements">
+      <span className="full-gear-enchant">
+        Enchant:{" "}
+        {item.enchantId
+          ? (catalog.enchants.get(item.enchantId)?.[0]?.name ??
+            `#${item.enchantId}`)
+          : "None"}
+      </span>
+      {item.gemIds.length > 0 && (
+        <span className="full-gear-gems" aria-label="Gems">
+          {item.gemIds.map((id, index) =>
+            id ? (
+              <ItemIcon
+                key={index}
+                size={18}
+                item={{
+                  instanceId: `${item.instanceId}-gem-${index}`,
+                  itemId: id,
+                  gemIds: [],
+                  enchantId: 0,
+                  source: item.source,
+                }}
+              >
+                <span>{catalog.gems.get(id)?.name ?? `Gem ${id}`}</span>
+              </ItemIcon>
+            ) : (
+              <span className="muted" key={index}>
+                Empty socket
+              </span>
+            ),
+          )}
+        </span>
+      )}
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ToolNav } from "./ToolNav";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -15,26 +16,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span>WOW DROPTIMIZER</span>
           <small>WRATH · 3.3.5a</small>
         </Link>
-        <a
-          href="https://poli93.github.io/wotlk/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Simulator ↗
-        </a>
+        <ToolNav />
       </header>
-      <nav className="tool-nav" aria-label="Tools">
-        <Link href="/top-gear" aria-current="page">
-          Top Gear
-        </Link>
-        <span>Free to use · No account needed</span>
-      </nav>
       <main>{children}</main>
-      <footer>
-        Powered by the{" "}
-        <a href="https://github.com/Poli93/wotlk">Poli93 WotLK simulator</a>
-        <span>Warmane · 3.3.5a</span>
-      </footer>
     </>
   );
 }

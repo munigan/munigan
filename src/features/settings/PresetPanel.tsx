@@ -4,6 +4,14 @@ import type { JsonObject } from "@protobuf-ts/runtime";
 import { IndividualSimSettings } from "@/generated/wotlk/ui";
 import { APLRotation, APLRotation_Type } from "@/generated/wotlk/apl";
 import { Profession } from "@/generated/wotlk/common";
+import {
+  BuffControls,
+  ConsumeControls,
+  GlyphControls,
+  SettingIcon,
+  professionIcons,
+} from "./VisualSettings";
+import "./settings-refinements.css";
 import { defaultSettings, getSpec, listSpecs, modules } from "./registry";
 import { applySettingsPatch } from "@/features/import/parse-export";
 import type { Snapshot } from "@/domain/top-gear/model";
@@ -41,6 +49,10 @@ export function PresetPanel({
     encounter = snapshot.settings.encounter!;
   const json = IndividualSimSettings.toJson(snapshot.settings) as JsonObject,
     def = IndividualSimSettings.toJson(defaults) as JsonObject;
+  function close() {
+    dialog.current?.close();
+    onClose();
+  }
   function patch(value: JsonObject) {
     try {
       onChange(applySettingsPatch(snapshot, value));
@@ -77,6 +89,53 @@ export function PresetPanel({
     setText(JSON.stringify(categoryJson(c), null, 2));
     setError("");
   }
+  const categoryPrefixes: Record<string, string[]> = {
+    Encounter: ["encounter"],
+    Buffs: ["raidBuffs", "partyBuffs", "debuffs", "player.buffs"],
+    Consumes: ["player.consumes"],
+    "Talents & glyphs": ["player.talentsString", "player.glyphs"],
+    Professions: ["player.profession1", "player.profession2"],
+    Rotation: ["player.rotation"],
+  };
+  function categoryProvenance(name: string, source: "preset" | "edited") {
+    const prefixes = categoryPrefixes[name] ?? [];
+    return {
+      ...Object.fromEntries(
+        Object.entries(snapshot.provenance).filter(
+          ([path]) =>
+            !prefixes.some(
+              (prefix) => path === prefix || path.startsWith(prefix + "."),
+            ),
+        ),
+      ),
+      ...Object.fromEntries(prefixes.map((path) => [path, source])),
+    };
+  }
+  const sources = Object.entries(snapshot.provenance)
+    .filter(([path]) =>
+      (categoryPrefixes[category] ?? []).some(
+        (prefix) => path === prefix || path.startsWith(prefix + "."),
+      ),
+    )
+    .map(([, source]) => source);
+  const sourceLabel = sources.includes("edited")
+    ? "Edited"
+    : sources.includes("imported")
+      ? "Imported"
+      : "Default";
+  function encounterPreset(targetCount: number, duration: number) {
+    const current = (json.encounter as JsonObject).targets as JsonObject[];
+    patch({
+      encounter: {
+        duration,
+        durationVariation: Math.min(encounter.durationVariation, duration / 2),
+        targets: Array.from(
+          { length: targetCount },
+          (_, i) => current[i] ?? current[0],
+        ),
+      },
+    });
+  }
   function resetCategory() {
     const saved = IndividualSimSettings.clone(snapshot.settings);
     if (category === "Encounter") saved.encounter = defaults.encounter;
@@ -94,7 +153,7 @@ export function PresetPanel({
     onChange({
       ...snapshot,
       settings: saved,
-      provenance: { ...snapshot.provenance, [category]: "preset" },
+      provenance: categoryProvenance(category, "preset"),
     });
     setText(JSON.stringify(categoryJson(category, def), null, 2));
   }
@@ -118,13 +177,21 @@ export function PresetPanel({
       });
   }
   return (
-    <dialog ref={dialog} className="settings-dialog" onCancel={onClose}>
-      <div className="section-top">
+    <dialog
+      ref={dialog}
+      className="settings-dialog simulation-dialog"
+      aria-labelledby="simulation-dialog-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
+      }}
+    >
+      <div className="section-top simulation-dialog-header">
         <div>
           <p className="eyebrow">SIMULATION</p>
-          <h2>Buffs & settings</h2>
+          <h2 id="simulation-dialog-title">Buffs & settings</h2>
         </div>
-        <button onClick={onClose}>Done</button>
+        <button onClick={close}>Done</button>
       </div>
       <div
         className="settings-tabs"
@@ -135,6 +202,29 @@ export function PresetPanel({
           <button
             key={c}
             role="tab"
+            id={`settings-tab-${categories.indexOf(c)}`}
+            aria-controls="settings-panel"
+            tabIndex={category === c ? 0 : -1}
+            onKeyDown={(event) => {
+              const i = categories.indexOf(c);
+              const index =
+                event.key === "ArrowRight"
+                  ? (i + 1) % categories.length
+                  : event.key === "ArrowLeft"
+                    ? (i + categories.length - 1) % categories.length
+                    : event.key === "Home"
+                      ? 0
+                      : event.key === "End"
+                        ? categories.length - 1
+                        : -1;
+              if (index >= 0) {
+                event.preventDefault();
+                openCategory(categories[index]);
+                event.currentTarget.parentElement
+                  ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+                  [index]?.focus();
+              }
+            }}
             aria-selected={category === c}
             onClick={() => openCategory(c)}
           >
@@ -142,9 +232,19 @@ export function PresetPanel({
           </button>
         ))}
       </div>
-      <div className="settings-body">
+      <div
+        className="settings-body"
+        id="settings-panel"
+        role="tabpanel"
+        aria-labelledby={`settings-tab-${categories.indexOf(category)}`}
+      >
         <div className="section-top">
-          <h3>{category}</h3>
+          <h3>
+            {category}{" "}
+            {category !== "Advanced" && (
+              <span className="badge settings-source">{sourceLabel}</span>
+            )}
+          </h3>
           {["Encounter", "Buffs", "Consumes", "Talents & glyphs"].includes(
             category,
           ) && (
@@ -155,6 +255,20 @@ export function PresetPanel({
         </div>
         {category === "Encounter" && (
           <>
+            <div
+              className="encounter-presets segmented"
+              aria-label="Encounter shortcuts"
+            >
+              <button onClick={() => encounterPreset(1, 180)}>
+                Single target · 3 min
+              </button>
+              <button onClick={() => encounterPreset(3, 180)}>
+                Cleave · 3 targets
+              </button>
+              <button onClick={() => encounterPreset(1, 60)}>
+                Short fight · 1 min
+              </button>
+            </div>
             <div className="form-grid">
               <label>
                 Fight length (seconds)
@@ -215,7 +329,7 @@ export function PresetPanel({
               </label>
             </div>
             <p className="muted">
-              Other imported encounter details are preserved.
+              Target stats and other imported encounter settings are preserved.
             </p>
           </>
         )}
@@ -255,20 +369,26 @@ export function PresetPanel({
             {(["profession1", "profession2"] as const).map((field, index) => (
               <label key={field}>
                 Profession {index + 1}
-                <select
-                  value={p[field]}
-                  onChange={(e) =>
-                    patch({ player: { [field]: Number(e.target.value) } })
-                  }
-                >
-                  {Object.entries(Profession)
-                    .filter(([, v]) => typeof v === "number")
-                    .map(([name, v]) => (
-                      <option key={name} value={v}>
-                        {name === "ProfessionUnknown" ? "None" : name}
-                      </option>
-                    ))}
-                </select>
+                <span className="profession-input">
+                  <SettingIcon
+                    key={p[field]}
+                    icon={professionIcons[p[field]]}
+                  />
+                  <select
+                    value={p[field]}
+                    onChange={(e) =>
+                      patch({ player: { [field]: Number(e.target.value) } })
+                    }
+                  >
+                    {Object.entries(Profession)
+                      .filter(([, v]) => typeof v === "number")
+                      .map(([name, v]) => (
+                        <option key={name} value={v}>
+                          {name === "ProfessionUnknown" ? "None" : name}
+                        </option>
+                      ))}
+                  </select>
+                </span>
                 {snapshot.professionLevels?.[String(p[field])] !==
                   undefined && (
                   <small className="muted">
@@ -289,7 +409,11 @@ export function PresetPanel({
                 settings.partyBuffs = undefined;
                 settings.debuffs = undefined;
                 settings.player!.buffs = undefined;
-                onChange({ ...snapshot, settings });
+                onChange({
+                  ...snapshot,
+                  settings,
+                  provenance: categoryProvenance("Buffs", "edited"),
+                });
                 setText(
                   JSON.stringify(
                     {
@@ -313,7 +437,12 @@ export function PresetPanel({
             <label>
               Talent preset
               <select
-                value={snapshot.specId}
+                aria-label="Talent preset"
+                value={
+                  p.talentsString === spec.talents.talentsString
+                    ? snapshot.specId
+                    : "imported"
+                }
                 onChange={(e) => {
                   const chosen = getSpec(e.target.value);
                   const settings = IndividualSimSettings.clone(
@@ -327,14 +456,16 @@ export function PresetPanel({
                     ...snapshot,
                     specId: chosen.id,
                     settings,
-                    provenance: {
-                      ...snapshot.provenance,
-                      "player.talentsString": "preset",
-                      "player.glyphs": "preset",
-                    },
+                    provenance: categoryProvenance(
+                      "Talents & glyphs",
+                      "preset",
+                    ),
                   });
                 }}
               >
+                <option value="imported" disabled>
+                  Imported talents
+                </option>
                 {listSpecs()
                   .filter((s) => s.module === spec.module)
                   .map((s) => (
@@ -344,27 +475,31 @@ export function PresetPanel({
                   ))}
               </select>
             </label>
-            <label>
-              Talent string
-              <input
-                value={p.talentsString}
-                onChange={(e) =>
-                  patch({ player: { talentsString: e.target.value } })
-                }
-              />
-            </label>
+            <GlyphControls snapshot={snapshot} onPatch={patch} />
+            <details className="talent-string">
+              <summary>Talent string</summary>
+              <label>
+                Talent string
+                <input
+                  aria-label="Talent string"
+                  value={p.talentsString}
+                  onChange={(e) =>
+                    patch({ player: { talentsString: e.target.value } })
+                  }
+                />
+              </label>
+            </details>
           </>
         )}
-        {["Buffs", "Consumes", "Talents & glyphs", "Advanced"].includes(
-          category,
-        ) && (
-          <details className="advanced-settings" open={category === "Advanced"}>
-            <summary>
-              Advanced{" "}
-              {category === "Advanced"
-                ? "simulator configuration"
-                : category.toLowerCase()}
-            </summary>
+        {category === "Buffs" && (
+          <BuffControls snapshot={snapshot} onPatch={patch} />
+        )}
+        {category === "Consumes" && (
+          <ConsumeControls snapshot={snapshot} onPatch={patch} />
+        )}
+        {category === "Advanced" && (
+          <details className="advanced-settings" open>
+            <summary>Advanced simulator configuration</summary>
             <label htmlFor="config-json">{category} JSON</label>
             <textarea
               id="config-json"
@@ -383,11 +518,7 @@ export function PresetPanel({
                     typeof parsed !== "object"
                   )
                     throw new Error("Use a JSON object");
-                  patch(
-                    category === "Advanced"
-                      ? parsed
-                      : categoryJson(category, parsed),
-                  );
+                  patch(parsed);
                 } catch (e) {
                   setError((e as Error).message);
                 }
