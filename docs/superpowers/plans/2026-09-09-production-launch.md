@@ -20,20 +20,22 @@
 
 ## 1. Production job dispatch
 
-- [ ] Add a best-effort dispatch hook to submission and retry after the durable DB write using Next.js `after`; gate on configured Trigger credentials so local native-worker tests keep working.
-- [ ] Add a production-only scheduled Trigger recovery task, calling reconciliation then outbox dispatch. Use ten-minute interval, concurrency one, and expire stale scheduled runs. Close idle DB connections after each sweep using a low idle timeout rather than ending the module pool permanently.
-- [ ] Verify dispatch failures leave accepted jobs durable and recoverable; run integration and browser simulation tests.
+- [x] Add a best-effort dispatch hook to submission and retry after the durable DB write using Next.js `after`; gate on configured Trigger credentials so local native-worker tests keep working.
+- [x] Add a production-only scheduled Trigger recovery task, calling reconciliation then outbox dispatch. Use ten-minute interval and concurrency one. Close idle DB connections after each sweep using a low idle timeout rather than ending the module pool permanently.
+- [x] Verify dispatch failures leave accepted jobs durable and recoverable; run integration and browser simulation tests.
 
 ## 2. Provision and configure
 
-- [ ] Create private GitHub repository and Vercel project in the personal Hobby workspace.
-- [ ] Create Neon Free database in a region close to the worker, install schema, set pooled production connection URL on both providers.
-- [ ] Configure explicit app origin, production capability key, trusted Vercel IP header and admission limits. Keep local .env.local unchanged.
-- [ ] Package the existing pinned Linux simulator executable for Trigger; validate production container execution.
+- [x] Create private GitHub repository and Vercel project in the personal Hobby workspace.
+- [x] Create Neon Free database in a region close to the worker, install schema, set pooled production connection URL on both providers.
+- [x] Configure explicit app origin, production capability key, trusted Vercel IP header and admission limits. Keep local .env.local unchanged.
+- [x] Package the existing pinned Linux simulator executable for Trigger; validate production container execution.
 
 ## 3. Release and verify
 
-- [ ] Run unit/UI, integration/native simulation, typecheck/lint/build, and secret/ignored-file checks before committing the first release.
-- [ ] Deploy Trigger production and Vercel, attach exact custom hostname with verified DNS/TLS.
-- [ ] Run a real browser import -> select -> submit -> completed report against the production hostname. Verify public read-only report and owner controls.
-- [ ] Record deployment IDs, URLs, provider plans, limits, and future deployment commands; identify any actual blockers.
+- [x] Run unit/UI, integration/native simulation, typecheck/lint/build, and secret/ignored-file checks before committing the first release.
+- [x] Deploy Trigger production and Vercel, attach exact custom hostname with verified DNS/TLS.
+- [x] Run a real browser import -> select -> submit -> completed report against the production hostname. Verify public read-only report and owner controls.
+- [x] Record deployment IDs, URLs, provider plans, limits, and future deployment commands; identify any actual blockers.
+
+Release evidence and future deployment steps: `docs/engineering/production-launch.md`.
