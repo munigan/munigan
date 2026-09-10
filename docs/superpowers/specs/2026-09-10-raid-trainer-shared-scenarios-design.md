@@ -1,6 +1,6 @@
 # Raid Trainer: shared scenarios and realistic positioning
 
-Date: September 10, 2026. Status: proposed design for user review; no gameplay implementation changes in this design pass.
+Date: September 10, 2026. Status: approved for implementation planning by the user's “Go on” response; no gameplay implementation changes in this design pass.
 
 ## Purpose and accepted direction
 
