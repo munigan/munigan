@@ -267,3 +267,45 @@ test("touch inspects a noneditable trinket from its icon and name without openin
   }
   await context.close();
 });
+
+test("pending details pulse subtly and respect reduced motion", async ({
+  page,
+}) => {
+  await setup(page);
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/tooltips/*/45931", async (route) => {
+    await pending;
+    await route.fallback();
+  });
+  await page.locator('.inventory-row a[data-item-id="45931"]').first().hover();
+  const tooltip = activeTooltip(page);
+  const bars = tooltip.locator(".compact-tooltip-skeleton");
+  await expect(bars).toHaveCount(6);
+  await expect(
+    tooltip.locator(".compact-tooltip-loading .compact-tooltip-skeleton"),
+  ).toHaveCount(4);
+  await expect(bars.first()).toHaveCSS("animation-duration", "1.4s");
+  await expect(bars.first()).toHaveCSS(
+    "animation-name",
+    "tooltip-skeleton-pulse",
+  );
+  await expect(tooltip).toContainText(
+    "Still loading. Your stats are available.",
+  );
+  await expect(tooltip).toHaveCSS("width", "336px");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(bars.first()).toHaveCSS("animation-name", "none");
+  await page.screenshot({
+    path: ".artifacts/tooltip-release/loading-state.png",
+  });
+  release();
+  await expect(tooltip).toContainText("Full effect 12");
+  await expect(bars).toHaveCount(0);
+  await expect(tooltip.locator('[data-reveal="true"]')).toHaveCSS(
+    "animation-name",
+    "none",
+  );
+});

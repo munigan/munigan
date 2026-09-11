@@ -25,6 +25,7 @@ import { claimOwnedTooltip, releaseOwnedTooltip } from "./active-tooltip";
 import { enchantDescription } from "./enhancements/enchant-description";
 import { fitItemTooltip } from "./tooltip-viewport";
 import { loadItemTooltip, peekItemTooltip } from "./tooltip-client";
+import { useTooltipLoading, Skeleton } from "./tooltip-loading";
 
 const socketColors = {
   red: GemColor.GemColorRed,
@@ -89,6 +90,13 @@ export function ClassicCompactItemLink({
   const statsItem = gear ?? gem,
     meta = statsItem ?? catalog.icons?.get(item.itemId);
   const unsupported = catalog.unsupportedItemIds?.has(item.itemId);
+  const localGemComplete = !!gem && gem.color !== GemColor.GemColorMeta;
+  const failed = result?.key === key && result.failed;
+  const loading = useTooltipLoading(
+    open ? key : null,
+    !details && !failed && !localGemComplete,
+  );
+
   const enchants = catalog.enchants.get(item.enchantId);
   const enchant =
     enchants?.find(
@@ -146,6 +154,7 @@ export function ClassicCompactItemLink({
   function show() {
     claimOwnedTooltip(id, hide);
     cancelClose();
+    if (!open) setResult((current) => (current?.failed ? undefined : current));
     setOpen(true);
   }
   function hide() {
@@ -353,66 +362,84 @@ export function ClassicCompactItemLink({
               {t("item.unsupported")}
             </span>
           )}
-          {details
-            ? lineGroups.map((kinds) => {
-                const lines = details.lines.filter((line) =>
-                  kinds.includes(line.kind),
-                );
-                return (
-                  lines.length > 0 && (
-                    <span
-                      className="compact-tooltip-section"
-                      data-section={kinds[0]}
-                      key={kinds[0]}
-                    >
-                      {kinds[0] === "set" && (
-                        <span className="compact-tooltip-muted">
-                          {t("tooltip.setInfo")}
-                        </span>
-                      )}
-                      {sourceLines(lines)}
-                    </span>
-                  )
-                );
-              })
-            : !unsupported && (
-                <>
-                  {!!gear?.weaponSpeed && (
-                    <span className="compact-tooltip-section">
-                      {t("item.weaponStats", {
-                        min: gear.weaponDamageMin.toLocaleString(locale),
-                        max: gear.weaponDamageMax.toLocaleString(locale),
-                        speed: gear.weaponSpeed.toLocaleString(locale, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }),
-                      })}
-                    </span>
-                  )}
-                  {statsItem && (
-                    <span className="compact-tooltip-section">
-                      {statLines(statsItem.stats, t, locale).map((line) => (
-                        <span className="compact-tooltip-line" key={line}>
-                          {line}
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                  {effects.length > 0 && (
-                    <span className="compact-tooltip-section">
-                      {effects.map((effect) => (
-                        <span
-                          className="compact-tooltip-line"
-                          data-kind="effect"
-                          key={effect}
-                        >
-                          {effect}
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                </>
-              )}
+          <span
+            className="compact-tooltip-details"
+            data-reveal={!!details && loading.reveal}
+          >
+            {details
+              ? lineGroups.map((kinds) => {
+                  const lines = details.lines.filter((line) =>
+                    kinds.includes(line.kind),
+                  );
+                  return (
+                    lines.length > 0 && (
+                      <span
+                        className="compact-tooltip-section"
+                        data-section={kinds[0]}
+                        key={kinds[0]}
+                      >
+                        {kinds[0] === "set" && (
+                          <span className="compact-tooltip-muted">
+                            {t("tooltip.setInfo")}
+                          </span>
+                        )}
+                        {sourceLines(lines)}
+                      </span>
+                    )
+                  );
+                })
+              : !unsupported && (
+                  <>
+                    {!!gear?.weaponSpeed && (
+                      <span className="compact-tooltip-section">
+                        {t("item.weaponStats", {
+                          min: gear.weaponDamageMin.toLocaleString(locale),
+                          max: gear.weaponDamageMax.toLocaleString(locale),
+                          speed: gear.weaponSpeed.toLocaleString(locale, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }),
+                        })}
+                      </span>
+                    )}
+                    {statsItem && (
+                      <span className="compact-tooltip-section">
+                        {statLines(statsItem.stats, t, locale).map((line) => (
+                          <span className="compact-tooltip-line" key={line}>
+                            {line}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    {effects.length > 0 && (
+                      <span className="compact-tooltip-section">
+                        {effects.map((effect) => (
+                          <span
+                            className="compact-tooltip-line"
+                            data-kind="effect"
+                            key={effect}
+                          >
+                            {effect}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </>
+                )}
+          </span>
+          <span className="sr-only" role="status">
+            {loading.visible ? t("tooltip.loading") : ""}
+          </span>
+          {loading.visible && (
+            <span className="compact-tooltip-loading">
+              {["100%", "92%", "96%", "63%"].map((width) => (
+                <Skeleton key={width} width={width} />
+              ))}
+              <span className="compact-tooltip-muted" aria-hidden="true">
+                {t(loading.slow ? "tooltip.loadingSlow" : "tooltip.loading")}
+              </span>
+            </span>
+          )}
           {!!item.enchantId && (
             <span
               className="compact-tooltip-section compact-tooltip-attachment"
@@ -473,6 +500,12 @@ export function ClassicCompactItemLink({
             </span>
           )}
           <span className="compact-tooltip-footer">
+            {loading.visible && (
+              <span className="compact-tooltip-pending-requirements">
+                <Skeleton width="116px" />
+                <Skeleton width="52px" />
+              </span>
+            )}
             {details &&
               sourceLines(
                 details.lines.filter(
@@ -487,11 +520,9 @@ export function ClassicCompactItemLink({
             <span className="compact-tooltip-muted">
               {t("item.id", { id: item.itemId })}
             </span>
-            {!details && (
-              <span className="compact-tooltip-muted">
-                {result?.key === key && result.failed
-                  ? t("tooltip.unavailable")
-                  : t("tooltip.loading")}
+            {!details && failed && !localGemComplete && (
+              <span className="compact-tooltip-muted" role="status">
+                {t("tooltip.unavailable")}
               </span>
             )}
             {!tooltipOnly && (

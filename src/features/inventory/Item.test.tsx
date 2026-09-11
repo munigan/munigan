@@ -10,6 +10,7 @@ import {
   fireEvent,
   waitFor,
   within,
+  act,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ItemLink, ItemIcon } from "./Item";
@@ -74,8 +75,124 @@ beforeEach(() =>
 );
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.resetModules();
+});
+
+it("delays the skeleton, reassures during slow requests, and opens cached details immediately", async () => {
+  vi.useFakeTimers();
+  let resolve!: (value: Response) => void;
+  vi.mocked(fetch).mockReturnValueOnce(
+    new Promise((done) => {
+      resolve = done;
+    }),
+  );
+  render(
+    view(
+      <ItemLink item={{ ...item, itemId: 50362, enchantId: 0, gemIds: [] }}>
+        Item
+      </ItemLink>,
+    ),
+  );
+  const link = screen.getByRole("link");
+  fireEvent.focus(link);
+  const tooltip = screen.getByRole("tooltip");
+  expect(tooltip).toHaveTextContent("Deathbringer's Will");
+  expect(tooltip).toHaveTextContent("155");
+  await act(() => vi.advanceTimersByTimeAsync(119));
+  expect(tooltip.querySelector(".compact-tooltip-skeleton")).toBeNull();
+  await act(() => vi.advanceTimersByTimeAsync(1));
+  expect(
+    tooltip.querySelectorAll(
+      ".compact-tooltip-loading .compact-tooltip-skeleton",
+    ),
+  ).toHaveLength(4);
+  expect(
+    tooltip.querySelectorAll('.compact-tooltip-skeleton[aria-hidden="true"]'),
+  ).toHaveLength(6);
+  expect(within(tooltip).getByRole("status")).toHaveTextContent(
+    "Loading details…",
+  );
+  await act(() => vi.advanceTimersByTimeAsync(1880));
+  expect(tooltip).toHaveTextContent("Still loading. Your stats are available.");
+  expect(within(tooltip).getByRole("status")).toHaveTextContent(
+    "Loading details…",
+  );
+  await act(async () => {
+    resolve(new Response(JSON.stringify(response(50362))));
+  });
+  expect(tooltip.querySelector(".compact-tooltip-skeleton")).toBeNull();
+  expect(tooltip).toHaveTextContent("Complete effect description.");
+  expect(tooltip.querySelector('[data-reveal="true"]')).not.toBeNull();
+  fireEvent.keyDown(link, { key: "Escape" });
+  fireEvent.focus(link);
+  expect(screen.getByRole("tooltip")).toHaveTextContent(
+    "Complete effect description.",
+  );
+  expect(
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+  ).toBeNull();
+  expect(
+    screen.getByRole("tooltip").querySelector('[data-reveal="true"]'),
+  ).toBeNull();
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+it("stops pending skeletons on failure while retaining local item details", async () => {
+  vi.useFakeTimers();
+  let reject!: (reason: Error) => void;
+  vi.mocked(fetch).mockReturnValueOnce(
+    new Promise((_, fail) => {
+      reject = fail;
+    }),
+  );
+  render(view(<ItemLink item={{ ...item, itemId: 50363 }}>Item</ItemLink>));
+  fireEvent.focus(screen.getByRole("link"));
+  await act(() => vi.advanceTimersByTimeAsync(120));
+  expect(
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+  ).not.toBeNull();
+  await act(async () => {
+    reject(new Error("offline"));
+  });
+  const tooltip = screen.getByRole("tooltip");
+  expect(tooltip.querySelector(".compact-tooltip-skeleton")).toBeNull();
+  expect(tooltip).toHaveTextContent("Deathbringer's Will");
+  expect(tooltip).toHaveTextContent("Arcanum of Torment");
+  expect(tooltip).toHaveTextContent("Additional details unavailable");
+  fireEvent.mouseEnter(screen.getByRole("link", { name: "Item" }));
+  await act(() => vi.advanceTimersByTimeAsync(2000));
+  expect(tooltip).not.toHaveTextContent("Still loading");
+  fireEvent.keyDown(screen.getByRole("link", { name: "Item" }), {
+    key: "Escape",
+  });
+  await act(() => vi.advanceTimersByTimeAsync(61000));
+  fireEvent.focus(screen.getByRole("link", { name: "Item" }));
+  await act(() => vi.advanceTimersByTimeAsync(120));
+  expect(
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+  ).not.toBeNull();
+  expect(screen.getByRole("tooltip")).not.toHaveTextContent(
+    "Additional details unavailable",
+  );
+});
+
+it("shows complete local gems without skeletons during enrichment", async () => {
+  vi.useFakeTimers();
+  render(
+    view(
+      <ItemLink item={{ ...item, itemId: 40112, enchantId: 0, gemIds: [] }}>
+        Item
+      </ItemLink>,
+    ),
+  );
+  fireEvent.focus(screen.getByRole("link"));
+  await act(() => vi.advanceTimersByTimeAsync(2100));
+  const tooltip = screen.getByRole("tooltip");
+  expect(tooltip).toHaveTextContent("Delicate Cardinal Ruby");
+  expect(tooltip.querySelector(".compact-tooltip-skeleton")).toBeNull();
+  expect(tooltip).not.toHaveTextContent(/Loading|Still loading/);
 });
 
 it("shows catalog basics immediately on focus without waiting for enrichment", () => {
@@ -141,7 +258,7 @@ it("keeps useful basics when the provider fails", async () => {
   fireEvent.focus(screen.getByRole("link"));
   await waitFor(() =>
     expect(screen.getByRole("tooltip")).toHaveTextContent(
-      "Details temporarily unavailable",
+      "Additional details unavailable",
     ),
   );
   expect(screen.getByRole("tooltip")).toHaveTextContent("Mjolnir Runestone");
@@ -366,4 +483,20 @@ it("shows only the latest tooltip when hover replaces a focused item", () => {
   fireEvent.mouseEnter(screen.getByRole("link", { name: "Second gem" }));
   expect(screen.getAllByRole("tooltip")).toHaveLength(1);
   expect(screen.getByRole("tooltip")).toHaveTextContent("Bold Cardinal Ruby");
+});
+
+it("keeps enrichment visible for meta gems with missing activation details", async () => {
+  vi.useFakeTimers();
+  render(
+    view(
+      <ItemLink item={{ ...item, itemId: 41285, enchantId: 0, gemIds: [] }}>
+        Item
+      </ItemLink>,
+    ),
+  );
+  fireEvent.focus(screen.getByRole("link"));
+  await act(() => vi.advanceTimersByTimeAsync(120));
+  expect(
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+  ).not.toBeNull();
 });

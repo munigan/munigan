@@ -1715,3 +1715,61 @@
     }
   }
 }
+
+@layer components {
+  .compact-tooltip-details {
+    display: block;
+  }
+  .compact-tooltip-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 120px;
+    padding-top: 4px;
+    margin-top: 12px;
+  }
+  .compact-tooltip-skeleton {
+    display: block;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 3px;
+    background: var(--color-border);
+    animation: tooltip-skeleton-pulse 1400ms ease-in-out infinite;
+  }
+  .compact-tooltip-pending-requirements {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 18px;
+    margin-bottom: 8px;
+  }
+  .compact-tooltip-pending-requirements .compact-tooltip-skeleton {
+    height: 8px;
+  }
+  .compact-tooltip-details[data-reveal="true"] {
+    animation: tooltip-details-reveal 120ms ease-out;
+  }
+  @keyframes tooltip-skeleton-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  @keyframes tooltip-details-reveal {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .compact-tooltip-skeleton,
+    .compact-tooltip-details[data-reveal="true"] {
+      animation: none;
+    }
+  }
+}
