@@ -2,7 +2,7 @@
 
 Date: 2026-09-10
 
-Status: architecture approved in conversation; written specification awaiting review. No implementation or deployment authorized by this document.
+Status: architecture and written specification approved in conversation. Implementation planning authorized; no implementation or deployment authorized by this document.
 
 ## Purpose and agreed direction
 
@@ -204,4 +204,4 @@ Monitor auth errors, save failures, publication failures, cleanup lag, retained 
 - Installed Next.js guide: `node_modules/next/dist/docs/01-app/02-guides/authentication.md`.
 - Repository operations: `docs/engineering/top-gear-operations.md` and `docs/engineering/production-launch.md`.
 
-Self-review: the scope is one account/report-retention subsystem with a small initial library. Public reading, private management and persistence are separate. Account-owned reports never fall back to browser ownership; failed empty runs do not gain indefinite retention. Deletion is immediate for access and durable for cleanup. Future tool examples are explicitly excluded from implementation. The next artifact is the detailed implementation plan after review of this specification.
+Self-review: the scope is one account/report-retention subsystem with a small initial library. Public reading, private management and persistence are separate. Account-owned reports never fall back to browser ownership; failed empty runs do not gain indefinite retention. Deletion is immediate for access and durable for cleanup. Future tool examples are explicitly excluded from implementation. Implementation tasks are recorded in `docs/superpowers/plans/2026-09-10-discord-authentication.md`.
