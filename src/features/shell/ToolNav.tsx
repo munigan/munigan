@@ -43,7 +43,7 @@ export function ToolNav({ onNavigate }: { onNavigate?: () => void }) {
           className="workbench-nav-row"
         >
           <ToolIcon name="gear" />
-          <span>Top Gear</span>
+          <span>{t("gearLab")}</span>
         </Link>
         <Link
           href="/raid-trainer"

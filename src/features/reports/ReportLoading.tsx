@@ -10,7 +10,7 @@ export function ReportLoading({ error }: { error: string | ErrorDescriptor }) {
   return (
     <section id="content" className="report-view">
       <PageHeading className="page-heading">
-        <h1>TOP GEAR</h1>
+        <h1>GEAR LAB</h1>
       </PageHeading>
       <Alert tone={error ? "error" : "info"} aria-busy={!error}>
         <AlertContent icon={error ? "error" : "history"}>

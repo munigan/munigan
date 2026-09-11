@@ -45,7 +45,7 @@ export function FeaturedTool() {
             height="26"
             className="text-action"
           />
-          <h2 id="top-gear-title">Top Gear</h2>
+          <h2 id="top-gear-title">Gear Lab</h2>
           <span>{t("available")}</span>
         </div>
         <div>

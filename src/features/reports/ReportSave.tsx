@@ -112,7 +112,9 @@ export function ReportSave({
         if (result?.error) throw new Error("sign-in failed");
       }
     } catch {
-      setError("saveFailed");
+      setError(
+        auth.status === "authenticated" ? "saveFailedAfterLogin" : "saveFailed",
+      );
     } finally {
       setPending(false);
     }

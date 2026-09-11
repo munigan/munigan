@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({ useAccount: vi.fn() }));
 vi.mock("./AuthProvider", () => ({ useAccount: mocks.useAccount }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/top-gear" }));
 
-const messages = { auth: { loading: "Loading account", retry: "Retry account", signIn: "Sign in", accountMenu: "Account menu", discordAccount: "Signed in with Discord", library: "My Library", signOut: "Sign out", deleteAccount: "Delete account", signOutFailed: "Could not sign out.", retrySignOut: "Retry sign out", title: "Welcome", description: "Description", continueDiscord: "Continue with Discord", continueAnonymous: "Continue without signing in", returnNotice: "Return", invalidCallback: "Invalid", signInFailed: "Failed" }, common: { close: "Close" } };
+const messages = { auth: { loading: "Loading account", retry: "Retry account", signIn: "Sign in", accountMenu: "Account menu", discordAccount: "Signed in with Discord", library: "My Library", signOut: "Sign out", deleteAccount: "Delete account", signOutFailed: "Could not sign out.", retrySignOut: "Retry sign out", title: "Welcome", description: "Description", continueDiscord: "Continue with Discord", continueAnonymous: "Continue without signing in", returnNotice: "Return", invalidCallback: "Invalid", signInFailed: "Failed", errors: { AUTH_UNAVAILABLE: "We couldn't check your session. Try again." } }, common: { close: "Close" } };
 const base = { savingEnabled: true, enrollmentEnabled: false, refresh: vi.fn(), signOut: vi.fn() };
 function view(mobile = false) { return <NextIntlClientProvider locale="en-US" messages={messages}><AccountMenu mobile={mobile} /></NextIntlClientProvider>; }
 
@@ -26,6 +26,9 @@ describe("AccountMenu", () => {
     mocks.useAccount.mockReturnValue({ ...base, status: "unavailable", account: null });
     rendered.rerender(view());
     expect(rendered.container.querySelector(".auth-control")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "We couldn't check your session. Try again.",
+    );
     expect(screen.getByRole("button", { name: "Retry account" })).toBeInTheDocument();
   });
 

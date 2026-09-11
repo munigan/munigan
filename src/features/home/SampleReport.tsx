@@ -60,7 +60,7 @@ export function SampleReport() {
     <section
       id="sample-report"
       className="home-section scroll-mt-8"
-      aria-label="Sample Top Gear report"
+      aria-label="Sample Gear Lab report"
     >
       <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
         <div>

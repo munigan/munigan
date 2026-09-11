@@ -7,7 +7,7 @@
     "settings": "Buffs e configurações",
     "targets": "{count, plural, one {Alvo único} other {# alvos}}",
     "submitting": "Enviando…",
-    "find": "Buscar Top Gear",
+    "find": "Simular no Gear Lab",
     "customCaption": "Equipados + candidatos adicionais",
     "bagsCaption": "Equipados + itens nas bolsas",
     "equippedCaption": "Apenas equipados · nenhuma bolsa importada"
@@ -95,7 +95,7 @@
     "addCustom": "Adicionar item personalizado",
     "explore": "Explore itens de WotLK para este espaço",
     "addedToast": "{count, plural, one {# item personalizado adicionado} other {# itens personalizados adicionados}}",
-    "addedDescription": "Selecionados para sua próxima comparação no Top Gear.",
+    "addedDescription": "Selecionados para sua próxima comparação no Gear Lab.",
     "addError": "Não foi possível adicionar os itens.",
     "title": "Adicionar itens personalizados",
     "compatible": "{count, plural, one {# item compatível: {slot}} other {# itens compatíveis: {slot}}}",

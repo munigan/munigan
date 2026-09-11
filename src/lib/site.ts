@@ -2,8 +2,8 @@
 export const site = {
   url: "https://munigan.app",
   name: "munigan.app",
-  title: "WoW WotLK Top Gear Simulator · munigan.app",
+  title: "WoW WotLK Gear Lab · munigan.app",
   description:
-    "Find your highest-DPS gear combination in World of Warcraft: Wrath of the Lich King. Compare equipped and bag items, gems and enchants with Top Gear.",
+    "Compare equipped, bag and custom items to find your highest-DPS gear combination in World of Warcraft: Wrath of the Lich King.",
   socialImage: "/images/munigan-workbench.png",
 };

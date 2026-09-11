@@ -42,12 +42,10 @@ beforeEach(() => {
 it("strips query immediately and completes an intent from the same-origin return page", async () => {
   storeReturnState(key, state);
   history.replaceState(null, "", `/auth/return?intent=${key}&code=secret`);
-  const fetch = vi
-    .fn()
-    .mockResolvedValue({
-      ok: true,
-      json: async () => ({ reportPath: "/reports/abc" }),
-    });
+  const fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ reportPath: "/reports/abc" }),
+  });
   vi.stubGlobal("fetch", fetch);
   view();
   expect(location.search).toBe("");
@@ -68,12 +66,10 @@ it("never claims for general sign-in and checks expected identity", async () => 
     expectedUserId: "original",
   });
   history.replaceState(null, "", `/auth/return?flow=${key}`);
-  const fetch = vi
-    .fn()
-    .mockResolvedValue({
-      ok: true,
-      json: async () => ({ account: { id: "other" } }),
-    });
+  const fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ account: { id: "other" } }),
+  });
   vi.stubGlobal("fetch", fetch);
   view();
   expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -98,7 +94,7 @@ it("retains a failed intent across reload and retries saving without another OAu
   vi.stubGlobal("fetch", fetch);
   view();
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Saving can be retried",
+    "You're signed in, but this report wasn't saved. Try saving again.",
   );
   expect(sessionStorage.getItem("munigan.auth.active")).toContain(key);
   await userEvent.click(screen.getByRole("button", { name: "Retry" }));

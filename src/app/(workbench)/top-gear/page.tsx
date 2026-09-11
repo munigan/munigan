@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Top Gear",
+  title: "Gear Lab",
   robots: { index: false, follow: true },
 };
 import { TopGearApp } from "@/features/inventory/TopGearApp";

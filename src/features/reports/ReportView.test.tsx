@@ -135,7 +135,7 @@ it("retains report page and selected combination without refetching when the loc
     selectedHtml,
   );
   await waitFor(() =>
-    expect(document.title).toBe("RELATÓRIO DO TOP GEAR · munigan.app"),
+    expect(document.title).toBe("RELATÓRIO DO GEAR LAB · munigan.app"),
   );
   expect(fetch).toHaveBeenCalledTimes(2);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([
@@ -214,7 +214,7 @@ it("uses effective retained expiry even when the frozen report expired yesterday
   );
   render(view("en-US"));
   expect(
-    await screen.findByText("Saved report · Read-only"),
+    await screen.findByText("Shared report · read only"),
   ).toBeInTheDocument();
   expect(screen.getByText(/No automatic expiry/)).toBeInTheDocument();
   expect(screen.queryByText(/2000/)).not.toBeInTheDocument();

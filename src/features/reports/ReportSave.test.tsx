@@ -72,7 +72,7 @@ it("direct saves authenticated owners and announces saved only after API success
   expect(onSaved).not.toHaveBeenCalled();
   resolve({ ok: true, json: async () => ({ reportPath: "/reports/report" }) });
   await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
-  expect(screen.getByText("Saved to My Library")).toBeInTheDocument();
+  expect(screen.getByText("Report saved")).toBeInTheDocument();
 });
 it("keeps auth success separate from save failure", async () => {
   auth.status = "authenticated";
@@ -88,7 +88,7 @@ it("keeps auth success separate from save failure", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Save report" }));
   expect(await screen.findByRole("alert")).toBeInTheDocument();
   expect(onSaved).not.toHaveBeenCalled();
-  expect(screen.queryByText("Saved to My Library")).not.toBeInTheDocument();
+  expect(screen.queryByText("Report saved")).not.toBeInTheDocument();
 });
 it("stores context before leaving for Discord, using an explicit matching error callback", async () => {
   const intent = "x".repeat(43);
@@ -149,9 +149,9 @@ it("describes shared retained reports without claiming they are in the viewer li
     },
   });
   expect(screen.getByRole("status")).toHaveTextContent(
-    "Saved report · Read-only",
+    "Shared report · read only",
   );
-  expect(screen.queryByText("Saved to My Library")).not.toBeInTheDocument();
+  expect(screen.queryByText("Report saved")).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Save report" }),
   ).not.toBeInTheDocument();
@@ -160,7 +160,7 @@ it("reserves personal-library wording for authenticated owners", () => {
   auth.status = "authenticated";
   auth.account = { id: "owner" };
   view({ access: { ...access, saved: true, effectiveExpiresAt: null } });
-  expect(screen.getByRole("status")).toHaveTextContent("Saved to My Library");
+  expect(screen.getByRole("status")).toHaveTextContent("Report saved");
 });
 
 it("does not carry personal save-success wording into another account", async () => {
@@ -169,9 +169,7 @@ it("does not carry personal save-success wording into another account", async ()
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
   const first = view();
   await userEvent.click(screen.getByRole("button", { name: "Save report" }));
-  expect(await screen.findByRole("status")).toHaveTextContent(
-    "Saved to My Library",
-  );
+  expect(await screen.findByRole("status")).toHaveTextContent("Report saved");
   auth.account = { id: "other" };
   first.rerender(
     <NextIntlClientProvider
@@ -186,6 +184,6 @@ it("does not carry personal save-success wording into another account", async ()
     </NextIntlClientProvider>,
   );
   expect(screen.getByRole("status")).toHaveTextContent(
-    "Saved report · Read-only",
+    "Shared report · read only",
   );
 });

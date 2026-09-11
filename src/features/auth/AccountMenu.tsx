@@ -19,7 +19,16 @@ export function AccountMenu({ mobile = false, onNavigate }: { mobile?: boolean; 
   const className = mobile ? "auth-control auth-control-mobile" : "auth-control";
 
   if (auth.status === "loading") return <div className={`${className} auth-loading`} aria-label={t("loading")} />;
-  if (auth.status === "unavailable") return <div className={className}><button className="auth-utility-button" onClick={() => void auth.refresh()}>{t("retry")}</button></div>;
+  if (auth.status === "unavailable") return (
+    <div className={className}>
+      <span className="sr-only" role="alert">
+        {t("errors.AUTH_UNAVAILABLE")}
+      </span>
+      <button className="auth-utility-button" onClick={() => void auth.refresh()}>
+        {t("retry")}
+      </button>
+    </div>
+  );
   if (auth.status === "anonymous") return (
     <div className={className}>
       <button className="auth-utility-button auth-sign-in" onClick={() => { setCallbackPath(`${window.location.pathname}${window.location.search}${window.location.hash}`); setSignInOpen(true); }}><DiscordIcon />{t("signIn")}</button>

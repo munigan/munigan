@@ -114,7 +114,7 @@ export function AuthReturn() {
                       result.code,
                     )
                   ? "returnLost"
-                  : "returnFailed",
+                  : "saveFailedAfterLogin",
             );
             return;
           }
