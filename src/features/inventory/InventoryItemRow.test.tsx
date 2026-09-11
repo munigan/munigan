@@ -188,7 +188,7 @@ it("coordinates item and local enchant tooltips in both directions", async () =>
   );
   fireEvent.mouseEnter(name);
   await vi.waitFor(() =>
-    expect(screen.getAllByRole("tooltip")).toHaveLength(1),
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Obsidian Greathelm"),
   );
-  expect(screen.getByRole("tooltip")).toHaveTextContent("Obsidian Greathelm");
+  expect(screen.getAllByRole("tooltip")).toHaveLength(1);
 });
