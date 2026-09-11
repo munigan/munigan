@@ -1,0 +1,31 @@
+{
+  "item": {
+    "schemaVersion": 1,
+    "id": 47425,
+    "version": "classic",
+    "source": {
+      "provider": "wowhead",
+      "url": "https://www.wowhead.com/wotlk/item=47425"
+    },
+    "name": "Flowing Robes of Ascent",
+    "quality": 4,
+    "icon": "inv_chest_cloth_73",
+    "itemLevel": 258,
+    "heroic": true,
+    "lines": [
+      { "kind": "binding", "text": "Binds when picked up" },
+      { "kind": "slot", "text": "Chest", "rightText": "Cloth" },
+      { "kind": "stat", "text": "347 Armor" },
+      { "kind": "stat", "text": "+116 Stamina" },
+      { "kind": "stat", "text": "+116 Intellect" },
+      { "kind": "stat", "text": "+94 Spirit" },
+      { "kind": "durability", "text": "Durability 100 / 100" },
+      { "kind": "requirement", "text": "Requires Level 80" },
+      { "kind": "effect", "text": "Equip: Improves haste rating by 86." },
+      { "kind": "effect", "text": "Equip: Increases spell power by 151." }
+    ],
+    "sockets": ["blue", "red", "yellow"],
+    "socketBonus": "+9 Spell Power"
+  },
+  "meta": { "fetchedAt": "2026-09-11T20:36:41.593Z", "cache": "fresh" }
+}

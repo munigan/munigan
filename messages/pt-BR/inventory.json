@@ -415,6 +415,19 @@
     "gemsTitle": "Gemas"
   },
   "tooltip": {
+    "finger": "Dedo",
+    "trinket": "Berloque",
+    "damage": "{min} - {max} de dano",
+    "speed": "Velocidade {value}",
+    "dps": "({value} de dano por segundo)",
+    "equipStat": "Equipar: {stat}",
+    "hands": {
+      "Unknown": "Arma",
+      "MainHand": "Mão principal",
+      "OneHand": "Uma mão",
+      "OffHand": "Mão secundária",
+      "TwoHand": "Duas mãos"
+    },
     "close": "Fechar detalhes do item",
     "gem": "Gema",
     "heroic": "Heroico",

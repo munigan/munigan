@@ -51,6 +51,11 @@ async function setup(page: Page) {
     readFileSync("tests/fixtures/sim/warrior.request.json", "utf8"),
   );
   const player = fixture.raid.parties[0].players[0];
+  player.equipment.items[4] = {
+    id: 47425,
+    enchant: 1144,
+    gems: [40133, 40113, 40155],
+  };
   player.equipment.items[12] = { id: 45931 };
   player.equipment.items[14] = { id: 47528, enchant: 3789, gems: [40111] };
   player.equipment.items[15] = { id: 47475, enchant: 3789, gems: [40111] };
@@ -306,4 +311,52 @@ test("known content stays uninterrupted with a subtle footer loading dot", async
     "animation-name",
     "none",
   );
+});
+
+test("local chest layout matches enriched sections without rearranging base stats", async ({
+  page,
+}) => {
+  await setup(page);
+  await selectOption(
+    page.getByLabel("Item version", { exact: true }),
+    "classic",
+  );
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/tooltips/classic/47425", async (route) => {
+    await pending;
+    await route.fulfill({
+      json: JSON.parse(
+        readFileSync("tests/fixtures/tooltips/classic-chest.json", "utf8"),
+      ),
+    });
+  });
+  await page.locator('.inventory-row a[data-item-id="47425"]').first().hover();
+  const tooltip = activeTooltip(page);
+  await expect(tooltip).toContainText("Fetching additional details");
+  await expect(tooltip).toContainText("Heroic");
+  await expect(tooltip.locator('[data-section="stat"]')).toHaveText(
+    "347 Armor+116 Stamina+116 Intellect+94 Spirit",
+  );
+  await expect(tooltip.locator('[data-section="effect"]')).toContainText("86");
+  await expect(tooltip.locator(".compact-tooltip-skeleton")).toHaveCount(0);
+  const before = (await tooltip.boundingBox())!.height;
+  await page.screenshot({ path: ".artifacts/tooltip-release/chest-local.png" });
+  release();
+  await expect(tooltip).toContainText("Binds when picked up");
+  await expect(tooltip.locator('[data-section="stat"]')).toHaveText(
+    "347 Armor+116 Stamina+116 Intellect+94 Spirit",
+  );
+  await expect(tooltip).toContainText("Durability 100 / 100");
+  await expect(tooltip.locator(".compact-tooltip-details")).toHaveCSS(
+    "opacity",
+    "1",
+  );
+  const after = (await tooltip.boundingBox())!.height;
+  expect(Math.abs(after - before)).toBeLessThanOrEqual(40);
+  await page.screenshot({
+    path: ".artifacts/tooltip-release/chest-enriched.png",
+  });
 });
