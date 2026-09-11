@@ -16,6 +16,9 @@ import { AppShell } from "@/features/shell/AppShell";
 import { WowheadTooltips } from "@/features/inventory/WowheadTooltips";
 import { ToastProvider } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { AuthProvider } from "@/features/auth/AuthProvider";
+import "@/features/auth/auth.css";
+import { DeleteAccountDialogHost } from "@/features/auth/DeleteAccountDialog";
 export async function AppDocument({
   children,
   locale,
@@ -37,7 +40,10 @@ export async function AppDocument({
           <DocumentControls />
           <TooltipProvider delay={250}>
             <ToastProvider>
-              <AppShell>{children}</AppShell>
+              <AuthProvider>
+                <AppShell>{children}</AppShell>
+                <DeleteAccountDialogHost />
+              </AuthProvider>
             </ToastProvider>
           </TooltipProvider>
           <WowheadTooltips />

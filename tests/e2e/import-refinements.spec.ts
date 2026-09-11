@@ -22,7 +22,7 @@ const character = JSON.stringify({
 test("corrects a malformed bag export without losing character data and imports the reviewed gear", async ({
   page,
 }) => {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(character);
   await page.getByLabel("Bag export", { exact: true }).fill("{broken");
   await page.getByRole("button", { name: "Review import" }).click();
@@ -128,7 +128,7 @@ test("corrects a malformed bag export without losing character data and imports 
 test("addon help shows the guided steps with a compact command and no copy action", async ({
   page,
 }) => {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   const guide = page.getByRole("complementary", {
     name: "How to get your exports",
   });
@@ -147,7 +147,7 @@ test("addon help shows the guided steps with a compact command and no copy actio
 test("replacement alert keeps the current character on desktop and mobile", async ({
   page,
 }) => {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(character);
   await page.getByRole("button", { name: "Review import" }).click();
   await selectOption(page.getByLabel("DPS preset"), {
@@ -189,7 +189,7 @@ test("previews each export independently without starting review or simulation",
   page.on("request", (request) => {
     if (request.url().includes("/api/top-gear/jobs")) jobs++;
   });
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   const bags = page.getByLabel("Bag export", { exact: true });
   const preview = page.getByRole("region", { name: "Bag preview" });
   await bags.fill(
@@ -236,7 +236,7 @@ test("previews each export independently without starting review or simulation",
 test("bag preview stays bounded at the 200-item limit and rejects oversized exports", async ({
   page,
 }) => {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   const bags = page.getByLabel("Bag export", { exact: true });
   const preview = page.getByRole("region", { name: "Bag preview" });
   const items = Array.from({ length: 200 }, (_, index) => ({

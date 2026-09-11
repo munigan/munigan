@@ -15,3 +15,13 @@ export function clearDraft() {
   localStorage.removeItem(draftKey);
   localStorage.removeItem(importFormDraftKey);
 }
+
+/** A report must not discard a newer setup saved while its request was pending. */
+export function clearMatchingDraft(
+  submitted: ReturnType<typeof encodeRequest>,
+) {
+  if (localStorage.getItem(draftKey) !== JSON.stringify(submitted))
+    return false;
+  localStorage.removeItem(draftKey);
+  return true;
+}

@@ -2,16 +2,26 @@
   "toolkit": "SUAS FERRAMENTAS",
   "equipment": "Equipamentos",
   "playstyle": "Estilo de jogo",
-  "overview": "Visão geral",
   "tools": "Ferramentas",
+  "gearLab": "Gear Lab",
   "future": "Em breve",
   "footer": "Feito para o próximo pull.",
   "report": "Relatório",
-  "ready": "Top Gear está pronto",
+  "ready": "Gear Lab está pronto",
   "openNavigation": "Abrir navegação",
   "navigation": "Navegação",
   "home": "Página inicial de munigan.app",
-  "reportTitle": "Relatório do Top Gear",
+  "reportTitle": "Relatório do Gear Lab",
   "moreTools": "Mais ferramentas",
-  "help": "Ajuda"
+  "homeLabel": "Início",
+  "beta": "Beta",
+  "drawer": {
+    "heading": "Para onde vamos?",
+    "homeHint": "Suas ferramentas",
+    "libraryHint": "Seus resultados salvos",
+    "gearHint": "Compare equipamentos",
+    "trainerHint": "Treine a luta",
+    "futureCount": "{count} ferramentas futuras",
+    "back": "Voltar"
+  }
 }

@@ -12,7 +12,7 @@ test("keeps provider and Original tooltips inside short and narrow viewports", a
   player.equipment.items[12] = { id: 45931 };
   player.equipment.items[14] = { id: 47528, enchant: 3789, gems: [40111] };
   player.equipment.items[15] = { id: 47475, enchant: 3789, gems: [40111] };
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Tooltip bounds",

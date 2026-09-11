@@ -10,7 +10,7 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
 }) => {
   test.setTimeout(120000);
   const player = fixture.raid.parties[0].players[0];
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Aldren",
@@ -39,7 +39,7 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
     page.getByRole("alert").filter({ hasText: "profession below 450" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
+    page.getByRole("button", { name: "Run Gear Lab" }),
   ).toBeEnabled();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByRole("tab", { name: "Professions", exact: true }).click();
@@ -52,7 +52,7 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
   await page
     .getByRole("button", { name: "Apply changes", exact: true })
     .click();
-  await page.getByRole("button", { name: "Find Top Gear" }).click();
+  await page.getByRole("button", { name: "Run Gear Lab" }).click();
   await expect(page).toHaveURL(/\/reports\//);
   await expect(
     page.getByText("All admitted combinations evaluated", { exact: false }),

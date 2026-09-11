@@ -22,6 +22,21 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        source: "/library",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/auth/return",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
         source: "/reports/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },

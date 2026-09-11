@@ -38,7 +38,7 @@ for (const mobile of [false, true]) {
       await page.getByRole("button", { name: "Open navigation" }).click();
     await page
       .locator(mobile ? ".workbench-drawer" : ".workbench-header")
-      .getByRole("link", { name: "Gear Lab", exact: true })
+      .getByRole("link", { name: /^Gear Lab/ })
       .click();
     await expect(
       page.getByLabel("Character export", { exact: true }),
@@ -87,7 +87,7 @@ test("menu preserves an import review across a reload and restores it", async ({
   ).toBeVisible();
   await page
     .locator(".workbench-header")
-    .getByRole("link", { name: "Gear Lab", exact: true })
+    .getByRole("link", { name: /^Gear Lab/ })
     .click();
   await expect(
     page.getByLabel("Character export", { exact: true }),
@@ -134,7 +134,7 @@ test("an unfinished Warmane review restores without another Armory lookup", asyn
   ).toBeVisible();
   await page
     .locator(".workbench-header")
-    .getByRole("link", { name: "Gear Lab", exact: true })
+    .getByRole("link", { name: /^Gear Lab/ })
     .click();
   await expect(
     page.getByLabel("Character export", { exact: true }),
@@ -152,7 +152,7 @@ test("an unfinished Warmane review restores without another Armory lookup", asyn
   expect(lookups).toBe(1);
   await page
     .locator(".workbench-header")
-    .getByRole("link", { name: "Gear Lab", exact: true })
+    .getByRole("link", { name: /^Gear Lab/ })
     .click();
   await page.getByRole("button", { name: "Discard", exact: true }).click();
   await page.reload();

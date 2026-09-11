@@ -545,7 +545,9 @@ test("full pages have equal result counts and row heights with or without badges
       .locator(".combination-table")
       .boundingBox())!.height;
     await page.getByRole("button", { name: "Next", exact: true }).click();
-    await expect(page.locator(".report-controls")).toContainText("21–40 of 40");
+    await expect(
+      page.getByRole("navigation", { name: /Pagination|Paginação/ }),
+    ).toContainText("21–40 of 40");
     await expect(page.locator(".combination-row")).toHaveCount(20);
     const nextHeight = (await page.locator(".combination-table").boundingBox())!
       .height;

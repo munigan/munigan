@@ -2,17 +2,14 @@
 import { useTranslations } from "next-intl";
 import { LanguageSelector } from "./LanguageSelector";
 import { useState } from "react";
-import Link from "next/link";
-import { homepagePath } from "@/i18n/config";
-import { useAppLocale } from "@/i18n/LocaleProvider";
-import { ToolIcon } from "./ToolIcon";
 import { Dialog } from "@base-ui/react/dialog";
 import { DialogDismiss } from "@/components/ui/Dialog";
 import { Brand } from "./Brand";
 import { ToolNav } from "./ToolNav";
+import { DrawerNavigation } from "./DrawerNavigation";
+import { AccountMenu } from "@/features/auth/AccountMenu";
 
 export function WorkbenchHeader() {
-  const { locale, area, persistLocale } = useAppLocale();
   const t = useTranslations("shell");
   const [open, setOpen] = useState(false);
   return (
@@ -22,17 +19,8 @@ export function WorkbenchHeader() {
         <ToolNav />
       </div>
       <div className="workbench-header-utilities">
-        <Link
-          href={`${homepagePath(locale)}#how-it-works`}
-          className="workbench-help"
-          onClick={() => {
-            if (area === "home") persistLocale();
-          }}
-        >
-          <ToolIcon name="help" />
-          <span>{t("help")}</span>
-        </Link>
         <LanguageSelector />
+        <AccountMenu />
       </div>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger
@@ -52,23 +40,14 @@ export function WorkbenchHeader() {
           </svg>
         </Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-40 bg-black/70" />
+          <Dialog.Backdrop className="workbench-drawer-backdrop" />
           <Dialog.Popup className="workbench-drawer">
-            <div className="flex items-center justify-between gap-3">
+            <div className="workbench-drawer-header">
               <Dialog.Title className="sr-only">{t("navigation")}</Dialog.Title>
-              <Brand />
+              <Brand onNavigate={() => setOpen(false)} />
               <DialogDismiss />
             </div>
-            <ToolNav onNavigate={() => setOpen(false)} />
-            <Link
-              href={`${homepagePath(locale)}#how-it-works`}
-              className="workbench-help"
-              onClick={() => setOpen(false)}
-            >
-              <ToolIcon name="help" />
-              {t("help")}
-            </Link>
-            <LanguageSelector />
+            <DrawerNavigation onNavigate={() => setOpen(false)} />
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>

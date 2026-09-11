@@ -7,7 +7,7 @@ const fixture = JSON.parse(
 test("visual settings survive category changes and export through Advanced without losing other fields", async ({
   page,
 }) => {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   const p = fixture.raid.parties[0].players[0];
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({

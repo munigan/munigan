@@ -10,7 +10,7 @@
   "wrathLevel": "Este importador aceita personagens de nível 80 de Wrath",
   "missingPlayer": "O perfil não contém um personagem",
   "missingClass": "O perfil não contém uma classe compatível com Wrath",
-  "importItemSwap": "Desative a troca de itens em combate antes de importar para o Top Gear",
+  "importItemSwap": "Desative a troca de itens em combate antes de importar para o Gear Lab",
   "invalidTalentString": "Sequência de talentos de Wrath inválida",
   "invalidProfessions": "Profissões inválidas",
   "invalidProfessionRank": "Nível de profissão inválido",
@@ -74,7 +74,7 @@
   "connectionLimit": "Esta conexão atingiu o limite de simulações gratuitas",
   "dailyCapacity": "A capacidade de simulações gratuitas de hoje está esgotada. Tente novamente mais tarde.",
   "capacityOccupied": "A capacidade de simulação está temporariamente ocupada",
-  "invalidInput": "Dados inválidos para o Top Gear",
+  "invalidInput": "Dados inválidos para o Gear Lab",
   "simulatorRejected": "O simulador rejeitou esta configuração",
   "invalidExport": "Insira um JSON válido ou um link de simulador compatível.",
   "unknownClass": "Classe desconhecida: {value}",
@@ -143,5 +143,12 @@
   "warmaneNotFound": "Personagem não encontrado. Confira o nome e o reino.",
   "warmaneUnavailable": "O Armory da Warmane está indisponível ou limitando consultas. Tente novamente em instantes ou use uma exportação do addon.",
   "warmaneInvalidProfile": "Não foi possível ler este perfil do Armory por completo. Tente novamente ou use uma exportação do addon.",
-  "warmaneUnknownGem": "A gema {id} do Armory não pôde ser identificada. Use uma exportação do addon para preservar suas gemas."
+  "warmaneUnknownGem": "A gema {id} do Armory não pôde ser identificada. Use uma exportação do addon para preservar suas gemas.",
+  "warmaneRateLimited": "A Warmane está limitando as solicitações. Aguarde {seconds} segundos antes de tentar novamente.",
+  "warmaneTimeout": "A Warmane demorou para responder. Tente novamente em breve ou use um perfil salvo.",
+  "warmaneAccessDenied": "A Warmane não permitiu esta solicitação de perfil. Tente mais tarde ou use uma exportação do addon.",
+  "warmaneNetwork": "Não foi possível conectar à Warmane. Tente novamente em breve ou use um perfil salvo.",
+  "warmaneRelayUnavailable": "A importação do Armory está temporariamente indisponível. Seus dados foram mantidos.",
+  "warmaneNoSavedProfile": "Não há um perfil recente do Armory salvo. Atualize pelo Armory ou use uma exportação do addon.",
+  "warmaneBusy": "Aguarde {seconds} segundos antes de atualizar este perfil novamente."
 }

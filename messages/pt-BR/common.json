@@ -13,5 +13,13 @@
   "backHome": "Voltar à visão geral",
   "itemFallback": "Item {id}",
   "increase": "Aumentar {label}",
-  "decrease": "Diminuir {label}"
+  "decrease": "Diminuir {label}",
+  "pagination": {
+    "label": "Paginação",
+    "range": "{start}–{end} de {total}",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page": "Página {number}",
+    "showMore": "Mostrar mais"
+  }
 }

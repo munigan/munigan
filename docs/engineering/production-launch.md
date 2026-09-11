@@ -1,8 +1,28 @@
-# First production release
+# Production releases
+
+## Current production — reliable Warmane import (2026-09-11)
+
+- Warmane imports now use an owned, authenticated Cloudflare relay with the shared parser, coordinated requests, a 60-second fresh cache and explicit saved-profile recovery for up to 24 hours. Review shows retrieval time/source and supports refresh in English and Portuguese.
+- Application source `0e6435e`; Vercel `dpl_4zhmAS6jie4QGRega4yhnaAKp17G`, promoted to https://munigan.app. Cloudflare Worker `wow-droptimizer-warmane-armory`, version `e60eaa62-f438-4a36-9a19-b32d574a635a`.
+- Fresh owned-Worker imports passed on all four realms. Real production-browser Munigaan/Onyxia import and refresh both returned 17 equipped items; English desktop and Portuguese mobile checks passed without browser errors. Cache, saved mode, authorization, error privacy and request identifiers were verified. No simulation submitted.
+- Validation: 406 app unit/UI tests, 20 actual Workers-runtime tests, three focused browser checks, app/Worker typechecks, lint, design/spec checks, Worker type generation/dry-run and remote production build passed. Independent backend and UI reviews approved after regression fixes.
+- Warmane outages can still prevent fresh imports; saved recovery requires an earlier successful import. Deployment, limits and rollback details: [Warmane relay operations](warmane-relay-operations.md).
+
+## Previous production — navigation, Discord authentication and My Library (2026-09-11)
+
+- All application changes merged to GitHub `main`, preserving the newer parallel simulator, iteration controls, production budget and Wrath branding.
+- Application source: `a602147` (release integration `1694e12`, latest UI work `aa4d09f`). Vercel `dpl_4QX4Ewi5xRsqf8pzMVtfKy6bCfsh`, ready at https://munigan.app. Trigger production `20260911.2`.
+- New top navigation and Option 03 responsive drawer, Gear Lab naming, Discord-only accounts, My Library, Paper-designed save dialog, shared pagination, class/spec backgrounds and all accumulated gear/settings improvements are live.
+- Both production enrollment and report saving are enabled. Discord redirect: `https://munigan.app/api/auth/callback/discord`; local port-3100 callback retained.
+- Production database backed up before additive auth migrations; all 36 preexisting jobs and the report capability key preserved. Worker released before web saving.
+- Live verification: localized homepages, anonymous import and native simulation, real Discord sign-in with return/claim, My Library, signed-in simulation with automatic saving, historic public read-only report and private API cache headers.
+- Validation: 380 unit/UI, 126 integration, 50 native simulator and 112 browser checks passed across general, OAuth, rollback and production-mode control suites. Stale selectors/expectations were updated for the approved UI and rerun. Typecheck, lint, frozen install, design/spec checks, production builds and auth build audit passed.
+- CI initially exposed inherited-origin assumptions in three integration fixtures. The six failures were reproduced with the CI origin; fixture origins were isolated and all 126 integration checks passed with that same environment.
+- Real Discord reused the account’s existing consent grant. Denial/retry, cross-device isolation and account-deletion cases were verified by the controlled-provider suite rather than deleting or switching real production accounts. See [authentication operations](authentication-operations.md).
 
 Published 2026-09-09.
 
-## Current worker — parallel Top Gear execution
+## Previous worker — parallel Top Gear execution
 
 Released 2026-09-11. Trigger Production **20260911.1** ([deployment](https://cloud.trigger.dev/projects/v3/proj_tbzzdkaotlbspettqxxh/deployments/mshu2wqo)) uses Medium 2x (2 vCPU, 4 GB) and up to two native processes per job. Reference results persist before candidates start; cancellation, retries, lease fencing, and durable resumption remain enforced. Each run logs phase timings. The global queue/admission cap remains two jobs; sampling and the pinned simulator are unchanged.
 
@@ -142,3 +162,7 @@ The first CLI website build failed because `.vercelignore` excluded fixtures whi
 Environment values are held by the providers and the ignored, mode-0600 `.env.production.local`. Do not print or commit them. Retain the production capability key; changing it requires a deliberate migration strategy for existing reports. `.vercelignore` excludes `.env*`, local cache, and worker artifacts from web uploads.
 
 The website and worker deploy separately. Automatic Trigger builds from GitHub are not configured for this first release; follow step 3 when changing worker code. Before introducing the planned paid tools, revisit Vercel Hobby's personal/non-commercial restrictions and the provider plans.
+
+## Discord accounts and retained reports
+
+Follow [authentication operations](authentication-operations.md) for direct migration configuration, retention-aware worker-first deployment, disabled-by-default enrollment/saving, exact Discord callbacks, rollback and the mandatory real-provider release gate. Saved nonempty reports have no automatic age-based expiry until explicit deletion. Preserve the existing `CAPABILITY_KEY` and all historic report capabilities. Production was enabled on 2026-09-11; see the authentication operations release evidence for live checks and the distinction between real Discord verification and controlled-provider coverage.

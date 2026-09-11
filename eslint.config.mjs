@@ -6,6 +6,7 @@ export default defineConfig([
   ...ts,
   globalIgnores([
     "docs/**",
+    ".worktrees/**",
     ".cache/**",
     "dist/**",
     "src/generated/**",
@@ -14,5 +15,6 @@ export default defineConfig([
     "test-results/**",
     "playwright-report/**",
     "next-env.d.ts",
+    "workers/**/worker-configuration.d.ts",
   ]),
 ]);

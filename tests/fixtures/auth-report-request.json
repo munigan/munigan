@@ -1,0 +1,683 @@
+{
+  "tool": "top-gear",
+  "precision": "standard",
+  "snapshot": {
+    "id": "f03e1dad-f5ea-4cb3-b4f9-a061e635ce6a",
+    "specId": "warrior:FuryTalents",
+    "versions": {
+      "engine": "563e4a08cb15729f1fdcbcf68e6d68224553bfef",
+      "schema": "563e4a08cb15729f1fdcbcf68e6d68224553bfef",
+      "presets": "563e4a08cb15729f1fdcbcf68e6d68224553bfef",
+      "catalog": "563e4a08cb15729f1fdcbcf68e6d68224553bfef:335rules-v1",
+      "optimizer": "top-gear-uniform-v1"
+    },
+    "itemVersion": "original",
+    "itemDataRevision": "original-335-v1",
+    "professionLevels": {},
+    "settings": {
+      "raidBuffs": {
+        "giftOfTheWild": "TristateEffectImproved",
+        "strengthOfEarthTotem": "TristateEffectImproved",
+        "abominationsMight": true,
+        "leaderOfThePack": "TristateEffectRegular",
+        "icyTalons": true,
+        "swiftRetribution": true,
+        "sanctifiedRetribution": true,
+        "bloodlust": true,
+        "devotionAura": "TristateEffectImproved",
+        "stoneskinTotem": "TristateEffectImproved"
+      },
+      "debuffs": {
+        "faerieFire": "TristateEffectImproved",
+        "ebonPlaguebringer": true,
+        "heartOfTheCrusader": true,
+        "bloodFrenzy": true,
+        "mangle": true,
+        "sunderArmor": true,
+        "curseOfWeakness": "TristateEffectRegular"
+      },
+      "partyBuffs": {},
+      "player": {
+        "name": "Parity",
+        "race": "RaceHuman",
+        "class": "ClassWarrior",
+        "equipment": {
+          "items": [
+            { "id": 44006, "enchant": 3817, "gems": [41285, 42702] },
+            { "id": 44664, "gems": [39996] },
+            { "id": 40530, "enchant": 3808, "gems": [40037] },
+            { "id": 40403, "enchant": 3605 },
+            { "id": 40539, "enchant": 3832, "gems": [42142] },
+            { "id": 39765, "enchant": 3845, "gems": [39996, 0] },
+            { "id": 40541, "enchant": 3604, "gems": [0] },
+            { "id": 40205, "gems": [42142] },
+            { "id": 40529, "enchant": 3823, "gems": [39996, 40022] },
+            { "id": 40591, "enchant": 3606 },
+            { "id": 43993, "gems": [42142] },
+            { "id": 40717 },
+            { "id": 42987 },
+            { "id": 40256 },
+            { "id": 40384, "enchant": 3789 },
+            { "id": 40384, "enchant": 3789 },
+            { "id": 40385 }
+          ]
+        },
+        "consumes": {
+          "flask": "FlaskOfEndlessRage",
+          "food": "FoodSpicedWormBurger",
+          "defaultPotion": "IndestructiblePotion",
+          "prepopPotion": "PotionOfSpeed"
+        },
+        "buffs": {
+          "blessingOfKings": true,
+          "blessingOfMight": "TristateEffectImproved"
+        },
+        "warrior": { "options": { "useRecklessness": true } },
+        "talentsString": "32002301233-305053000520310053120500351",
+        "glyphs": {
+          "major1": 43432,
+          "major2": 43418,
+          "major3": 43416,
+          "minor1": 49084,
+          "minor2": 206953,
+          "minor3": 43397
+        },
+        "profession1": "Engineering",
+        "profession2": "Jewelcrafting",
+        "rotation": {
+          "type": "TypeAPL",
+          "prepullActions": [
+            {
+              "action": { "castSpell": { "spellId": { "spellId": 2458 } } },
+              "doAtValue": { "const": { "val": "-20s" } }
+            },
+            {
+              "action": { "castSpell": { "spellId": { "spellId": 2687 } } },
+              "doAtValue": { "const": { "val": "-10s" } }
+            },
+            {
+              "action": { "castSpell": { "spellId": { "spellId": 18499 } } },
+              "doAtValue": { "const": { "val": "-5s" } }
+            },
+            {
+              "action": { "castSpell": { "spellId": { "spellId": 1719 } } },
+              "doAtValue": { "const": { "val": "-3s" } }
+            },
+            {
+              "action": { "castSpell": { "spellId": { "spellId": 12292 } } },
+              "doAtValue": { "const": { "val": "-1.5s" } }
+            },
+            {
+              "action": {
+                "castSpell": { "spellId": { "otherId": "OtherActionPotion" } }
+              },
+              "doAtValue": { "const": { "val": "-0.5s" } }
+            }
+          ],
+          "priorityList": [
+            { "action": { "autocastOtherCooldowns": {} } },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      { "auraIsActive": { "auraId": { "spellId": 2458 } } },
+                      {
+                        "cmp": {
+                          "op": "OpLe",
+                          "lhs": { "currentRage": {} },
+                          "rhs": { "const": { "val": "20" } }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 2687 } }
+              }
+            },
+            {
+              "hide": true,
+              "action": {
+                "condition": {
+                  "auraShouldRefresh": {
+                    "auraId": { "spellId": 47467 },
+                    "maxOverlap": { "const": { "val": "3s" } }
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 47467 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "auraIsActive": { "auraId": { "spellId": 12292 } }
+                },
+                "castSpell": { "spellId": { "itemId": 40211 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": { "currentRage": {} },
+                          "rhs": { "const": { "val": "12" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpGt",
+                          "lhs": { "numberTargets": {} },
+                          "rhs": { "const": { "val": "1" } }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 47520, "tag": 1 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": { "currentRage": {} },
+                          "rhs": { "const": { "val": "12" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpEq",
+                          "lhs": { "numberTargets": {} },
+                          "rhs": { "const": { "val": "1" } }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 47450, "tag": 1 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "cmp": {
+                    "op": "OpGt",
+                    "lhs": { "numberTargets": {} },
+                    "rhs": { "const": { "val": "1" } }
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 1680 } }
+              }
+            },
+            { "action": { "castSpell": { "spellId": { "spellId": 23881 } } } },
+            { "action": { "castSpell": { "spellId": { "spellId": 1680 } } } },
+            {
+              "action": {
+                "condition": {
+                  "cmp": {
+                    "op": "OpGe",
+                    "lhs": { "currentTime": {} },
+                    "rhs": { "const": { "val": "6s" } }
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 64382 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      { "gcdIsReady": {} },
+                      {
+                        "or": {
+                          "vals": [
+                            {
+                              "auraIsActive": { "auraId": { "spellId": 46916 } }
+                            },
+                            {
+                              "auraIsActive": { "auraId": { "spellId": 70847 } }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 47475 } }
+              }
+            },
+            {
+              "hide": true,
+              "action": {
+                "condition": {
+                  "auraShouldRefresh": {
+                    "auraId": { "spellId": 47467 },
+                    "maxOverlap": { "const": { "val": "8s" } }
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 47467 } }
+              }
+            },
+            {
+              "action": {
+                "condition": { "isExecutePhase": { "threshold": "E20" } },
+                "castSpell": { "spellId": { "spellId": 47471 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      { "gcdIsReady": {} },
+                      {
+                        "not": {
+                          "val": {
+                            "dotIsActive": { "spellId": { "spellId": 47465 } }
+                          }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": {
+                            "spellTimeToReady": {
+                              "spellId": { "spellId": 23881 }
+                            }
+                          },
+                          "rhs": { "const": { "val": "1s" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": {
+                            "spellTimeToReady": {
+                              "spellId": { "spellId": 1680 }
+                            }
+                          },
+                          "rhs": { "const": { "val": "1.5s" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpEq",
+                          "lhs": { "numberTargets": {} },
+                          "rhs": { "const": { "val": "1" } }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "strictSequence": {
+                  "actions": [
+                    { "castSpell": { "spellId": { "spellId": 2457 } } },
+                    { "castSpell": { "spellId": { "spellId": 47465 } } },
+                    { "castSpell": { "spellId": { "spellId": 2458 } } }
+                  ]
+                }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      { "gcdIsReady": {} },
+                      { "auraIsActive": { "auraId": { "spellId": 68051 } } },
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": {
+                            "spellTimeToReady": {
+                              "spellId": { "spellId": 23881 }
+                            }
+                          },
+                          "rhs": { "const": { "val": "1s" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": {
+                            "spellTimeToReady": {
+                              "spellId": { "spellId": 1680 }
+                            }
+                          },
+                          "rhs": { "const": { "val": "1.5s" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpEq",
+                          "lhs": { "numberTargets": {} },
+                          "rhs": { "const": { "val": "1" } }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "strictSequence": {
+                  "actions": [
+                    { "castSpell": { "spellId": { "spellId": 2457 } } },
+                    { "castSpell": { "spellId": { "spellId": 7384 } } },
+                    { "castSpell": { "spellId": { "spellId": 2458 } } }
+                  ]
+                }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "and": {
+                    "vals": [
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": { "autoTimeToNext": {} },
+                          "rhs": { "const": { "val": "1s" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": {
+                            "spellTimeToReady": {
+                              "spellId": { "spellId": 23881 }
+                            }
+                          },
+                          "rhs": { "const": { "val": "1s" } }
+                        }
+                      },
+                      {
+                        "cmp": {
+                          "op": "OpGe",
+                          "lhs": {
+                            "spellTimeToReady": {
+                              "spellId": { "spellId": 1680 }
+                            }
+                          },
+                          "rhs": { "const": { "val": "1.5s" } }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 57755 } }
+              }
+            },
+            {
+              "action": {
+                "condition": {
+                  "not": {
+                    "val": { "auraIsActive": { "auraId": { "spellId": 2458 } } }
+                  }
+                },
+                "castSpell": { "spellId": { "spellId": 2458 } }
+              }
+            }
+          ]
+        }
+      },
+      "encounter": {
+        "duration": 30,
+        "targets": [
+          {
+            "level": 83,
+            "mobType": "MobTypeDemon",
+            "stats": [
+              100000000, 0, 0, 0, 0, 0, 0, 0, 0, 10643, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ],
+            "minBaseDamage": 5000,
+            "swingSpeed": 2
+          }
+        ]
+      }
+    },
+    "inventory": [
+      {
+        "instanceId": "equipped-0-44006",
+        "itemId": 44006,
+        "enchantId": 3817,
+        "gemIds": [41285, 42702],
+        "source": "equipped",
+        "equippedSlot": "head"
+      },
+      {
+        "instanceId": "equipped-1-44664",
+        "itemId": 44664,
+        "enchantId": 0,
+        "gemIds": [39996],
+        "source": "equipped",
+        "equippedSlot": "neck"
+      },
+      {
+        "instanceId": "equipped-2-40530",
+        "itemId": 40530,
+        "enchantId": 3808,
+        "gemIds": [40037],
+        "source": "equipped",
+        "equippedSlot": "shoulder"
+      },
+      {
+        "instanceId": "equipped-3-40403",
+        "itemId": 40403,
+        "enchantId": 3605,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "back"
+      },
+      {
+        "instanceId": "equipped-4-40539",
+        "itemId": 40539,
+        "enchantId": 3832,
+        "gemIds": [42142],
+        "source": "equipped",
+        "equippedSlot": "chest"
+      },
+      {
+        "instanceId": "equipped-5-39765",
+        "itemId": 39765,
+        "enchantId": 3845,
+        "gemIds": [39996, 0],
+        "source": "equipped",
+        "equippedSlot": "wrist"
+      },
+      {
+        "instanceId": "equipped-6-40541",
+        "itemId": 40541,
+        "enchantId": 3604,
+        "gemIds": [0],
+        "source": "equipped",
+        "equippedSlot": "hands"
+      },
+      {
+        "instanceId": "equipped-7-40205",
+        "itemId": 40205,
+        "enchantId": 0,
+        "gemIds": [42142],
+        "source": "equipped",
+        "equippedSlot": "waist"
+      },
+      {
+        "instanceId": "equipped-8-40529",
+        "itemId": 40529,
+        "enchantId": 3823,
+        "gemIds": [39996, 40022],
+        "source": "equipped",
+        "equippedSlot": "legs"
+      },
+      {
+        "instanceId": "equipped-9-40591",
+        "itemId": 40591,
+        "enchantId": 3606,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "feet"
+      },
+      {
+        "instanceId": "equipped-10-43993",
+        "itemId": 43993,
+        "enchantId": 0,
+        "gemIds": [42142],
+        "source": "equipped",
+        "equippedSlot": "finger1"
+      },
+      {
+        "instanceId": "equipped-11-40717",
+        "itemId": 40717,
+        "enchantId": 0,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "finger2"
+      },
+      {
+        "instanceId": "equipped-12-42987",
+        "itemId": 42987,
+        "enchantId": 0,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "trinket1"
+      },
+      {
+        "instanceId": "equipped-13-40256",
+        "itemId": 40256,
+        "enchantId": 0,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "trinket2"
+      },
+      {
+        "instanceId": "equipped-14-40384",
+        "itemId": 40384,
+        "enchantId": 3789,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "mainHand"
+      },
+      {
+        "instanceId": "equipped-15-40384",
+        "itemId": 40384,
+        "enchantId": 3789,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "offHand"
+      },
+      {
+        "instanceId": "equipped-16-40385",
+        "itemId": 40385,
+        "enchantId": 0,
+        "gemIds": [],
+        "source": "equipped",
+        "equippedSlot": "ranged"
+      }
+    ],
+    "equipped": {
+      "head": "equipped-0-44006",
+      "neck": "equipped-1-44664",
+      "shoulder": "equipped-2-40530",
+      "back": "equipped-3-40403",
+      "chest": "equipped-4-40539",
+      "wrist": "equipped-5-39765",
+      "hands": "equipped-6-40541",
+      "waist": "equipped-7-40205",
+      "legs": "equipped-8-40529",
+      "feet": "equipped-9-40591",
+      "finger1": "equipped-10-43993",
+      "finger2": "equipped-11-40717",
+      "trinket1": "equipped-12-42987",
+      "trinket2": "equipped-13-40256",
+      "mainHand": "equipped-14-40384",
+      "offHand": "equipped-15-40384",
+      "ranged": "equipped-16-40385"
+    },
+    "provenance": {
+      "raidBuffs.giftOfTheWild": "preset",
+      "raidBuffs.strengthOfEarthTotem": "preset",
+      "raidBuffs.abominationsMight": "preset",
+      "raidBuffs.leaderOfThePack": "preset",
+      "raidBuffs.icyTalons": "preset",
+      "raidBuffs.swiftRetribution": "preset",
+      "raidBuffs.sanctifiedRetribution": "preset",
+      "raidBuffs.bloodlust": "preset",
+      "raidBuffs.devotionAura": "preset",
+      "raidBuffs.stoneskinTotem": "preset",
+      "debuffs.faerieFire": "preset",
+      "debuffs.ebonPlaguebringer": "preset",
+      "debuffs.heartOfTheCrusader": "preset",
+      "debuffs.bloodFrenzy": "preset",
+      "debuffs.mangle": "preset",
+      "debuffs.sunderArmor": "preset",
+      "debuffs.curseOfWeakness": "preset",
+      "player.name": "imported",
+      "player.race": "imported",
+      "player.class": "imported",
+      "player.consumes.flask": "preset",
+      "player.consumes.food": "preset",
+      "player.consumes.defaultPotion": "preset",
+      "player.consumes.prepopPotion": "preset",
+      "player.buffs.blessingOfKings": "preset",
+      "player.buffs.blessingOfMight": "preset",
+      "player.warrior.options.useRecklessness": "imported",
+      "player.warrior.options.useShatteringThrow": "imported",
+      "player.warrior.options.shout": "imported",
+      "player.talentsString": "imported",
+      "player.glyphs.major1": "preset",
+      "player.glyphs.major2": "preset",
+      "player.glyphs.major3": "preset",
+      "player.glyphs.minor1": "preset",
+      "player.glyphs.minor2": "preset",
+      "player.glyphs.minor3": "preset",
+      "encounter.duration": "imported",
+      "encounter.durationVariation": "imported",
+      "encounter.executeProportion20": "imported",
+      "encounter.executeProportion25": "imported",
+      "encounter.executeProportion35": "imported",
+      "encounter.targets": "imported",
+      "player.equipment.items": "imported",
+      "player.warrior.options.startingRage": "imported",
+      "player.warrior.options.stanceSnapshot": "imported",
+      "player.warrior.options.disableExpertiseGemming": "imported",
+      "player.rotation.type": "imported",
+      "player.rotation.simple": "imported",
+      "player.rotation.prepullActions": "imported",
+      "player.rotation.priorityList": "imported",
+      "player.profession1": "imported",
+      "player.profession2": "imported",
+      "encounter.useHealth": "imported"
+    }
+  },
+  "selection": {
+    "selectedInstanceIds": [
+      "equipped-0-44006",
+      "equipped-1-44664",
+      "equipped-2-40530",
+      "equipped-3-40403",
+      "equipped-4-40539",
+      "equipped-5-39765",
+      "equipped-6-40541",
+      "equipped-7-40205",
+      "equipped-8-40529",
+      "equipped-9-40591",
+      "equipped-10-43993",
+      "equipped-11-40717",
+      "equipped-12-42987",
+      "equipped-13-40256",
+      "equipped-14-40384",
+      "equipped-15-40384",
+      "equipped-16-40385"
+    ],
+    "lockedSlots": {},
+    "acknowledgedExclusions": []
+  }
+}

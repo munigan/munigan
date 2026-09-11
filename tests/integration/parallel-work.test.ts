@@ -1,13 +1,11 @@
+import { readReport } from "@/server/reports/read";
+import { digest } from "@/server/jobs/capabilities";
+import { createTestDatabase, dropTestDatabase } from "../support/database";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
-import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-import { pool, testSchema } from "@/server/db/client";
+import { pool } from "@/server/db/client";
 import { admitJob } from "@/server/jobs/admit";
-import {
-  executeTopGear,
-  readReport,
-  type ExecutionPerformance,
-} from "@/server/jobs/work";
+import { executeTopGear, type ExecutionPerformance } from "@/server/jobs/work";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 import { fixtureRequest } from "../support/fixtures";
 import { planRun } from "@/domain/equipment/enumerate";
@@ -15,14 +13,13 @@ import { workPolicy } from "@/server/jobs/policy";
 
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(async () => {
-  await pool.query(`CREATE SCHEMA ${testSchema}`);
-  await pool.query(await readFile("drizzle/0000_top_gear.sql", "utf8"));
+  await createTestDatabase();
 });
 beforeEach(async () => {
   await pool.query("TRUNCATE tg_jobs, tg_budgets CASCADE");
 });
 afterAll(async () => {
-  await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
+  await dropTestDatabase();
   await pool.end();
 });
 
@@ -110,7 +107,10 @@ it("persists the reference first and fills two slots as candidates finish out of
   }
   expect(peak).toBe(2);
   expect(referencePersisted).toBe(true);
-  const { report } = await readReport(job.reportToken, job.ownerKey);
+  const { report } = await readReport(job.reportToken, {
+    account: null,
+    ownerHash: digest(job.ownerKey),
+  });
   expect(report.status).toBe("complete");
   expect(report.equippedId).toBe("100000");
   expect(report.rows.map((r) => [r.id, r.iterations])).toEqual([
@@ -167,7 +167,10 @@ it("awaits every aborted child before settling cancellation and leaves queued ca
     await pending;
   }
   expect(active).toBe(0);
-  const { report } = await readReport(job.reportToken, job.ownerKey);
+  const { report } = await readReport(job.reportToken, {
+    account: null,
+    ownerHash: digest(job.ownerKey),
+  });
   expect(report.status).toBe("canceled");
   expect(report.coverage.succeeded).toBe(1);
   expect(
@@ -229,7 +232,10 @@ it("aborts siblings and drains them before recording an admission failure", asyn
       "DROP TRIGGER fail_third_work ON tg_work; DROP FUNCTION fail_third_work()",
     );
   }
-  const { report, error } = await readReport(job.reportToken, job.ownerKey);
+  const { report, error } = await readReport(job.reportToken, {
+    account: null,
+    ownerHash: digest(job.ownerKey),
+  });
   expect(report.status).toBe("partial");
   expect(report.termination).toBe("failed");
   expect(error).toMatch(/Admission database unavailable/);
@@ -299,7 +305,10 @@ it("fences all active candidates after lease loss and allows a new worker to res
     concurrency: 2,
     onPerformance: (measurement) => measurements.push(measurement),
   });
-  const { report } = await readReport(job.reportToken, job.ownerKey);
+  const { report } = await readReport(job.reportToken, {
+    account: null,
+    ownerHash: digest(job.ownerKey),
+  });
   expect(report.status).toBe("complete");
   expect(report.coverage.succeeded).toBe(4);
   expect(measurements[0]).toMatchObject({
@@ -351,7 +360,10 @@ it("keeps parallel retries within each set's frozen attempt cap", async () => {
       onPerformance: (measurement) => measurements.push(measurement),
     },
   );
-  const { report } = await readReport(job.reportToken, job.ownerKey);
+  const { report } = await readReport(job.reportToken, {
+    account: null,
+    ownerHash: digest(job.ownerKey),
+  });
   expect(report.status).toBe("partial");
   expect(report.coverage).toMatchObject({
     planned: 4,

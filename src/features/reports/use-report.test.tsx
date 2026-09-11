@@ -150,15 +150,13 @@ it("never shows another report's data and ignores late aborted pages", async () 
 it("retains structured API diagnostics while keeping the legacy error string", async () => {
   vi.stubGlobal(
     "fetch",
-    vi
-      .fn()
-      .mockResolvedValue(
-        response(410, {
-          error: "This report has expired",
-          code: "reportExpired",
-          params: {},
-        }),
-      ),
+    vi.fn().mockResolvedValue(
+      response(410, {
+        error: "This report has expired",
+        code: "reportExpired",
+        params: {},
+      }),
+    ),
   );
   const { result } = renderHook(() => useReport("/report"));
   await act(async () => {});
@@ -168,4 +166,64 @@ it("retains structured API diagnostics while keeping the legacy error string", a
     code: "reportExpired",
     params: {},
   });
+});
+
+it("refreshes terminal data and invalidates permissions synchronously on identity changes", async () => {
+  const initial = {
+    report: { status: "complete" },
+    access: { canManage: true },
+  };
+  let resolve!: (value: unknown) => void;
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(response(200, initial))
+    .mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolve = r;
+        }),
+    );
+  vi.stubGlobal("fetch", fetch);
+  const { result, rerender } = renderHook(
+    ({ identity }) => useReport("/report", "report", identity),
+    { initialProps: { identity: "account-a" } },
+  );
+  await act(async () => {});
+  expect(result.current.permissionsFresh).toBe(true);
+  rerender({ identity: "anonymous" });
+  expect(result.current.permissionsFresh).toBe(false);
+  expect(result.current.data).toEqual(initial);
+  await act(async () =>
+    resolve(
+      response(200, {
+        report: { status: "complete" },
+        access: { canManage: false },
+      }),
+    ),
+  );
+  expect(result.current.permissionsFresh).toBe(true);
+  act(() => result.current.refresh());
+  expect(result.current.permissionsFresh).toBe(false);
+  expect(result.current.data).not.toBeNull();
+  expect(fetch).toHaveBeenCalledTimes(3);
+});
+
+it("invalidates terminal report permissions when a report is deleted in this browser", async () => {
+  vi.stubGlobal("BroadcastChannel", undefined);
+  const { invalidateAccountData } =
+    await import("@/features/auth/data-invalidation");
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(response(200, { report: { status: "complete" } }))
+    .mockReturnValue(new Promise(() => {}));
+  vi.stubGlobal("fetch", fetch);
+  const { result } = renderHook(() =>
+    useReport("/report", "/report", "account-a"),
+  );
+  await act(async () => {});
+  expect(result.current.permissionsFresh).toBe(true);
+  act(() => invalidateAccountData());
+  expect(result.current.permissionsFresh).toBe(false);
+  await act(async () => {});
+  expect(fetch).toHaveBeenCalledTimes(2);
 });

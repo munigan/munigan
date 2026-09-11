@@ -9,7 +9,7 @@ test("runs real local DPS and compares complete owned sets", async ({
   browser,
 }) => {
   test.setTimeout(120000);
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   const player = fixture.raid.parties[0].players[0];
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
@@ -52,19 +52,22 @@ test("runs real local DPS and compares complete owned sets", async ({
     "classic",
   );
   await page
-    .getByRole("checkbox", { name: /Select Valorous Dreadnaught Helmet, bag/ })
+    .getByRole("checkbox", { name: /Select Valorous Dreadnaught Helmet, Bags/ })
     .check();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
-  await page.getByLabel("Fight length (seconds)").fill("30");
-  await page.getByRole("button", { name: "Close" }).click();
+  await page.getByRole("tab", { name: "Encounter", exact: true }).click();
+  await page.getByLabel("Fight length (seconds)", { exact: true }).fill("30");
+  await page
+    .getByRole("button", { name: "Apply changes", exact: true })
+    .click();
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
+    page.getByRole("button", { name: "Run Gear Lab" }),
   ).toBeEnabled();
   await page.screenshot({
     path: "tests/artifacts/top-gear-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Find Top Gear" }).click();
+  await page.getByRole("button", { name: "Run Gear Lab" }).click();
   await expect(page).toHaveURL(/\/reports\//);
   await expect(
     page.getByRole("heading", { name: /Gear combinations/ }),
@@ -80,7 +83,7 @@ test("runs real local DPS and compares complete owned sets", async ({
   await page.keyboard.press("Enter");
   await expect(setButton).toHaveAttribute("aria-pressed", "true");
   await expect(
-    page.locator(".changed-icons a[data-wowhead]").first(),
+    page.locator(".set-changes a[data-wowhead]").first(),
   ).toBeVisible();
   await expect(page.locator("button a[data-wowhead]")).toHaveCount(0);
   await page.getByRole("button", { name: "Stats details" }).click();
@@ -166,8 +169,10 @@ test("runs real local DPS and compares complete owned sets", async ({
     }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Edit & run again" }).click();
-  await expect(page).toHaveURL(/\/gear-lab$/);
-  await page.getByRole("button", { name: "Restore draft" }).click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/gear-lab");
+  await expect(
+    page.getByRole("button", { name: "Restore draft", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
   ).toBeVisible();

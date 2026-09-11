@@ -12,7 +12,7 @@ test("switches item versions, preserves drafts and simulates their actual stats"
   test.setTimeout(180000);
   const player = structuredClone(fixture.raid.parties[0].players[0]);
   player.equipment.items[12] = { id: 45931 };
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Item Versions",
@@ -50,7 +50,7 @@ test("switches item versions, preserves drafts and simulates their actual stats"
   await page.keyboard.press("Escape");
   await expect(tooltip).toBeHidden();
   const bagMjolnir = page.getByRole("checkbox", {
-    name: /Select Mjolnir Runestone, bag/,
+    name: /Select Mjolnir Runestone, Bags/,
   });
   await bagMjolnir.check();
   await selectOption(version, "classic");
@@ -62,14 +62,17 @@ test("switches item versions, preserves drafts and simulates their actual stats"
   await expect(version).toHaveAttribute("data-select-value", "classic");
   await expect(bagMjolnir).toBeChecked();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
-  await page.getByLabel("Fight length (seconds)").fill("30");
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await page.getByRole("tab", { name: "Encounter", exact: true }).click();
+  await page.getByLabel("Fight length (seconds)", { exact: true }).fill("30");
+  await page
+    .getByRole("button", { name: "Apply changes", exact: true })
+    .click();
   const crit: Record<string, number> = {};
   const urls: Record<string, string> = {};
   for (const profile of ["original", "classic"]) {
     await selectOption(version, profile);
     await expect(bagMjolnir).toBeChecked();
-    await page.getByRole("button", { name: "Find Top Gear" }).click();
+    await page.getByRole("button", { name: "Run Gear Lab" }).click();
     await expect(page).toHaveURL(/\/reports\//);
     await expect(
       page.getByText("All admitted combinations evaluated", { exact: false }),
@@ -102,8 +105,7 @@ test("switches item versions, preserves drafts and simulates their actual stats"
           .first(),
       ).toBeVisible();
       await page.keyboard.press("Escape");
-      await page.goto("/top-gear");
-      await page.getByRole("button", { name: "Restore draft" }).click();
+      await page.getByRole("button", { name: "Edit & run again" }).click();
     }
   }
   expect(crit.classic - crit.original).toBeCloseTo(13, 6);

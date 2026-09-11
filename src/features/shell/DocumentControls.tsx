@@ -7,7 +7,8 @@ export function DocumentControls() {
     t = useTranslations("common"),
     shell = useTranslations("shell");
   useEffect(() => {
-    if (pathname === "/gear-lab") document.title = "Gear Lab · munigan.app";
+    if (pathname === "/gear-lab")
+      document.title = `${shell("gearLab")} · munigan.app`;
     else if (pathname.startsWith("/reports/"))
       document.title = `${shell("reportTitle")} · munigan.app`;
   }, [pathname, shell]);

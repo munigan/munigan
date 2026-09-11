@@ -57,7 +57,7 @@ it("keeps Free at 500 after repeated locked slider attempts without blocking a v
     expect(slider).toHaveValue("500");
     expect(screen.getByRole("status")).toHaveTextContent(/Free.*500/);
   }
-  const run = screen.getByRole("button", { name: /Find Top Gear/ });
+  const run = screen.getByRole("button", { name: /Run Gear Lab/ });
   expect(run).toBeEnabled();
   fireEvent.click(run);
   expect(onRun).toHaveBeenCalledOnce();
@@ -68,5 +68,5 @@ it("waits for the server allowance before enabling the iterations control or sub
   expect(
     screen.getByRole("slider", { name: "Iterations per set" }),
   ).toBeDisabled();
-  expect(screen.getByRole("button", { name: /Find Top Gear/ })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeDisabled();
 });

@@ -13,5 +13,13 @@
   "backHome": "Back to overview",
   "itemFallback": "Item {id}",
   "increase": "Increase {label}",
-  "decrease": "Decrease {label}"
+  "decrease": "Decrease {label}",
+  "pagination": {
+    "label": "Pagination",
+    "range": "{start}–{end} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {number}",
+    "showMore": "Show more"
+  }
 }

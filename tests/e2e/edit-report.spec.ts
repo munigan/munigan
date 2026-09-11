@@ -50,7 +50,7 @@ test("editing a report opens equipment selection with its original setup", async
 test("an edit link without a saved draft safely shows import", async ({
   page,
 }) => {
-  await page.goto("/top-gear?restore=1");
+  await page.goto("/gear-lab?restore=1");
   await expect(
     page.getByLabel("Character export", { exact: true }),
   ).toBeVisible();

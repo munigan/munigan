@@ -43,7 +43,7 @@ test("Gear Lab artwork follows the imported character and resets with navigation
   await expect(backdrop).toHaveAttribute("data-theme", "deathknight-frost");
   await page.getByRole("link", { name: "Gear Lab", exact: true }).click();
   await expect(backdrop).toHaveAttribute("data-theme", "naxxramas");
-  await page.getByRole("link", { name: "Overview", exact: true }).click();
+  await page.getByRole("link", { name: "Home", exact: true }).click();
   await expect(page.locator(".home-artwork")).toBeVisible();
   await expect(backdrop).toHaveCount(0);
 });

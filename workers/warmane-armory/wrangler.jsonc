@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "wow-droptimizer-warmane-armory",
+  "account_id": "73b79217378198a0ca6b30ad7dcf05cc",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "minify": true,
+  "durable_objects": {
+    "bindings": [{ "name": "PROFILES", "class_name": "WarmaneProfile" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["WarmaneProfile"] }],
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "secrets": { "required": ["RELAY_SECRET"] },
+}

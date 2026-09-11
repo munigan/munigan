@@ -4,6 +4,18 @@ import { NextIntlClientProvider } from "next-intl";
 import { fixtureRequest } from "../../../tests/support/fixtures";
 import { encodeSnapshot } from "@/domain/top-gear/request-schema";
 import type { SetRow } from "@/domain/top-gear/model";
+import commonEn from "../../../messages/en-US/common.json";
+import commonPt from "../../../messages/pt-BR/common.json";
+import authEn from "../../../messages/en-US/auth.json";
+import authPt from "../../../messages/pt-BR/auth.json";
+import { storeReturnState, loadReturnState } from "../auth/return-state";
+vi.mock("../auth/AuthProvider", () => ({
+  useAccount: () => ({
+    status: "anonymous",
+    account: null,
+    savingEnabled: true,
+  }),
+}));
 import en from "../../../messages/en-US/reports.json";
 import pt from "../../../messages/pt-BR/reports.json";
 import diagnosticsEn from "../../../messages/en-US/diagnostics.json";
@@ -15,6 +27,7 @@ vi.mock("@/components/ui/Toast", () => ({
 }));
 vi.mock("./GearStrip", () => ({ GearStrip: () => <span>Gear fixture</span> }));
 afterEach(() => {
+  sessionStorage.clear();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -37,6 +50,14 @@ function fixture() {
   return {
     jobId: "fixture",
     canManage: false,
+    access: {
+      saved: false,
+      canManage: false,
+      canSave: false,
+      canDelete: false,
+      effectiveExpiresAt: "2030-01-01T00:00:00Z",
+      anonymousExpiresAt: "2030-01-01T00:00:00Z",
+    },
     error: null,
     pinnedRows: [row],
     totalRows: 22,
@@ -68,6 +89,8 @@ function view(locale: "en-US" | "pt-BR") {
     <NextIntlClientProvider
       locale={locale}
       messages={{
+        common: locale === "en-US" ? commonEn : commonPt,
+        auth: locale === "en-US" ? authEn : authPt,
         reports: locale === "en-US" ? en : pt,
         diagnostics: locale === "en-US" ? diagnosticsEn : diagnosticsPt,
       }}
@@ -115,7 +138,7 @@ it("retains report page and selected combination without refetching when the loc
     selectedHtml,
   );
   await waitFor(() =>
-    expect(document.title).toBe("RELATÓRIO DO TOP GEAR · munigan.app"),
+    expect(document.title).toBe("RELATÓRIO DO GEAR LAB · munigan.app"),
   );
   expect(fetch).toHaveBeenCalledTimes(2);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([
@@ -139,4 +162,63 @@ it("keeps historical error details readable under a translated report error head
     }),
   ).toBeInTheDocument();
   expect(screen.getByText(/Historical engine message/)).toBeInTheDocument();
+});
+
+it("restores the preserved page first, selected row and scroll once, then consumes the flow", async () => {
+  const key = "b".repeat(43),
+    path = "/reports/stable-report";
+  storeReturnState(key, {
+    version: 1,
+    reportPath: path,
+    locale: "en-US",
+    cursor: 20,
+    selectedId: "restored",
+    difference: "highest",
+    scrollY: 320,
+  });
+  sessionStorage.setItem(`munigan.auth.restore.${path}`, key);
+  const payload = fixture();
+  payload.report.rows = [
+    {
+      ...payload.report.rows[0],
+      id: "restored",
+      dps: 12000,
+      isEquipped: false,
+    },
+  ];
+  payload.nextCursor = null;
+  const fetch = vi
+    .fn()
+    .mockResolvedValue({ ok: true, json: async () => payload });
+  vi.stubGlobal("fetch", fetch);
+  const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  render(view("en-US"));
+  expect(
+    await screen.findByRole("button", { name: /View set.*12,000 DPS/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(fetch.mock.calls[0][0]).toBe("/api/reports/stable-report?cursor=20");
+  await waitFor(() =>
+    expect(scroll).toHaveBeenCalledWith({ top: 320, behavior: "instant" }),
+  );
+  expect(loadReturnState(key)).toBeNull();
+  expect(scroll).toHaveBeenCalledTimes(1);
+});
+it("uses effective retained expiry even when the frozen report expired yesterday", async () => {
+  const payload = fixture();
+  payload.report.expiresAt = "2000-01-01T00:00:00Z";
+  payload.access = {
+    ...payload.access,
+    saved: true,
+    effectiveExpiresAt: null as unknown as string,
+  };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => payload }),
+  );
+  render(view("en-US"));
+  expect(
+    await screen.findByText("Shared report · read only"),
+  ).toBeInTheDocument();
+  expect(screen.getByText(/No automatic expiry/)).toBeInTheDocument();
+  expect(screen.queryByText(/2000/)).not.toBeInTheDocument();
 });

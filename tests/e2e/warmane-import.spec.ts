@@ -27,7 +27,7 @@ test("Warmane imports by name and realm into review, preserving optional bags an
     lookups++;
     return route.fulfill({ json: { character } });
   });
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page
     .getByRole("button", { name: "Warmane Armory", exact: true })
     .click();
@@ -81,7 +81,7 @@ test("a failed Armory lookup preserves input, translates the error and can be re
       },
     });
   });
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page
     .getByRole("button", { name: "Warmane Armory", exact: true })
     .click();
@@ -96,10 +96,8 @@ test("a failed Armory lookup preserves input, translates the error and can be re
     "Armorytester",
   );
   await page.getByRole("button", { name: "Open navigation" }).click();
-  await selectOption(
-    page.locator(".workbench-drawer").getByLabel("Language", { exact: true }),
-    "pt-BR",
-  );
+  await page.getByRole("button", { name: "Language", exact: true }).click();
+  await page.getByRole("button", { name: /Português/ }).click();
   await page.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(
     page.getByLabel("Nome do personagem", { exact: true }),
@@ -116,4 +114,58 @@ test("a failed Armory lookup preserves input, translates the error and can be re
     .getByRole("button", { name: "Revisar importação", exact: true })
     .click();
   await expect.poll(() => lookups).toBe(2);
+});
+
+test("a saved Armory profile is applied only after the localized recovery action", async ({
+  page,
+}) => {
+  const retrievedAt = new Date(Date.now() - 5 * 60_000).toISOString();
+  const modes: string[] = [];
+  await page.route("**/api/import/warmane?*", (route) => {
+    const mode =
+      new URL(route.request().url()).searchParams.get("mode") ?? "auto";
+    modes.push(mode);
+    if (mode === "saved")
+      return route.fulfill({
+        json: {
+          character,
+          meta: { retrievedAt, source: "saved", requestId: "saved-request" },
+        },
+      });
+    return route.fulfill({
+      status: 504,
+      json: {
+        code: "warmaneTimeout",
+        message: "Warmane took too long to respond.",
+        requestId: "live-request",
+        saved: { retrievedAt },
+      },
+    });
+  });
+  await page.goto("/gear-lab");
+  await page
+    .getByRole("button", { name: "Warmane Armory", exact: true })
+    .click();
+  await page.getByLabel("Character name", { exact: true }).fill("Armorytester");
+  await page
+    .getByRole("button", { name: "Review import", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Use saved profile", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Armorytester", exact: true }),
+  ).toHaveCount(0);
+
+  await selectOption(page.getByLabel("Language", { exact: true }), "pt-BR");
+  await page
+    .getByRole("button", { name: "Usar perfil salvo", exact: true })
+    .click();
+
+  await expect(
+    page.getByRole("heading", { name: "Armorytester", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Perfil salvo", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Obtido .+ · há 5 minutos/)).toBeVisible();
+  expect(modes).toEqual(["auto", "saved"]);
 });

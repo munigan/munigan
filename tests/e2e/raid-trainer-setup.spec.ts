@@ -52,17 +52,15 @@ for (const width of [1440, 390]) {
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    if (width < 1024)
+    if (width < 1400)
       await page.getByRole("button", { name: "Open navigation" }).click();
     const navigation = page.locator(
-      width < 1024 ? ".workbench-drawer" : ".workbench-header",
+      width < 1400 ? ".workbench-drawer" : ".workbench-header",
     );
     await expect(
-      navigation.getByRole("link", { name: "Raid Trainer", exact: true }),
+      navigation.getByRole("link", { name: /Raid Trainer/ }),
     ).toHaveAttribute("aria-current", "page");
-    await navigation
-      .getByRole("link", { name: "Top Gear", exact: true })
-      .click();
+    await navigation.getByRole("link", { name: /^Gear Lab/ }).click();
     await expect(
       page.getByLabel("Character export", { exact: true }),
     ).toBeVisible();

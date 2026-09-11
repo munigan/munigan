@@ -7,6 +7,24 @@ export const warmaneRealms = [
   "Onyxia",
 ] as const;
 export type WarmaneLookup = { name: string; realm: string };
+export type WarmaneImportMode = "auto" | "refresh" | "saved";
+export type WarmaneImportMeta = {
+  retrievedAt: string;
+  source: "live" | "cache" | "saved";
+  requestId: string;
+};
+export type WarmaneImportResult = {
+  character: ArmoryCharacter;
+  meta: WarmaneImportMeta;
+};
+export type WarmaneImportFailure = {
+  code: string;
+  message: string;
+  params?: Record<string, string | number>;
+  requestId: string;
+  retryAfterSeconds?: number;
+  saved?: { retrievedAt: string };
+};
 export type ArmoryCharacter = {
   name: string;
   class: string;

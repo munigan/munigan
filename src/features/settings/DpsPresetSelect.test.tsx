@@ -42,7 +42,9 @@ it("keeps icons and readable labels separate from descriptions and stable form v
     "Talent points: Blood / Frost / Unholy.",
   );
   await user.click(trigger);
-  const unholy = screen.getByRole("option", { name: "Frost/Unholy (1/52/18)" });
+  const unholy = await screen.findByRole("option", {
+    name: "Frost/Unholy (1/52/18)",
+  });
   expect(unholy).toHaveAccessibleDescription(
     "Dual wield with Unholy support talents.",
   );
@@ -71,6 +73,6 @@ it("translates explanations without changing the selected build", async () => {
   );
   await user.click(trigger);
   expect(
-    screen.getByRole("option", { name: "Frost/Blood (15/56/0)" }),
+    await screen.findByRole("option", { name: "Frost/Blood (15/56/0)" }),
   ).toHaveAccessibleDescription("Duas armas com talentos de apoio em Blood.");
 });

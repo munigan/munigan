@@ -28,7 +28,7 @@ export function ToolNav({ onNavigate }: { onNavigate?: () => void }) {
           className="workbench-nav-row"
         >
           <ToolIcon name="overview" />
-          <span>{t("overview")}</span>
+          <span>{t("homeLabel")}</span>
         </Link>
         <Link
           href="/gear-lab"
@@ -43,7 +43,7 @@ export function ToolNav({ onNavigate }: { onNavigate?: () => void }) {
           className="workbench-nav-row"
         >
           <ToolIcon name="gear" />
-          <span>Gear Lab</span>
+          <span>{t("gearLab")}</span>
         </Link>
         <Link
           href="/raid-trainer"
@@ -56,6 +56,7 @@ export function ToolNav({ onNavigate }: { onNavigate?: () => void }) {
         >
           <ToolIcon name="trainer" />
           <span>Raid Trainer</span>
+          <span className="workbench-beta-tag">{t("beta")}</span>
         </Link>
         <Menu.Root>
           <Menu.Trigger className="workbench-nav-row workbench-more-trigger">

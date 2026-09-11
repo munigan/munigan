@@ -41,7 +41,9 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
       ?.theme ?? "naxxramas";
   const isHome = ["/", "/en-us", "/pt-br"].includes(pathname);
   const hasCharacterArtwork =
-    pathname === "/gear-lab" || pathname.startsWith("/reports/");
+    pathname === "/gear-lab" ||
+    pathname === "/library" ||
+    pathname.startsWith("/reports/");
   return (
     <BackgroundContext.Provider value={context}>
       {isHome && <div className="home-artwork" aria-hidden="true" />}

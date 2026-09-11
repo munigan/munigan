@@ -1,20 +1,21 @@
+import { readReport } from "@/server/reports/read";
+import { digest } from "@/server/jobs/capabilities";
+import { createTestDatabase, dropTestDatabase } from "../support/database";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { pool, testSchema } from "@/server/db/client";
+import { pool } from "@/server/db/client";
 import { admitJob } from "@/server/jobs/admit";
-import { executeTopGear, readReport } from "@/server/jobs/work";
+import { executeTopGear } from "@/server/jobs/work";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 import { evaluate } from "@/server/simulator/evaluate";
 import { fixtureRequest } from "../support/fixtures";
 
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(async () => {
-  await pool.query(`CREATE SCHEMA ${testSchema}`);
-  await pool.query(await readFile("drizzle/0000_top_gear.sql", "utf8"));
+  await createTestDatabase();
 });
 afterAll(async () => {
-  await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
+  await dropTestDatabase();
   await pool.end();
 });
 
@@ -42,7 +43,14 @@ it("produces identical persisted native results and rankings with one or two sim
     await executeTopGear(job.jobId, new AbortController().signal, evaluate, {
       concurrency,
     });
-    reports.push((await readReport(job.reportToken, ownerKey)).report);
+    reports.push(
+      (
+        await readReport(job.reportToken, {
+          account: null,
+          ownerHash: digest(ownerKey),
+        })
+      ).report,
+    );
   }
   expect(reports[0].coverage).toMatchObject({
     planned: 4,

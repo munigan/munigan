@@ -182,7 +182,9 @@ test("a report keeps its current page, selected set and scroll when language cha
   const before = reads;
   await selectOption(page.getByLabel("Language", { exact: true }), "pt-BR");
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
-  await expect(page.locator(".report-controls")).toContainText("21–40 de 40");
+  await expect(
+    page.getByRole("navigation", { name: /Pagination|Paginação/ }),
+  ).toContainText("21–40 de 40");
   expect(await selected?.evaluate((el) => el.isConnected)).toBe(true);
   expect(await page.evaluate(() => scrollY)).toBe(scroll);
   expect(reads).toBe(before);

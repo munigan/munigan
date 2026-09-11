@@ -13,7 +13,7 @@ test("Free iterations stay expanded and capped with keyboard, pointer and respon
   await page.route("https://wow.zamimg.com/js/tooltips.js", (route) =>
     route.abort(),
   );
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Aldren",
@@ -61,7 +61,7 @@ test("Free iterations stay expanded and capped with keyboard, pointer and respon
   });
   await expect(slider).toHaveValue("500");
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
+    page.getByRole("button", { name: "Run Gear Lab" }),
   ).toBeEnabled();
   expect(
     await page.evaluate(() =>

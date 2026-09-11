@@ -51,6 +51,16 @@ const treeIcons: Record<string, string[]> = {
   ],
 };
 
+export function characterSpecIcon(className: string, talentsString: string) {
+  const key = className.toLowerCase().replaceAll(" ", "");
+  const points = talentsString
+    .split("-")
+    .map((tree) => [...tree].reduce((sum, point) => sum + Number(point), 0));
+  return Math.max(...points) > 0
+    ? treeIcons[key]?.[points.indexOf(Math.max(...points))]
+    : undefined;
+}
+
 export function CharacterPortrait({
   className,
   snapshot,
@@ -61,11 +71,7 @@ export function CharacterPortrait({
   talentsString?: string;
 }) {
   const key = className.toLowerCase().replaceAll(" ", "");
-  const points = talentsString
-    .split("-")
-    .map((tree) => [...tree].reduce((sum, point) => sum + Number(point), 0));
-  const tree = points.indexOf(Math.max(...points));
-  const specIcon = Math.max(...points) > 0 ? treeIcons[key]?.[tree] : undefined;
+  const specIcon = characterSpecIcon(className, talentsString);
   const imageUrl = (icon: string) =>
     `https://wow.zamimg.com/images/wow/icons/large/${icon}.jpg`;
   return (

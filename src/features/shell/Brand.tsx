@@ -25,17 +25,18 @@ export function BrandSymbol(props: ComponentProps<"svg">) {
     </svg>
   );
 }
-export function Brand() {
+export function Brand({ onNavigate }: { onNavigate?: () => void } = {}) {
   const t = useTranslations("shell");
   const { locale } = useAppLocale();
   return (
     <Link
       href={homepagePath(locale)}
       aria-label={t("home")}
+      onClick={onNavigate}
       className="inline-flex shrink-0 items-center gap-3 text-text no-underline hover:no-underline"
     >
       <BrandSymbol className="h-10 w-9 shrink-0 text-action" />
-      <span className="font-brand text-[25px] leading-7 font-bold tracking-[-.045em]">
+      <span className="font-brand text-[23px] leading-7 font-bold tracking-[-.045em]">
         munigan.app
       </span>
     </Link>

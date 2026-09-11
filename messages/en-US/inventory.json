@@ -7,7 +7,7 @@
     "settings": "Buffs & settings",
     "targets": "{count, plural, one {Single target} other {# targets}}",
     "submitting": "Submitting…",
-    "find": "Find Top Gear",
+    "find": "Run Gear Lab",
     "customCaption": "Equipped + additional candidates",
     "bagsCaption": "Equipped + carried bags",
     "equippedCaption": "Equipped only · no bags imported"
@@ -99,7 +99,7 @@
     "addCustom": "Add custom item",
     "explore": "Explore WotLK items for this slot",
     "addedToast": "{count, plural, one {# custom item added} other {# custom items added}}",
-    "addedDescription": "Selected for your next Top Gear comparison.",
+    "addedDescription": "Selected for your next Gear Lab comparison.",
     "addError": "Could not add items.",
     "title": "Add custom items",
     "compatible": "{count, plural, one {# compatible {slot} item} other {# compatible {slot} items}}",

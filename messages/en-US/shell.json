@@ -2,16 +2,26 @@
   "toolkit": "YOUR TOOLKIT",
   "equipment": "Equipment",
   "playstyle": "Playstyle",
-  "overview": "Overview",
   "tools": "Tools",
+  "gearLab": "Gear Lab",
   "future": "Future",
   "footer": "Built for the next pull.",
   "report": "Report",
-  "ready": "Top Gear is ready",
+  "ready": "Gear Lab is ready",
   "openNavigation": "Open navigation",
   "navigation": "Navigation",
   "home": "munigan.app home",
-  "reportTitle": "Top Gear report",
+  "reportTitle": "Gear Lab report",
   "moreTools": "More tools",
-  "help": "Help"
+  "homeLabel": "Home",
+  "beta": "Beta",
+  "drawer": {
+    "heading": "Where to next?",
+    "homeHint": "Your toolkit",
+    "libraryHint": "Your saved work",
+    "gearHint": "Compare your gear",
+    "trainerHint": "Practice the fight",
+    "futureCount": "{count} future tools",
+    "back": "Back"
+  }
 }

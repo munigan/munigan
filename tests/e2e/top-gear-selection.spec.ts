@@ -7,7 +7,7 @@ const player = JSON.parse(
 ).raid.parties[0].players[0];
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Aldren",
@@ -87,7 +87,7 @@ test("mobile run action stays reachable and shows submission errors beside the a
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".slot-group")).toHaveCount(14);
   await page.locator(".slot-group").last().scrollIntoViewIfNeeded();
-  const run = page.getByRole("button", { name: "Find Top Gear", exact: true });
+  const run = page.getByRole("button", { name: "Run Gear Lab", exact: true });
   await run.scrollIntoViewIfNeeded();
   await expect(run).toBeInViewport({ ratio: 1 });
   const action = page.locator(".run-action");

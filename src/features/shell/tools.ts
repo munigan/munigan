@@ -24,6 +24,7 @@ export const futureTools = [
   },
 ] as const;
 export type ToolIconName =
+  | "library"
   | "overview"
   | "gear"
   | "trainer"

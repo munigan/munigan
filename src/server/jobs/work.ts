@@ -1,26 +1,26 @@
+import type { RequestIdentity } from "@/domain/accounts/contracts";
+import { publishReport } from "@/server/library/repository";
 import { randomUUID } from "node:crypto";
 import { pool, transaction } from "@/server/db/client";
 import {
   decodeSnapshot,
-  encodeSnapshot,
   encodeRequest,
 } from "@/domain/top-gear/request-schema";
 import type {
   TopGearRequest,
   RunPlan,
   WorkPolicy,
-  SimulationResult,
   TopGearReport,
 } from "@/domain/top-gear/model";
-import { planRun, loadoutKey } from "@/domain/equipment/enumerate";
-import { rankResults } from "@/domain/top-gear/report";
-import { recommendedBuild } from "@/domain/top-gear/recommendation";
+import { planRun } from "@/domain/equipment/enumerate";
 import { evaluate } from "@/server/simulator/evaluate";
-import { digest } from "./capabilities";
+import { encodeReport, projectReport } from "@/server/reports/projection";
 import { limits } from "./policy";
 import { AdmissionError, admitJob } from "./admit";
 type StoredRequest = ReturnType<typeof encodeRequest>;
 type Job = {
+  account_id: string | null;
+  deleted_at: Date | null;
   id: string;
   owner_hash: string;
   request: StoredRequest;
@@ -43,10 +43,6 @@ type Job = {
 function requestOf(job: Job): TopGearRequest {
   return { ...job.request, snapshot: decodeSnapshot(job.request.snapshot) };
 }
-const encodeReport = (report: TopGearReport) => ({
-  ...report,
-  snapshot: encodeSnapshot(report.snapshot),
-});
 async function claim(jobId?: string) {
   return transaction(async (c) => {
     await c.query("SELECT pg_advisory_xact_lock(33050336)");
@@ -55,7 +51,7 @@ async function claim(jobId?: string) {
     );
     if (busy.rows[0].count >= limits().concurrency) return null;
     const rows = await c.query(
-      "SELECT * FROM tg_jobs WHERE (status='queued' AND (lease_until IS NULL OR lease_until<now()) OR status='running' AND lease_until<now()) AND ($1::uuid IS NULL OR id=$1) ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED",
+      "SELECT * FROM tg_jobs WHERE deleted_at IS NULL AND (status='queued' AND (lease_until IS NULL OR lease_until<now()) OR status='running' AND lease_until<now()) AND ($1::uuid IS NULL OR id=$1) ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED",
       [jobId ?? null],
     );
     if (!rows.rowCount) return null;
@@ -77,78 +73,57 @@ async function claim(jobId?: string) {
     };
   });
 }
-async function projection(job: Job): Promise<TopGearReport> {
-  const request = requestOf(job);
-  const work = await pool.query(
-    "SELECT result,error FROM tg_work WHERE job_id=$1",
-    [job.id],
-  );
-  const results = work.rows
-    .filter((r) => r.result)
-    .map((r) => r.result as SimulationResult);
-  const ranked = rankResults(
-    request.snapshot,
-    results,
-    job.plan?.candidateLoadouts ?? [],
-  );
-  return {
-    token: "",
-    status: job.status,
-    phase: job.phase,
-    snapshot: request.snapshot,
-    selection: request.selection,
-    policy: job.policy,
-    ...ranked,
-    coverage: {
-      planned: job.plan?.simulations.length ?? null,
-      succeeded: results.length,
-      failed: work.rows.filter((r) => r.error && !r.result).length,
-      returned: ranked.rows.length,
-      exhaustive: job.status === "complete",
-    },
-    termination: job.termination,
-    expiresAt: job.expires_at.toISOString(),
-  };
-}
 async function finish(
   jobId: string,
   lease: string,
   termination: TopGearReport["termination"],
   error?: string,
 ) {
-  const rows = await pool.query(
-    "SELECT * FROM tg_jobs WHERE id=$1 AND lease=$2",
-    [jobId, lease],
-  );
-  if (!rows.rowCount) return;
-  const job = rows.rows[0] as Job;
-  const report = await projection(job);
-  const all =
-    report.coverage.planned !== null &&
-    report.coverage.succeeded === report.coverage.planned &&
-    report.coverage.failed === 0;
-  report.status =
-    termination === "complete" && all
-      ? "complete"
-      : termination === "canceled"
-        ? "canceled"
-        : report.rows.length
-          ? "partial"
-          : "failed";
-  report.phase = "complete";
-  report.termination =
-    report.status === "complete"
-      ? "complete"
-      : termination === "complete"
-        ? "failed"
-        : termination;
-  report.coverage.exhaustive = report.status === "complete";
   await transaction(async (c) => {
+    const account = await c.query(
+      "SELECT account_id FROM tg_jobs WHERE id=$1",
+      [jobId],
+    );
+    if (!account.rowCount) return;
+    let deleting = false;
+    if (account.rows[0].account_id) {
+      const lifecycle = await c.query(
+        "SELECT status FROM account_lifecycle WHERE user_id=$1 FOR UPDATE",
+        [account.rows[0].account_id],
+      );
+      deleting = lifecycle.rows[0]?.status !== "active";
+    }
     const locked = await c.query(
       "SELECT * FROM tg_jobs WHERE id=$1 AND lease=$2 FOR UPDATE",
       [jobId, lease],
     );
     if (!locked.rowCount || locked.rows[0].settled) return;
+    const job = locked.rows[0] as Job;
+    const deleted = !!job.deleted_at || deleting;
+    let report: TopGearReport | null = null;
+    if (!deleted) {
+      report = await projectReport(job.id, c);
+      const all =
+        report.coverage.planned !== null &&
+        report.coverage.succeeded === report.coverage.planned &&
+        report.coverage.failed === 0;
+      report.status =
+        termination === "complete" && all
+          ? "complete"
+          : termination === "canceled"
+            ? "canceled"
+            : report.rows.length
+              ? "partial"
+              : "failed";
+      report.phase = "complete";
+      report.termination =
+        report.status === "complete"
+          ? "complete"
+          : termination === "complete"
+            ? "failed"
+            : termination;
+      report.coverage.exhaustive = report.status === "complete";
+    }
     const attempts = await c.query(
       "SELECT coalesce(sum(attempts),0)::int count FROM tg_work WHERE job_id=$1",
       [jobId],
@@ -163,13 +138,21 @@ async function finish(
       [
         jobId,
         lease,
-        report.status,
-        report.phase,
-        report.termination,
+        report?.status ?? "canceled",
+        report?.phase ?? "complete",
+        report?.termination ?? "canceled",
         error?.slice(0, 500) ?? null,
-        JSON.stringify(encodeReport(report)),
+        report ? JSON.stringify(encodeReport(report)) : null,
       ],
     );
+    if (
+      job.account_id &&
+      report &&
+      report.rows.length &&
+      ["complete", "partial", "canceled"].includes(report.status)
+    ) {
+      await publishReport(c, { jobId, userId: job.account_id, report });
+    }
   });
 }
 type ExecutionPhase =
@@ -231,13 +214,16 @@ export async function executeTopGear(
   let planned = 0,
     attempts = 0,
     succeeded = 0;
+  let finishing = false;
   const finalize = (
     termination: TopGearReport["termination"],
     error?: string,
-  ) =>
-    measure("finalization", () =>
+  ) => {
+    finishing = true;
+    return measure("finalization", () =>
       finish(job.id, job.lease, termination, error),
     );
+  };
   const controller = new AbortController();
   let canceled = false;
   const abort = () => {
@@ -436,6 +422,7 @@ export async function executeTopGear(
     controller.signal.throwIfAborted();
     await finalize("complete");
   } catch (e) {
+    if (finishing) throw e;
     if (!leaseLost)
       await finalize(
         timeout
@@ -473,76 +460,21 @@ export async function executeTopGear(
   }
   return true;
 }
-export async function readReport(token: string, ownerKey?: string) {
-  if (!/^[\w-]{43}$/.test(token))
-    throw new AdmissionError("Report not found", 404);
-  const r = await pool.query("SELECT * FROM tg_jobs WHERE token_hash=$1", [
-    digest(token),
-  ]);
-  if (!r.rowCount) throw new AdmissionError("Report not found", 404);
-  const job = r.rows[0] as Job;
-  if (job.expires_at.getTime() < Date.now())
-    throw new AdmissionError("This report has expired", 410);
-  let report = job.report ?? encodeReport(await projection(job));
-  const snapshot = decodeSnapshot(report.snapshot);
-  if (
-    new Set(
-      report.rows.map((row) =>
-        loadoutKey(snapshot, row.loadout, row.isEquipped),
-      ),
-    ).size < report.rows.length
-  ) {
-    // Normalize the read projection of historical reports before pagination.
-    // Preserve the frozen stored report and each chosen simulation's metrics.
-    const ranked = rankResults(
-      snapshot,
-      report.rows.map((row) => ({
-        isReference: row.isEquipped,
-        loadout: row.loadout,
-        gemOverrides: row.gemOverrides,
-        enchantOverrides: row.enchantOverrides,
-        enchantWarnings: row.enchantWarnings,
-        gemWarnings: row.gemWarnings,
-        inputHash: row.inputHash,
-        metric: {
-          mean: row.dps,
-          stdev: row.stdev ?? null,
-          iterations: row.iterations,
-        },
-        stats: row.stats ?? [],
-      })),
-      report.rows.filter((row) => row.eligible).map((row) => row.loadout),
-    );
-    report = {
-      ...report,
-      ...ranked,
-      coverage: { ...report.coverage, returned: ranked.rows.length },
-    };
-  }
-  return {
-    jobId: job.id,
-    report: {
-      ...report,
-      token,
-      recommendedId: recommendedBuild(snapshot, report.rows),
-    },
-    canManage: !!ownerKey && digest(ownerKey) === job.owner_hash,
-    error: job.error,
-  };
-}
 export async function retryJob(
   jobId: string,
-  ownerKey: string,
+  identity: RequestIdentity,
   idempotencyKey: string,
+  ownerKey: string,
   sourceHash?: string,
 ) {
   const rows = await pool.query(
-    "SELECT * FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND status IN ('partial','failed','canceled')",
-    [jobId, digest(ownerKey)],
+    "SELECT * FROM tg_jobs WHERE id=$1 AND ((account_id IS NOT NULL AND account_id=$2) OR (account_id IS NULL AND owner_hash=$3)) AND deleted_at IS NULL AND status IN ('partial','failed','canceled')",
+    [jobId, identity.account?.id ?? null, identity.ownerHash],
   );
   if (!rows.rowCount) throw new AdmissionError("Retry is unavailable", 404);
   const old = rows.rows[0] as Job;
   return admitJob({
+    identity,
     request: old.request,
     ownerKey,
     idempotencyKey,

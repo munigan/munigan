@@ -10,7 +10,7 @@ export const recoverTopGear = schedules.task({
   queue: { concurrencyLimit: 1 },
   maxDuration: 60,
   run: async () => {
-    await reconcileJobs();
-    return { dispatched: await dispatchPendingJobs() };
+    const recovery = await reconcileJobs();
+    return { ...recovery, dispatched: await dispatchPendingJobs() };
   },
 });

@@ -7,7 +7,7 @@ async function setup(page: Page) {
   );
   const p = fixture.raid.parties[0].players[0];
   p.equipment.items[12] = { id: 45931 };
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Paper review",

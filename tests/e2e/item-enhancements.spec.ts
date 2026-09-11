@@ -10,7 +10,7 @@ const saved = (page: Page) =>
     JSON.parse(localStorage.getItem("wow-droptimizer.top-gear.v1")!),
   );
 async function setup(page: Page) {
-  await page.goto("/top-gear");
+  await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
       name: "Munigan",

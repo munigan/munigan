@@ -32,6 +32,7 @@ const legacyMessages: Record<string, string> = {
   "Profile is missing a player": "missingPlayer",
   "Profile is missing a supported Wrath class": "missingClass",
   "Disable in-combat item swap before importing Top Gear": "importItemSwap",
+  "Disable in-combat item swap before importing Gear Lab": "importItemSwap",
   "Invalid Wrath talent string": "invalidTalentString",
   "Invalid professions": "invalidProfessions",
   "Invalid profession skill rank": "invalidProfessionRank",
@@ -100,6 +101,7 @@ const legacyMessages: Record<string, string> = {
   "Today’s free simulation capacity is full. Try again later.": "dailyCapacity",
   "Simulation capacity is temporarily occupied": "capacityOccupied",
   "Invalid Top Gear input": "invalidInput",
+  "Invalid Gear Lab input": "invalidInput",
   "Simulator rejected this configuration": "simulatorRejected",
 };
 const patterns = [
@@ -289,6 +291,13 @@ const recognizedCodes = new Set([
   "warmaneUnavailable",
   "warmaneInvalidProfile",
   "warmaneUnknownGem",
+  "warmaneRateLimited",
+  "warmaneTimeout",
+  "warmaneAccessDenied",
+  "warmaneNetwork",
+  "warmaneRelayUnavailable",
+  "warmaneNoSavedProfile",
+  "warmaneBusy",
 ]);
 /** Only existing message text is retained. Never serialize errors, stacks, or response objects. */
 export function safeOriginalDetails(message: string): string {

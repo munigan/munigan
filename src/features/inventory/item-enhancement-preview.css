@@ -21,17 +21,10 @@
     flex: 1;
     min-width: 0;
   }
-  .enhancement-conflict-item button,
-  .enhancement-conflict-pagination button {
+  .enhancement-conflict-item button {
     padding: 6px 8px;
     min-height: 36px;
     font-size: 12px;
-  }
-  .enhancement-conflict-pagination {
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-    margin-top: 16px;
   }
   .inventory .inventory-row {
     cursor: pointer;

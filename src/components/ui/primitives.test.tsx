@@ -20,14 +20,14 @@ it("composes a navigation button without nesting interactive elements and forwar
       ref={ref}
       nativeButton={false}
       role="link"
-      render={<Link href="/top-gear" />}
+      render={<Link href="/gear-lab" />}
       className="hidden sm:inline-flex"
     >
       Compare gear
     </Button>,
   );
   const link = screen.getByRole("link", { name: "Compare gear" });
-  expect(link).toHaveAttribute("href", "/top-gear");
+  expect(link).toHaveAttribute("href", "/gear-lab");
   expect(link.querySelector("button")).toBeNull();
   expect(ref.current).toBe(link);
   expect(link).toHaveClass("hidden");

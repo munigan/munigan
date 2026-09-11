@@ -13,5 +13,6 @@ export default async function Report({
 }: {
   params: Promise<{ token: string }>;
 }) {
-  return <ReportView token={(await params).token} />;
+  const { token } = await params;
+  return <ReportView key={token} token={token} />;
 }
