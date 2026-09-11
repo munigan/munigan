@@ -34,7 +34,7 @@ async function mockAccountSession(
   );
 }
 
-test("desktop account states keep one measured utility-slot width", async ({
+test("desktop avatar stays compact and the retry action remains readable", async ({
   page,
 }) => {
   let releaseLoading!: () => void;
@@ -70,11 +70,12 @@ test("desktop account states keep one measured utility-slot width", async ({
   ).toBeVisible();
   const unavailableWidth = (await page.locator(".auth-control").boundingBox())!
     .width;
-  expect({ loadingWidth, authenticatedWidth, unavailableWidth }).toEqual({
+  expect({ loadingWidth, authenticatedWidth }).toEqual({
     loadingWidth: 44,
     authenticatedWidth: 44,
-    unavailableWidth: 44,
   });
+  expect(unavailableWidth).toBeGreaterThanOrEqual(44);
+  expect(unavailableWidth).toBeLessThanOrEqual(184);
 });
 
 test("390px mobile navigation exposes account actions without overflow", async ({

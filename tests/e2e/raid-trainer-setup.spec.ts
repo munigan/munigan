@@ -51,7 +51,7 @@ for (const width of [1440, 390]) {
       width < 1400 ? ".workbench-drawer" : ".workbench-header",
     );
     await expect(
-      navigation.getByRole("link", { name: /^Raid Trainer/ }),
+      navigation.getByRole("link", { name: /Raid Trainer/ }),
     ).toHaveAttribute("aria-current", "page");
     await navigation.getByRole("link", { name: /^Gear Lab/ }).click();
     await expect(

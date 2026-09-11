@@ -75,9 +75,11 @@ test("save dialog uses real report context and fits a 390px viewport", async ({
   await page.getByRole("button", { name: "Save report", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Parity", { exact: true })).toBeVisible();
   await expect(
-    dialog.getByText(/Parity · Fury Warrior · 10,000 DPS/),
+    dialog.getByText("Fury Warrior · Gear Lab", { exact: true }),
   ).toBeVisible();
+  await expect(dialog.getByText("10,000 DPS", { exact: true })).toBeVisible();
   expect((await dialog.boundingBox())!.width).toBeLessThanOrEqual(358);
   expect(
     await page.evaluate(
@@ -121,7 +123,7 @@ test("return removes secrets, retains failed intent through reload and exposes p
   const response = await page.goto(`/auth/return?intent=${key}&code=secret`);
   await expect(page).toHaveURL(/\/auth\/return$/);
   await expect(page.locator(".auth-return").getByRole("alert")).toContainText(
-    "this report wasn't saved",
+    "We couldn't check your session. Try again.",
   );
   // Next dev deliberately overwrites this header; production evidence uses the same suite with next start.
   if (process.env.AUTH_CONTROLS_PRODUCTION === "1")
@@ -134,7 +136,7 @@ test("return removes secrets, retains failed intent through reload and exposes p
   expect(response!.headers()["x-robots-tag"]).toContain("noindex");
   await page.reload();
   await expect(page.locator(".auth-return").getByRole("alert")).toContainText(
-    "this report wasn't saved",
+    "We couldn't check your session. Try again.",
   );
   expect(attempts).toBe(2);
 });

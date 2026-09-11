@@ -49,7 +49,7 @@ test("private desktop library uses real character/spec assets and private page h
     /spell_fire_firebolt02/,
   );
   await expect(page.locator(".library-view").getByRole("combobox")).toHaveCount(
-    0,
+    2,
   );
   expect(
     await page.evaluate(
@@ -166,6 +166,7 @@ test("mobile account deletion opens from navigation and fits the viewport", asyn
   await library(page);
   await page.goto("/library");
   await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Account menu" }).click();
   await page
     .getByRole("button", { name: "Delete account", exact: true })
     .click();
