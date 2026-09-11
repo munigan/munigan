@@ -9,6 +9,10 @@ import {
 import { PaladinMajorGlyph, PaladinSeal } from "@/generated/wotlk/paladin";
 import { getSpec } from "@/features/settings/registry";
 import { readTalents, talentPoints } from "@/features/settings/talents";
+import {
+  includedTalentBonuses,
+  type TalentStatBonus,
+} from "./talent-stat-bonuses";
 
 // See docs/design/character-stat-caps.md. These conversions match the pinned
 // engine, whose finalStats already include passive talents and party buffs.
@@ -109,6 +113,7 @@ export type CapPresentation = {
   }[];
 };
 export type StatCap = {
+  talentBonuses?: TalentStatBonus[];
   presentation: CapPresentation;
   id: string;
   stat: Stat;
@@ -387,10 +392,26 @@ export function characterStats(
       );
     }
   }
-  return { primary: primaryStats(specModule), accuracy, targetLevel };
+  const talentBonuses = includedTalentBonuses(
+    snapshot,
+    talents,
+    specModule,
+    mh,
+    oh,
+  );
+  return {
+    primary: primaryStats(specModule),
+    accuracy: accuracy.map((cap) => ({
+      ...cap,
+      talentBonuses: talentBonuses.filter((bonus) => bonus.stat === cap.stat),
+    })),
+    targetLevel,
+    talentBonuses,
+  };
 }
 
 export type CombinationStat = {
+  talentBonuses?: TalentStatBonus[];
   presentation:
     | { kind: "cap"; cap: StatCap }
     | { kind: "armorPenetration" }
@@ -409,7 +430,7 @@ export function combinationStats(
 ): CombinationStat[] {
   if (!row.stats?.some((value) => Number.isFinite(value) && value !== 0))
     return [];
-  const { primary, accuracy } = characterStats(row, snapshot);
+  const { primary, accuracy, talentBonuses } = characterStats(row, snapshot);
   const stats: CombinationStat[] = accuracy.map((cap) => {
     const expertise = cap.stat === Stat.StatExpertise;
     return {
@@ -418,6 +439,7 @@ export function combinationStats(
       label: cap.label,
       percent: expertise ? cap.effective / 4 : cap.effective,
       capped: cap.capped,
+      talentBonuses: cap.talentBonuses,
       description: [
         expertise
           ? `${cap.effective.toFixed(2)} expertise; percentage reduces dodge/parry chance`
@@ -431,6 +453,9 @@ export function combinationStats(
   if (primary.includes(Stat.StatArmorPenetration)) {
     stats.push({
       id: "armor-penetration",
+      talentBonuses: talentBonuses.filter(
+        (bonus) => bonus.stat === Stat.StatArmorPenetration,
+      ),
       presentation: { kind: "armorPenetration" },
       label: "Armor pen",
       percent: armorPenetrationPercent(
@@ -454,6 +479,7 @@ export function combinationStats(
     if (primary.includes(stat))
       stats.push({
         id: String(stat),
+        talentBonuses: talentBonuses.filter((bonus) => bonus.stat === stat),
         presentation: {
           kind: "rating",
           stat,

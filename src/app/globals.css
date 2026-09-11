@@ -515,8 +515,7 @@
   .item-link,
   .original-item-trigger {
     display: inline-flex;
-    align-self: flex-start;
-    justify-self: start;
+    /* Keep tooltip hit areas snug while respecting the parent layout's alignment. */
     width: fit-content;
     max-width: 100%;
     min-width: 0;

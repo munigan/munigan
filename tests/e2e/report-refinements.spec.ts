@@ -1,7 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
-import { Stat } from "../../src/generated/wotlk/common";
+import { Stat, Class, Race } from "../../src/generated/wotlk/common";
 import type { TopGearReport } from "../../src/domain/top-gear/model";
 import { reportFixture } from "../support/report-fixture";
+import { readFileSync } from "node:fs";
 
 test("sharing confirms the copied link and allows dismissal and repeated sharing", async ({
   page,
@@ -62,6 +63,76 @@ async function openReport(
   );
   await page.goto("/reports/refinements");
 }
+
+test("talent contributions appear in compact row tooltips and the stats dialog", async ({
+  page,
+}, testInfo) => {
+  const fixture = reportFixture();
+  const presets = JSON.parse(readFileSync("data/wotlk/presets.json", "utf8"));
+  const frost = presets.deathknight.variants.find(
+    (v: { defaultName: string }) => v.defaultName === "Frost",
+  );
+  const key = Object.entries(presets.deathknight.presets).find(
+    ([, value]) =>
+      (value as { data?: { talentsString: string } }).data?.talentsString ===
+      frost.talents.talentsString,
+  )![0];
+  fixture.report.snapshot.specId = `deathknight:${key}`;
+  const player = fixture.report.snapshot.settings.player;
+  player.name = "Frost talent breakdown";
+  player.class = Class.ClassDeathknight;
+  player.race = Race.RaceTroll;
+  player.talentsString = frost.talents.talentsString;
+  delete player.warrior;
+  player.deathknight = { options: frost.specOptions };
+  await page.route("**/api/reports/refinements?*", (route) =>
+    route.fulfill({ json: fixture }),
+  );
+  await page.goto("/reports/refinements");
+  const stat = page
+    .locator(".combination-stats > div")
+    .filter({ has: page.locator("dt", { hasText: /^Exp$/ }) })
+    .first();
+  await expect(stat).toHaveAttribute(
+    "title",
+    /Includes \+5 expertise from Tundra Stalker/,
+  );
+  await expect(stat.locator("dd")).toContainText("6.50%");
+  await expect(stat.locator("dt")).toHaveText("Exp");
+  await page.getByRole("button", { name: "Stats details" }).click();
+  const dialog = page.getByRole("dialog", { name: "Character stats" });
+  await expect(
+    dialog.getByText("Includes +5 expertise from Tundra Stalker", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("Includes +3% from Nerves of Cold Steel", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("Includes +5% from Dark Conviction", { exact: true }),
+  ).toBeVisible();
+  await expect(dialog.locator(".accuracy-stats")).toContainText(
+    "26.00 expertise",
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("talent-stats-desktop.png"),
+  });
+  await page.setViewportSize({ width: 320, height: 640 });
+  await expect(
+    dialog.getByText("Includes +5 expertise from Tundra Stalker", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(
+    await dialog.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("talent-stats-mobile.png"),
+  });
+});
 
 test("a recommended tied build is selected by default and explicit selection is retained", async ({
   page,

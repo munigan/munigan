@@ -93,6 +93,7 @@
   "dodgeReduction": " redução de esquiva/aparo",
   "hit": " de acerto",
   "ratingValue": "{value} de índice",
+  "talentContribution": "Inclui +{amount} de {talent}",
   "expertiseValue": "{value} de aptidão",
   "capReference": "Limite: {value} · {context}",
   "hitValue": "{value} de acerto",

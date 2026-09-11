@@ -101,6 +101,25 @@ Expertise percentages express dodge/parry reduction (one expertise = 0.25%),
 with expertise points and cap context available in hover/accessibility text.
 Mixed racial weapons retain separate hand summaries.
 
+Passive talent contributions are listed individually in the combination stat's
+tooltip and beneath its total in the stats dialog, for example “Includes +5
+expertise from Tundra Stalker”. These are annotations of the existing total;
+they never add the bonus again or change cap/recommendation calculations.
+`src/domain/equipment/talent-stat-bonuses.ts` uses the report's saved talent
+ranks and each row's weapons to describe direct hit, expertise, armor penetration,
+crit, and rating-based haste contributions. Talent names follow the English game
+names already used by settings; surrounding text and numbers are localized.
+Spell-scoped and situational cap bonuses retain their existing descriptions.
+
+The breakdown describes direct contributions to the reported ratings, not an
+exhaustive decomposition of attributes, buffs, procs, or stat dependencies.
+Master Conjuror lists only the talent's extra rating from the selected stone.
+Weapon-dependent crit follows the engine's main-hand stat presentation. The
+pinned engine applies Warrior Mace Specialization's rating even without a mace;
+the annotation follows that returned total. Native differential tests compare
+each named contribution in all supported presets with the same gear and that
+talent removed.
+
 Casters show spell hit, spell haste and spell crit. Physical specs show melee
 (or ranged) hit, expertise where applicable, Armor Penetration and melee/ranged
 crit; hybrid/poison spell-hit checks remain included. Haste and crit convert the

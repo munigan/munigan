@@ -93,6 +93,7 @@
   "dodgeReduction": " dodge/parry reduction",
   "hit": " hit",
   "ratingValue": "{value} rating",
+  "talentContribution": "Includes +{amount} from {talent}",
   "expertiseValue": "{value} expertise",
   "capReference": "Cap: {value} · {context}",
   "hitValue": "{value} hit",

@@ -5,6 +5,7 @@ import {
   capBonuses,
   localizedCapDifference,
   reportPercentage,
+  talentBonusLines,
 } from "./stat-presentation";
 import {
   armorPenetrationPercent,
@@ -13,6 +14,7 @@ import {
   type StatCap,
 } from "./character-stats";
 import { StatIcon } from "./StatIcon";
+import type { TalentStatBonus } from "@/domain/equipment/talent-stat-bonuses";
 import {
   DialogRoot,
   DialogContent,
@@ -96,7 +98,10 @@ function AccuracyStats({ stats }: { stats: StatCap[] }) {
                   context: capContext(item, t, locale),
                 })}
               </dd>
-              {capBonuses(item, t, locale).map((bonus) => (
+              {[
+                ...capBonuses(item, t, locale),
+                ...talentBonusLines(item.talentBonuses, t, locale),
+              ].map((bonus) => (
                 <dd className="accuracy-reference" key={bonus}>
                   {bonus}
                 </dd>
@@ -113,10 +118,12 @@ function PrimaryStats({
   stats,
   row,
   label,
+  talentBonuses,
 }: {
   stats: Stat[];
   row: SetRow;
   label: string;
+  talentBonuses: TalentStatBonus[];
 }) {
   const t = useTranslations("reports");
   const locale = useLocale();
@@ -134,6 +141,15 @@ function PrimaryStats({
             <td>
               {number(row.stats?.[stat] ?? 0, locale)}
               <StatPercentage stat={stat} rating={row.stats?.[stat] ?? 0} />
+              {talentBonusLines(
+                talentBonuses.filter((bonus) => bonus.stat === stat),
+                t,
+                locale,
+              ).map((line) => (
+                <small className="stat-talent-contribution" key={line}>
+                  {line}
+                </small>
+              ))}
             </td>
           </tr>
         ))}
@@ -152,7 +168,10 @@ export function StatsDetails({
   onClose: () => void;
 }) {
   const t = useTranslations("reports");
-  const { primary, accuracy, targetLevel } = characterStats(row, snapshot);
+  const { primary, accuracy, targetLevel, talentBonuses } = characterStats(
+    row,
+    snapshot,
+  );
   const hasStats = row.stats?.some(
     (value) => Number.isFinite(value) && value !== 0,
   );
@@ -185,6 +204,7 @@ export function StatsDetails({
                   stats={primary}
                   row={row}
                   label={t("primaryStats")}
+                  talentBonuses={talentBonuses}
                 />
               </section>
               <p className="stats-cap-note">

@@ -2,6 +2,7 @@ import type { createTranslator } from "next-intl";
 import type messages from "../../../messages/en-US/reports.json";
 import { Stat } from "@/generated/wotlk/common";
 import type { CombinationStat, StatCap } from "./character-stats";
+import type { TalentStatBonus } from "@/domain/equipment/talent-stat-bonuses";
 
 type Translation = (
   key: Parameters<ReturnType<typeof createTranslator<typeof messages>>>[0],
@@ -47,6 +48,30 @@ export function capBonuses(cap: StatCap, t: Translation, locale: string) {
     }),
   );
 }
+export function talentBonusLines(
+  bonuses: TalentStatBonus[] = [],
+  t: Translation,
+  locale: string,
+) {
+  return bonuses.map((bonus) => {
+    const value = decimal(
+      bonus.amount,
+      locale,
+      Number.isInteger(bonus.amount) ? 0 : 2,
+    );
+    const amount =
+      bonus.unit === "expertise"
+        ? t("expertiseValue", { value })
+        : bonus.unit === "rating"
+          ? t("ratingValue", { value })
+          : percentage(
+              bonus.amount,
+              locale,
+              Number.isInteger(bonus.amount) ? 0 : 2,
+            );
+    return t("talentContribution", { amount, talent: bonus.talent });
+  });
+}
 export function capLabel(cap: StatCap, t: Translation, compact = false) {
   return t(`${compact ? "compact" : "labels"}.${cap.presentation.label}`);
 }
@@ -69,13 +94,17 @@ export function presentCombinationStat(
         localizedCapDifference(cap, t, locale),
         capContext(cap, t, locale),
         ...capBonuses(cap, t, locale),
+        ...talentBonusLines(cap.talentBonuses, t, locale),
       ].join(" · "),
     };
   }
   if (data.kind === "armorPenetration")
     return {
       label: t("labels.armorPenetration"),
-      description: t("armorDescription"),
+      description: [
+        t("armorDescription"),
+        ...talentBonusLines(stat.talentBonuses, t, locale),
+      ].join(" · "),
     };
   const key =
     data.stat === Stat.StatSpellHaste
@@ -88,12 +117,15 @@ export function presentCombinationStat(
   const label = t(`labels.${key}`);
   return {
     label,
-    description: t(
-      data.stat === Stat.StatSpellHaste
-        ? "hasteDescription"
-        : "ratingDescription",
-      { stat: label },
-    ),
+    description: [
+      t(
+        data.stat === Stat.StatSpellHaste
+          ? "hasteDescription"
+          : "ratingDescription",
+        { stat: label },
+      ),
+      ...talentBonusLines(stat.talentBonuses, t, locale),
+    ].join(" · "),
   };
 }
 export { percentage as reportPercentage };
