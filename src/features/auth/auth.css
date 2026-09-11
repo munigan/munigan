@@ -38,3 +38,46 @@
 .auth-sign-out-error { position:absolute; top:calc(100% + 8px); right:0; z-index:121; width:260px; padding:12px; border:1px solid var(--color-border); border-radius:6px; background:var(--color-surface); color:var(--color-danger); font-size:12px; box-shadow:0 12px 36px #0008; }
 .auth-sign-out-error button { margin-top:8px; border:0; padding:0; background:transparent; color:var(--color-text); font:inherit; font-weight:600; }
 @media(max-width:390px){.auth-dialog{width:calc(100% - 32px)!important;padding:24px!important}.auth-dialog-title{font-size:24px}}
+
+
+.report-save {
+  margin-block: 20px;
+}
+.report-save-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  border: 1px solid #25272c;
+  border-radius: 8px;
+  background: #17191d;
+}
+.report-save-notice p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+.report-save-character {
+  padding: 20px;
+  margin-block: 12px;
+  border: 1px solid #25272c;
+  border-radius: 6px;
+  background: #101215;
+}
+.report-save-dialog {
+  max-width: 544px;
+}
+.auth-return {
+  max-width: 640px;
+  margin: 60px auto;
+  padding: 24px;
+}
+@media (max-width: 600px) {
+  .report-save .actions {
+    flex-wrap: wrap;
+  }
+  .report-save .actions button {
+    min-height: 44px;
+  }
+}

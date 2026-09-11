@@ -1,0 +1,117 @@
+import { beforeEach, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
+import { fixtureRequest } from "../../../tests/support/fixtures";
+import authMessages from "../../../messages/en-US/auth.json";
+import importMessages from "../../../messages/en-US/import.json";
+import diagnostics from "../../../messages/en-US/diagnostics.json";
+import { TopGearApp } from "./TopGearApp";
+const { auth, push } = vi.hoisted(() => ({
+  auth: { status: "authenticated", account: { id: "a" }, savingEnabled: true },
+  push: vi.fn(),
+}));
+vi.mock("../auth/AuthProvider", () => ({ useAccount: () => auth }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("../import/ImportPanel", () => ({
+  ImportPanel: ({ onResolved }: { onResolved: (s: unknown) => void }) => (
+    <button onClick={() => onResolved(fixtureRequest().snapshot)}>
+      Import fixture
+    </button>
+  ),
+}));
+vi.mock("./InventorySelector", () => ({ InventorySelector: () => null }));
+vi.mock("./RunSetup", () => ({
+  RunSetup: ({ onRun, pending }: { onRun: () => void; pending: boolean }) => (
+    <button onClick={onRun} disabled={pending}>
+      Run fixture
+    </button>
+  ),
+}));
+vi.mock("../auth/SignInDialog", () => ({ SignInDialog: () => null }));
+function view() {
+  render(
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ auth: authMessages, import: importMessages, diagnostics }}
+    >
+      <TopGearApp />
+    </NextIntlClientProvider>,
+  );
+}
+beforeEach(() => {
+  sessionStorage.clear();
+  localStorage.clear();
+  push.mockReset();
+  vi.unstubAllGlobals();
+});
+it("offers an explicit anonymous run after a known account rejection, with a new key", async () => {
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      calls.push(init);
+      return calls.length === 1
+        ? {
+            ok: false,
+            status: 401,
+            json: async () => ({ code: "SIGN_IN_REQUIRED" }),
+          }
+        : { ok: true, json: async () => ({ reportUrl: "/reports/abc" }) };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Run without saving" }),
+  );
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/abc"));
+  expect(JSON.parse(calls[0].body as string).authMode).toBe("account");
+  expect(JSON.parse(calls[1].body as string).authMode).toBe("anonymous");
+  expect(calls[0].headers).not.toEqual(calls[1].headers);
+});
+it("disables mode switching through network uncertainty and retries the same body/key", async () => {
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      calls.push(init);
+      if (calls.length === 1) throw new Error("network");
+      return { ok: true, json: async () => ({ reportUrl: "/reports/abc" }) };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  expect(
+    await screen.findByRole("button", { name: "Run without saving" }),
+  ).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await waitFor(() => expect(push).toHaveBeenCalled());
+  expect(calls[0]).toEqual(calls[1]);
+  expect(localStorage.length).toBeGreaterThan(0);
+});
+
+it("restores the sign-in draft through Strict Mode effect replay", async () => {
+  const { saveDraft } = await import("../import/draft-store");
+  saveDraft(fixtureRequest());
+  sessionStorage.setItem("munigan.top-gear.signin-restore", "1");
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({}) }));
+  const { StrictMode } = await import("react");
+  render(
+    <StrictMode>
+      <NextIntlClientProvider
+        locale="en-US"
+        messages={{ auth: authMessages, import: importMessages, diagnostics }}
+      >
+        <TopGearApp />
+      </NextIntlClientProvider>
+    </StrictMode>,
+  );
+  expect(
+    await screen.findByRole("button", { name: "Run fixture" }),
+  ).toBeInTheDocument();
+});

@@ -47,10 +47,28 @@ import {
   clearDraft,
 } from "@/features/import/draft-store";
 import { importFormDraftKey } from "@/features/import/import-form-draft";
+import { useAccount } from "../auth/AuthProvider";
+import { SignInDialog } from "../auth/SignInDialog";
+import {
+  createAttempt,
+  submitAttempt,
+  loadAttempt,
+  canSwitchMode,
+  discardRejectedAttempt,
+  type AdmissionAttempt,
+} from "./admission-attempt";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
 
 export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const t = useTranslations("import");
+  const ta = useTranslations("auth");
+  const auth = useAccount();
+  const [admissionIssue, setAdmissionIssue] = useState<
+    "account" | "uncertain" | null
+  >(null);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const attempt = useRef<AdmissionAttempt | null>(null);
+  const submitting = useRef(false);
   const ti = useTranslations("inventory");
   const td = useTranslations("diagnostics");
   const router = useRouter();
@@ -92,7 +110,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     window.addEventListener(topGearStartEvent, start);
     return () => window.removeEventListener(topGearStartEvent, start);
   }, []);
-  const intent = useRef<string>("");
+
   const [restoring, setRestoring] = useState(autoRestore);
   const restoreFromReport = useEffectEvent(() => {
     try {
@@ -105,8 +123,31 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     }
   });
   useEffect(() => {
-    if (!autoRestore) return;
-    const frame = requestAnimationFrame(() => restoreFromReport());
+    try {
+      attempt.current = loadAttempt();
+      if (attempt.current) {
+        const issue = canSwitchMode(attempt.current) ? "account" : "uncertain";
+        queueMicrotask(() => setAdmissionIssue(issue));
+      }
+      const returning =
+        sessionStorage.getItem("munigan.top-gear.signin-restore") === "1";
+      if (!autoRestore && !returning && !attempt.current) return;
+    } catch (e) {
+      queueMicrotask(() => {
+        setAdmissionIssue("uncertain");
+        setError(describeError(e));
+        setRestoring(false);
+      });
+      return;
+    }
+    const frame = requestAnimationFrame(() => {
+      try {
+        sessionStorage.removeItem("munigan.top-gear.signin-restore");
+      } catch (e) {
+        setStorageError(describeError(e));
+      }
+      restoreFromReport();
+    });
     return () => cancelAnimationFrame(frame);
   }, [autoRestore]);
   useEffect(() => {
@@ -162,7 +203,14 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
       },
     };
     setRequest(next);
-    intent.current = "";
+    if (attempt.current?.status === "rejected") {
+      try {
+        discardRejectedAttempt(attempt.current);
+        attempt.current = null;
+      } catch (e) {
+        setStorageError(describeError(e));
+      }
+    }
     setError(null);
     try {
       saveDraft(next);
@@ -197,26 +245,56 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     });
     setReplace(false);
   }
-  async function run() {
-    if (!request) return;
+  async function run(withoutSaving = false) {
+    if (!request || submitting.current) return;
+    submitting.current = true;
     setPending(true);
     try {
+      // Recover before choosing a new mode/key, including after a storage error.
+      if (!attempt.current) attempt.current = loadAttempt();
+      if (withoutSaving && attempt.current && !canSwitchMode(attempt.current)) {
+        setAdmissionIssue("uncertain");
+        return;
+      }
+      if (
+        !attempt.current &&
+        !withoutSaving &&
+        ["loading", "unavailable"].includes(auth.status)
+      ) {
+        setAdmissionIssue("account");
+        return;
+      }
       validateRequest(encodeRequest(request));
-      if (!intent.current) intent.current = crypto.randomUUID();
-      const response = await fetch("/api/top-gear/jobs", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "idempotency-key": intent.current,
-        },
-        body: JSON.stringify(encodeRequest(request)),
-      });
-      const data = await response.json();
-      if (!response.ok) throw describeError(data);
-      router.push(data.reportUrl);
+      saveDraft(request);
+      if (withoutSaving || !attempt.current)
+        attempt.current = createAttempt(
+          encodeRequest(request),
+          withoutSaving || auth.status === "anonymous"
+            ? "anonymous"
+            : "account",
+        );
+      const reportUrl = await submitAttempt(attempt.current);
+      setAdmissionIssue(null);
+      router.push(reportUrl);
     } catch (e) {
       setError(describeError(e));
+      setAdmissionIssue(
+        attempt.current && canSwitchMode(attempt.current)
+          ? "account"
+          : "uncertain",
+      );
+    } finally {
       setPending(false);
+      submitting.current = false;
+    }
+  }
+  function signInForRun() {
+    try {
+      if (request) saveDraft(request);
+      sessionStorage.setItem("munigan.top-gear.signin-restore", "1");
+      setSignInOpen(true);
+    } catch (e) {
+      setStorageError(describeError(e));
     }
   }
   const enhancementAnalysis = useMemo(
@@ -256,7 +334,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     >
       <section id="content">
         <PageHeading className="page-heading">
-          <h1>TOP GEAR</h1>
+          <h1>GEAR LAB</h1>
           <p>{request ? t("selectIntro") : t("importIntro")}</p>
           {request && (
             <Button
@@ -344,7 +422,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
               onImport={() => setReplace(true)}
               onSettings={() => setSettingsOpen(true)}
               onEnhancements={() => setEnhancementsOpen(true)}
-              onRun={run}
+              onRun={() => void run()}
             />
           </div>
         )}
@@ -353,6 +431,48 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
             {localizeDiagnostic(error, td)}
           </AlertMessage>
         )}
+        {admissionIssue && (
+          <div className="report-save-notice" role="alert">
+            <div>
+              <p>
+                {ta(
+                  admissionIssue === "uncertain"
+                    ? "admissionUncertain"
+                    : "admissionAccount",
+                )}
+              </p>
+              <div className="actions">
+                <Button
+                  disabled={pending || !request}
+                  onClick={() => void run()}
+                >
+                  {ta("retryReturn")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={pending}
+                  onClick={signInForRun}
+                >
+                  {ta("signIn")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={
+                    pending || admissionIssue === "uncertain" || !request
+                  }
+                  onClick={() => void run(true)}
+                >
+                  {ta("runWithoutSaving")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        <SignInDialog
+          open={signInOpen}
+          onOpenChange={setSignInOpen}
+          callbackPath="/top-gear"
+        />
         {storageError && (
           <AlertMessage>{localizeDiagnostic(storageError, td)}</AlertMessage>
         )}

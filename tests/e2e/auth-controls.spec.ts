@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 type AccountSessionFixture = {
   account: { id: string; name: string; image: string | null } | null;
@@ -28,20 +28,19 @@ async function mockAccountSession(page: Page, payload: AccountSessionFixture = a
 }
 
 test("desktop account states keep one measured utility-slot width", async ({ page }) => {
-  let firstRoute: Route | undefined;
+  let releaseLoading!: () => void;
+  const loading = new Promise<void>(resolve => { releaseLoading = resolve; });
   let mode: "authenticated" | "unavailable" = "authenticated";
-  await page.route("**/api/account/session", (route) => {
-    if (!firstRoute) {
-      firstRoute = route;
-      return;
-    }
+  await page.route("**/api/account/session", async (route) => {
+    // Better Auth may invalidate the initial request; hold all loading responses.
+    await loading;
     if (mode === "unavailable") return route.fulfill({ status: 503 });
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(authenticated) });
   });
   await page.goto("/en-us");
   await expect(page.locator(".auth-loading")).toBeVisible();
   const loadingWidth = (await page.locator(".auth-control").boundingBox())!.width;
-  await firstRoute!.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(authenticated) });
+  releaseLoading();
   await expect(page.getByRole("button", { name: "Account menu" })).toBeVisible();
   const authenticatedWidth = (await page.locator(".auth-control").boundingBox())!.width;
   mode = "unavailable";

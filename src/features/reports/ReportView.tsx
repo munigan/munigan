@@ -26,6 +26,10 @@ import { ResultSummary } from "./ResultSummary";
 import { StatsDetails } from "./StatsDetails";
 import { ReportLoading } from "./ReportLoading";
 import { CombinationTable } from "./CombinationTable";
+import type { ReportAccess } from "@/domain/accounts/contracts";
+import { useAccount } from "../auth/AuthProvider";
+import { loadReturnState, clearReturnState } from "../auth/return-state";
+import { ReportSave } from "./ReportSave";
 import { useReport } from "./use-report";
 import "./report-refinements.css";
 import { useLocale, useTranslations } from "next-intl";
@@ -39,6 +43,7 @@ type ReportResponse = {
     snapshot: ReturnType<typeof encodeSnapshot>;
   };
   canManage: boolean;
+  access: ReportAccess;
   error: string | null;
   pinnedRows: SetRow[];
   totalRows: number;
@@ -46,6 +51,24 @@ type ReportResponse = {
 };
 export function ReportView({ token }: { token: string }) {
   const t = useTranslations("reports");
+  const ta = useTranslations("auth");
+  const auth = useAccount();
+  const [restoration] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const key = sessionStorage.getItem(
+        `munigan.auth.restore./reports/${token}`,
+      );
+      const state = key ? loadReturnState(key) : null;
+      return state?.reportPath === `/reports/${token}`
+        ? { key: key!, state }
+        : null;
+    } catch {
+      return null;
+    }
+  });
+  const restored = useRef(false);
+  const [restoreConsumed, setRestoreConsumed] = useState(false);
   const diagnostics = useTranslations("diagnostics");
   const locale = useLocale();
   useEffect(() => {
@@ -58,13 +81,17 @@ export function ReportView({ token }: { token: string }) {
     [selection, setSelection] = useState<{ token: string; row: SetRow } | null>(
       null,
     ),
-    [difference, setDifference] = useState<"equipped" | "highest">("equipped"),
-    [requestedCursor, setCursor] = useState(0),
+    [difference, setDifference] = useState<"equipped" | "highest">(
+      restoration?.state.difference ?? "equipped",
+    ),
+    [requestedCursor, setCursor] = useState(restoration?.state.cursor ?? 0),
     [showStats, setShowStats] = useState(false),
     [busy, setBusy] = useState(false);
   const retryIntent = useRef({ jobId: "", key: "" });
   const {
     data,
+    refresh,
+    permissionsFresh,
     url: loadedUrl,
     isPending,
     error: refreshError,
@@ -72,6 +99,7 @@ export function ReportView({ token }: { token: string }) {
   } = useReport<ReportResponse>(
     `/api/reports/${token}?cursor=${requestedCursor}`,
     token,
+    `${auth.status}:${auth.account?.id ?? ""}`,
   );
   const cursor = Number(
     new URLSearchParams(loadedUrl.split("?")[1]).get("cursor") ?? 0,
@@ -89,9 +117,32 @@ export function ReportView({ token }: { token: string }) {
   const selected =
     rows.find((r) => selection?.token === token && r.id === selection.row.id) ??
     (selection?.token === token ? selection.row : undefined) ??
+    (!restoreConsumed
+      ? rows.find((r) => r.id === restoration?.state.selectedId)
+      : undefined) ??
     rows.find((r) => r.id === report?.recommendedId) ??
     rows.find((r) => r.id === report?.highestId) ??
     rows[0];
+  useEffect(() => {
+    if (!restoration || restored.current || !data || isPending) return;
+    const row = [...data.pinnedRows, ...data.report.rows].find(
+      (r) => r.id === restoration.state.selectedId,
+    );
+    const frame = requestAnimationFrame(() => {
+      if (restored.current) return;
+      restored.current = true;
+      setRestoreConsumed(true);
+      if (row) setSelection({ token, row });
+      window.scrollTo({ top: restoration.state.scrollY, behavior: "instant" });
+      try {
+        clearReturnState(restoration.key);
+        sessionStorage.removeItem(`munigan.auth.restore./reports/${token}`);
+      } catch {
+        /* Restored state remains valid if cleanup is blocked. */
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [data, isPending, restoration, token]);
   function setSelectedId(id: string) {
     const row = rows.find((item) => item.id === id);
     if (row) setSelection({ token, row });
@@ -136,7 +187,9 @@ export function ReportView({ token }: { token: string }) {
       : 0;
   async function share() {
     try {
-      await navigator.clipboard.writeText(location.href);
+      await navigator.clipboard.writeText(
+        `${location.origin}/reports/${token}`,
+      );
       toastManager.add({
         id: "share-report",
         type: "success",
@@ -199,7 +252,7 @@ export function ReportView({ token }: { token: string }) {
     <ItemVersionContext.Provider value={itemVersionOf(snapshot)}>
       <section id="content" className="report-view">
         <PageHeading className="page-heading">
-          <h1>TOP GEAR</h1>
+          <h1>GEAR LAB</h1>
           <p>
             {snapshot.settings.player!.name} · {spec.name} {spec.className} · 80
             <span className="report-item-version">
@@ -233,6 +286,27 @@ export function ReportView({ token }: { token: string }) {
             </Button>
           </div>
         </PageHeading>
+        {data.access && (
+          <ReportSave
+            key={token}
+            token={token}
+            access={{
+              ...data.access,
+              canSave: permissionsFresh && data.access.canSave,
+            }}
+            onSaved={refresh}
+            character={`${snapshot.settings.player!.name} · ${spec.name} ${spec.className}${selected ? ` · ${number(selected.dps, locale)} DPS` : ""}`}
+            getViewState={() => ({
+              version: 1,
+              reportPath: `/reports/${token}`,
+              locale: locale === "pt-BR" ? "pt-BR" : "en-US",
+              cursor,
+              selectedId: selected?.id ?? null,
+              difference,
+              scrollY: window.scrollY,
+            })}
+          />
+        )}
         {active && (
           <Alert role="status" className="mb-6">
             <AlertContent icon="history">
@@ -275,7 +349,7 @@ export function ReportView({ token }: { token: string }) {
                 <p className="muted">{t("returnLater")}</p>
               </div>
             </AlertContent>
-            {data.canManage && (
+            {permissionsFresh && data.access.canManage && (
               <AlertActions>
                 <AlertAction
                   disabled={busy}
@@ -323,7 +397,7 @@ export function ReportView({ token }: { token: string }) {
                 </p>
               </div>
             </AlertContent>
-            {data.canManage && (
+            {permissionsFresh && data.access.canManage && (
               <AlertActions>
                 <AlertAction
                   disabled={busy}
@@ -425,6 +499,7 @@ export function ReportView({ token }: { token: string }) {
             </p>
           </>
         )}
+
         <details className="simulation-details">
           <summary>{t("simulationDetails")}</summary>
           <p>
@@ -432,13 +507,17 @@ export function ReportView({ token }: { token: string }) {
             {report.coverage.exhaustive ? t("exhaustive") : t("incomplete")}
           </p>
           <p>
-            {t("retentionDetails", {
-              failed: report.coverage.failed,
-              returned: report.coverage.returned,
-              date: new Date(report.expiresAt).toLocaleDateString(locale, {
-                timeZone: "UTC",
-              }),
-            })}
+            {data.access.effectiveExpiresAt === null
+              ? ta("retained")
+              : t("retentionDetails", {
+                  failed: report.coverage.failed,
+                  returned: report.coverage.returned,
+                  date: new Date(
+                    data.access.effectiveExpiresAt,
+                  ).toLocaleDateString(locale, {
+                    timeZone: "UTC",
+                  }),
+                })}
           </p>
           <p>
             {t("engineDetails", {
