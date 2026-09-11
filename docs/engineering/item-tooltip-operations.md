@@ -80,3 +80,9 @@ Deployment `dpl_5MhdsuJisDfFPuCW6Pm24Q9nDRAS` at `https://wow-droptimizer-b9t0at
 Source `c7c90d5` revises the loading design after feedback on a fully enhanced chest item: known catalog content now remains contiguous with no body or requirement placeholders. A single footer status says “Fetching additional details…” with a small pulsing dot; unknown items retain four body skeleton lines. Cached details, local-complete gems, failures, retries and reduced-motion support remain intact. The obsolete two-second status transition was removed.
 
 Validation: 27 component tests, all 12 tooltip/enhancement browser tests, TypeScript, focused lint, formatting, design checks and scoped review passed. A browser screenshot confirmed the compact footer layout. Production build `dpl_GU6rXRUhw7h46KpG6ZmSybKsycti` (`https://wow-droptimizer-lxow4ctl5-diego-fernandes-projects.vercel.app`) passed and was promoted to munigan.app after verifying its page and CSS. The public page and dot styles were also verified. No Worker change was needed.
+
+## Hover opening delay — 2026-09-11
+
+Source `59302c3` adds a cancellable 250 ms hover delay to custom item/gem popovers and sets Base UI enchant triggers to the same delay. Keyboard focus and touch inspection stay immediate. Leaving, blurring, dismissing, unmounting or changing item identity cancels pending opening; ownership cleanup remains independent of identity changes.
+
+All 29 item component tests, 12 tooltip/enhancement browser tests, TypeScript, focused lint and scoped review passed. Production build `dpl_7wTkEL3vyc1SiMKH6Je46iD2Nxdc` (`https://wow-droptimizer-jy8lg7zmk-diego-fernandes-projects.vercel.app`) passed, its Gear Lab page was verified, and it was promoted to munigan.app. No Worker changes were required.
