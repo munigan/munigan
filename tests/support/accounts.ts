@@ -3,10 +3,15 @@ import type { AccountIdentity } from "@/domain/accounts/contracts";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 import { admitJob } from "@/server/jobs/admit";
 import { executeTopGear } from "@/server/jobs/work";
-import { pool } from "@/server/db/client";
+import { pool, transaction } from "@/server/db/client";
+import { lockActiveAccount } from "@/server/auth/account-lock";
+import { readReport } from "@/server/reports/read";
+import { publishReport } from "@/server/library/repository";
 import { fixtureRequest } from "./fixtures";
 
-export async function seedAccount(id = randomUUID()): Promise<AccountIdentity> {
+export async function seedAccount(
+  id: string = randomUUID(),
+): Promise<AccountIdentity> {
   const sessionId = randomUUID();
   const authenticatedAt = new Date();
   await pool.query(
@@ -68,4 +73,22 @@ export async function seedTerminalReport(
     [admitted.jobId, options.accountId ?? null, options.expiresAt ?? null],
   );
   return { jobId: admitted.jobId, token: admitted.reportToken, ownerKey };
+}
+
+export async function publishSeededReport(
+  job: { jobId: string; token: string },
+  account: AccountIdentity,
+): Promise<string | null> {
+  const data = await readReport(job.token, { account, ownerHash: null });
+  return transaction(async (client) => {
+    await lockActiveAccount(client, account.id);
+    await client.query("SELECT id FROM tg_jobs WHERE id=$1 FOR UPDATE", [
+      job.jobId,
+    ]);
+    return publishReport(client, {
+      jobId: job.jobId,
+      userId: account.id,
+      report: data.report,
+    });
+  });
 }
