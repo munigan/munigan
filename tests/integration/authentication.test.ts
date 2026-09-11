@@ -406,3 +406,22 @@ it("issues host-only HttpOnly OAuth-compatible cookies", async () => {
   expect(cookie).toContain("Path=/");
   expect(cookie).not.toMatch(/domain=/i);
 });
+it("returns unavailable when the provider callback cannot persist a new account", async () => {
+  await pool.query(
+    "CREATE FUNCTION reject_test_auth_user() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic sensitive storage details'; END $$",
+  );
+  await pool.query(
+    "CREATE TRIGGER reject_test_auth_user BEFORE INSERT ON auth_user FOR EACH ROW EXECUTE FUNCTION reject_test_auth_user()",
+  );
+  try {
+    const response = await discordSignIn("123456789");
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      code: "AUTH_UNAVAILABLE",
+      error: "Authentication is temporarily unavailable",
+    });
+  } finally {
+    await pool.query("DROP TRIGGER reject_test_auth_user ON auth_user");
+    await pool.query("DROP FUNCTION reject_test_auth_user()");
+  }
+});

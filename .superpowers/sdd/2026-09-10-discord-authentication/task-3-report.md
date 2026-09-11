@@ -36,3 +36,9 @@ Covered: missing/revoked/expired/unknown sessions; storage failure and safe erro
 - No unrelated application routes, schema files, worker code, or report behavior changed.
 
 Final validation: **57 test files / 296 tests passed** across unit, UI, and integration projects (11.45 seconds). `pnpm typecheck` and `pnpm lint` both exited 0. Native simulator regression coverage was run independently by the controller and is not included in these counts.
+
+## Final persistence-failure correction
+
+Pinned-source review after the first commit found that OAuth signup catches a non-API database insert error and returns `unable_to_create_user` as a 302 error redirect. Added a local-schema trigger that deliberately rejects user insertion: the new actual-handler regression failed with **302 instead of 503**. The callback wrapper now translates the pinned persistence-error redirect codes (`unable_to_create_user`, `unable_to_create_session`, `unable_to_update_account`) into sanitized `AUTH_UNAVAILABLE` responses. Enrollment denial remains a separate library API policy response.
+
+After this correction, **21 focused tests passed**, and the final full run passed **57 test files / 297 tests** in 11.62 seconds. Typecheck, lint, and `git diff --check` all passed. The synthetic failure trigger/function are dropped in a test `finally` block, inside the generated local test schema.

@@ -56,6 +56,24 @@ async function handle(request: Request) {
       ? handler.GET(request)
       : handler.POST(request));
     if (response.status >= 500) return accountFailure(authUnavailable());
+    // The pinned OAuth adapter converts some persistence failures into redirects.
+    // Preserve the application's unavailable contract for those failures too.
+    const location = response.headers.get("location");
+    if (
+      location &&
+      new URL(request.url).pathname === "/api/auth/callback/discord"
+    ) {
+      const code = new URL(location, request.url).searchParams.get("error");
+      if (
+        code &&
+        [
+          "unable_to_create_user",
+          "unable_to_create_session",
+          "unable_to_update_account",
+        ].includes(code)
+      )
+        return accountFailure(authUnavailable());
+    }
     return response;
   } catch (error) {
     return accountFailure(error);
