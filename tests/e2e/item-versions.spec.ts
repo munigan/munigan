@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
@@ -27,10 +28,12 @@ test("switches item versions, preserves drafts and simulates their actual stats"
     .getByLabel("Bag export", { exact: true })
     .fill(JSON.stringify({ items: [{ id: 45931 }] }));
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Warrior · Fury",
+  });
   await page.getByRole("button", { name: "Select gear" }).click();
   const version = page.getByLabel("Item version", { exact: true });
-  await expect(version).toHaveValue("original");
+  await expect(version).toHaveAttribute("data-select-value", "original");
   const mjolnir = page
     .locator(".inventory-row")
     .filter({ hasText: "Mjolnir Runestone" })
@@ -50,21 +53,21 @@ test("switches item versions, preserves drafts and simulates their actual stats"
     name: /Select Mjolnir Runestone, bag/,
   });
   await bagMjolnir.check();
-  await version.selectOption("classic");
+  await selectOption(version, "classic");
   await expect(bagMjolnir).toBeChecked();
   await expect(mjolnir.locator(".item-level")).toHaveText("239");
   await expect(mjolnir.locator("a[data-wowhead]").first()).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Restore draft" }).click();
-  await expect(version).toHaveValue("classic");
+  await expect(version).toHaveAttribute("data-select-value", "classic");
   await expect(bagMjolnir).toBeChecked();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByLabel("Fight length (seconds)").fill("30");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
   const crit: Record<string, number> = {};
   const urls: Record<string, string> = {};
   for (const profile of ["original", "classic"]) {
-    await version.selectOption(profile);
+    await selectOption(version, profile);
     await expect(bagMjolnir).toBeChecked();
     await page.getByRole("button", { name: "Find Top Gear" }).click();
     await expect(page).toHaveURL(/\/reports\//);
@@ -86,23 +89,19 @@ test("switches item versions, preserves drafts and simulates their actual stats"
       profile === "original" ? "Original WotLK" : "Blizzard Wrath Classic",
     );
     if (profile === "original") {
-      await page.getByRole("button", { name: "Full gear details" }).click();
       const originalLink = page
         .locator(
-          ".full-gear-row a[data-item-version='original'][href$='item=45931']",
+          ".gear-strip a[data-item-version='original'][href$='item=45931']",
         )
         .first();
       await originalLink.focus();
       await expect(
         page
-          .getByRole("dialog")
           .getByRole("tooltip")
           .filter({ hasText: "Mjolnir Runestone" })
           .first(),
       ).toBeVisible();
       await page.keyboard.press("Escape");
-      await expect(page.getByRole("dialog")).toBeVisible();
-      await page.getByRole("button", { name: "Close", exact: true }).click();
       await page.goto("/top-gear");
       await page.getByRole("button", { name: "Restore draft" }).click();
     }

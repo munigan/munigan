@@ -31,18 +31,23 @@
     "format": "prettier --write src scripts tests tools/data/generate.ts *.ts *.mjs"
   },
   "dependencies": {
+    "@base-ui/react": "1.8.0",
     "@bufbuild/protobuf": "2.14.1",
     "@fontsource/barlow-condensed": "5.3.0",
     "@fontsource/inter": "5.3.0",
+    "@fontsource/space-grotesk": "5.3.0",
     "@protobuf-ts/runtime": "2.11.1",
     "@trigger.dev/sdk": "4.5.16",
     "@vercel/functions": "3.9.6",
+    "cheerio": "1.2.0",
     "drizzle-orm": "0.45.2",
     "fflate": "0.8.3",
     "next": "16.3.4",
+    "next-intl": "4.14.2",
     "pg": "8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "tailwind-merge": "3.6.0",
     "zod": "4.5.4"
   },
   "devDependencies": {

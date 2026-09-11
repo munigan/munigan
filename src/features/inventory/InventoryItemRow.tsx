@@ -1,0 +1,132 @@
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/Button";
+import type { ItemInstance, Snapshot } from "@/domain/top-gear/model";
+import { getCatalog } from "@/domain/equipment/catalog";
+import { ItemIcon, ItemName, ItemLink } from "./Item";
+import {
+  ItemEnhancementPreview,
+  type EnhancementField,
+} from "./ItemEnhancementPreview";
+import { itemSockets } from "@/domain/equipment/sockets";
+import { itemEnchantOptions } from "./enhancements/enchant-options";
+import { PickerIcon } from "./custom-items/PickerIcon";
+
+export function InventoryItemRow({
+  item,
+  preview,
+  snapshot,
+  index,
+  selected,
+  onToggle,
+  onRemove,
+  onEdit,
+}: {
+  item: ItemInstance;
+  preview: ItemInstance;
+  snapshot: Snapshot;
+  index: number;
+  selected: boolean;
+  onToggle: () => void;
+  onRemove: () => void;
+  onEdit: (field: EnhancementField) => void;
+}) {
+  const t = useTranslations("inventory");
+  const metadata = getCatalog(snapshot.itemVersion).items.get(item.itemId)!;
+  const source = t(`sources.${item.source}`);
+  const hasSockets = itemSockets(snapshot, metadata).length > 0;
+  const editable =
+    hasSockets || itemEnchantOptions(snapshot, metadata).length > 0;
+  const open = () => {
+    if (editable) onEdit(hasSockets ? 0 : "enchant");
+  };
+  return (
+    <div
+      className="inventory-row"
+      data-editable={editable}
+      data-source={item.source}
+      data-selected={selected}
+      data-instance-id={item.instanceId}
+      onClick={open}
+    >
+      <div className="item-choice">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          onClick={(event) => event.stopPropagation()}
+          aria-label={t("selectItem", {
+            name: metadata.name,
+            source,
+            copy: index + 1,
+          })}
+        />
+        <ItemIcon
+          item={preview}
+          className="item-tooltip-link item-row-icon"
+          tabIndex={-1}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            open();
+          }}
+        />
+        <div className="item-row-copy">
+          <ItemLink
+            item={preview}
+            className="item-tooltip-link"
+            role={editable ? "button" : undefined}
+            aria-label={
+              editable
+                ? t("editor.openItem", { name: metadata.name })
+                : undefined
+            }
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              open();
+            }}
+            onKeyDown={(event) => {
+              if (event.key === " ") {
+                event.preventDefault();
+                event.stopPropagation();
+                open();
+              }
+            }}
+          >
+            <ItemName item={item} />
+          </ItemLink>
+          <span className="item-mobile-meta">
+            <span aria-label={t("itemLevel")}>{metadata.ilvl}</span>{" "}
+            <span className="badge">{source}</span>
+          </span>
+          <ItemEnhancementPreview
+            item={preview}
+            snapshot={snapshot}
+            onEdit={onEdit}
+          />
+        </div>
+      </div>
+      <span className="item-level" aria-label={t("itemLevel")}>
+        {metadata.ilvl}
+      </span>
+      <span className="item-source">
+        <span className="badge">{source}</span>
+      </span>
+      <span className="item-remove-space">
+        {item.source === "custom" && (
+          <Button
+            variant="ghost"
+            aria-label={t("removeItem", { name: metadata.name })}
+            className="item-remove size-8 min-h-8 p-0 text-muted"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove();
+            }}
+          >
+            <PickerIcon name="trash" />
+          </Button>
+        )}
+      </span>
+    </div>
+  );
+}

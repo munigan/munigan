@@ -1,0 +1,189 @@
+@layer components {
+  .app-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .app-select-trigger:hover,
+  .app-select-trigger[data-popup-open] {
+    border-color: var(--color-control-border);
+  }
+  .app-select-trigger:focus-visible {
+    outline: 2px solid var(--color-action);
+    outline-offset: 3px;
+  }
+  .app-select-trigger[aria-invalid="true"] {
+    border-color: var(--color-danger);
+  }
+  .app-select-trigger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .app-select-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .app-select-chevron {
+    display: flex;
+    flex: 0 0 16px;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-muted);
+  }
+  .app-select-positioner {
+    z-index: 100;
+    max-width: calc(100vw - 24px);
+    outline: none;
+  }
+  .app-select-popup {
+    width: max-content;
+    min-width: min(var(--anchor-width), calc(100vw - 24px));
+    max-width: min(max(var(--anchor-width), 320px), calc(100vw - 24px));
+    max-height: min(320px, var(--available-height));
+    overflow: hidden;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-control-border);
+    border-radius: 6px;
+    padding: 4px;
+    box-shadow: 0 12px 32px #0006;
+  }
+  .app-select-list {
+    overflow-y: auto;
+    max-height: min(310px, calc(var(--available-height) - 10px));
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+  .app-select-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+    min-height: 36px;
+    padding: 8px 32px 8px 10px;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+    outline: none;
+    overflow-wrap: anywhere;
+  }
+  .app-select-option[data-highlighted] {
+    background: var(--color-selected-surface);
+  }
+  .app-select-option-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+  }
+  .app-select-description {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    color: var(--color-muted);
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .app-select-option[data-selected] {
+    color: var(--color-action);
+  }
+  .app-select-option[data-disabled] {
+    color: var(--color-muted);
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .app-select-check {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    color: var(--color-action);
+  }
+  .app-searchable-popup {
+    display: flex;
+    flex-direction: column;
+  }
+  .app-searchable-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 4px 10px 8px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-muted);
+  }
+  .app-searchable-search > svg,
+  .app-searchable-icon {
+    flex-shrink: 0;
+  }
+  .app-searchable-search .app-searchable-input {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    padding: 6px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+  .app-searchable-list {
+    min-height: 0;
+    max-height: min(258px, calc(var(--available-height) - 62px));
+    margin-top: 4px;
+  }
+  .app-searchable-option {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .app-searchable-icon {
+    display: flex;
+  }
+  .app-searchable-empty {
+    padding: 16px 10px;
+    color: var(--color-muted);
+    font-size: 13px;
+  }
+  .app-searchable-empty:empty {
+    display: none;
+  }
+}
+@layer components {
+  .app-select-trigger[data-size="small"] {
+    min-height: 32px;
+    height: 32px;
+    padding-block: 0;
+  }
+  .app-searchable-value-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  @media (pointer: coarse) {
+    .app-select-trigger[data-size="small"] {
+      min-height: 44px;
+      height: 44px;
+    }
+  }
+}

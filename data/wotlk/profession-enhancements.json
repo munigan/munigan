@@ -1,0 +1,18 @@
+{
+  "revision": "wrath-profession-enhancements-v1",
+  "sources": [
+    "Pinned simulator assets/db_inputs/wowhead_spell_tooltips.csv (Wrath wearer requirements)",
+    "Pinned simulator tools/database/enchant_overrides.go (profession ownership)",
+    "Existing automatic profession preparation thresholds where spell tooltip omits wearer skill"
+  ],
+  "defaultProfessionRank": 400,
+  "enchantRanks": {
+    "2928": 350,
+    "2929": 350,
+    "2931": 350,
+    "3605": 350,
+    "3606": 400,
+    "3859": 350,
+    "3878": 350
+  }
+}

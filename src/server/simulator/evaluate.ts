@@ -25,7 +25,9 @@ export function simulationInput(
   loadout: Loadout,
   iterations: number,
   seed: string,
+  reference = false,
 ) {
+  if (reference) snapshot = { ...snapshot, itemEnhancements: undefined };
   const s = snapshot.settings;
   if (!s.player || !s.encounter)
     throw new Error("Missing simulation configuration");
@@ -37,10 +39,9 @@ export function simulationInput(
   );
   const inventory = new Map(resolved.inventory.map((i) => [i.instanceId, i]));
   // The native engine applies meta effects unconditionally; its browser UI
-  // removes inactive metas before submitting, and automatic gemming does too.
-  const inactive = snapshot.gemming?.enabled
-    ? inactiveMetaIds(resolved, loadout)
-    : new Set<number>();
+  // removes inactive metas before submitting. Apply the same legality to the
+  // reference and candidates, independently of automatic preparation settings.
+  const inactive = inactiveMetaIds(resolved, loadout);
   player.equipment = {
     items: slots.map((slot) => {
       const i = inventory.get(loadout[slot] ?? "");
@@ -71,7 +72,9 @@ export async function evaluate(
   iterations: number,
   seed: string,
   signal: AbortSignal,
+  reference = false,
 ): Promise<SimulationResult> {
+  if (reference) snapshot = { ...snapshot, itemEnhancements: undefined };
   const input = simulationInput(snapshot, loadout, iterations, seed),
     player = input.raid!.parties[0].players[0];
   const options = {
@@ -128,18 +131,19 @@ export async function evaluate(
     metric = result.raidResult.raidMetrics!.parties[0].players[0].dps!;
   const gemPlan = prepareGems(snapshot, loadout);
   const enchantPlan = prepareEnchants(snapshot, loadout);
-  const inactive = snapshot.gemming?.enabled
-    ? inactiveMetaIds(snapshot, loadout, gemPlan.overrides)
-    : new Set<number>();
+  const inactive = inactiveMetaIds(snapshot, loadout, gemPlan.overrides);
   return {
     loadout,
-    ...(snapshot.autoEnchant
+    isReference: reference,
+    ...(snapshot.autoEnchant || Object.keys(enchantPlan.overrides).length
       ? {
           enchantOverrides: enchantPlan.overrides,
           enchantWarnings: enchantPlan.warnings,
         }
       : {}),
-    ...(snapshot.gemming?.enabled
+    ...(snapshot.gemming?.enabled ||
+    Object.keys(gemPlan.overrides).length ||
+    inactive.size
       ? {
           gemOverrides: gemPlan.overrides,
           gemWarnings: [

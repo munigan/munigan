@@ -1,31 +1,94 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { JsonObject } from "@protobuf-ts/runtime";
 import { IndividualSimSettings } from "@/generated/wotlk/ui";
-import { APLRotation, APLRotation_Type } from "@/generated/wotlk/apl";
-import { Profession } from "@/generated/wotlk/common";
 import {
-  BuffControls,
-  ConsumeControls,
-  GlyphControls,
-  SettingIcon,
-  professionIcons,
-} from "./VisualSettings";
-import "./settings-refinements.css";
-import { defaultSettings, getSpec, listSpecs, modules } from "./registry";
+  DialogRoot,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogDismiss,
+} from "@/components/ui/Dialog";
+import { Select, SelectOption } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
+import { AlertMessage } from "@/components/ui/Alert";
+import { localizeDiagnostic } from "@/i18n/diagnostics";
 import { applySettingsPatch } from "@/features/import/parse-export";
 import type { Snapshot } from "@/domain/top-gear/model";
-const categories = [
-  "Encounter",
-  "Talents & glyphs",
-  "Rotation",
-  "Buffs",
-  "Consumes",
-  "Professions",
-  "Advanced",
-] as const;
+import { defaultSettings, getSpec, listSpecs } from "./registry";
+import { validateTalents } from "./talents";
+import { BuffControls, ConsumeControls, GlyphControls } from "./VisualSettings";
+import {
+  SettingsNavigation,
+  categoryKeys,
+  type SettingsCategory,
+} from "./SettingsNavigation";
+import { EncounterSettings } from "./EncounterSettings";
+import { AdvancedSettings } from "./AdvancedSettings";
+import { ProfessionSettings } from "./ProfessionSettings";
+import { RotationSettings } from "./RotationSettings";
+import { SettingsIcon } from "./SettingsIcon";
+import "./settings-refinements.css";
+const prefixes: Partial<Record<SettingsCategory, string[]>> = {
+  Encounter: ["encounter"],
+  Buffs: ["raidBuffs", "partyBuffs", "debuffs", "player.buffs"],
+  Consumes: ["player.consumes"],
+  "Talents & glyphs": ["player.talentsString", "player.glyphs"],
+  Professions: ["player.profession1", "player.profession2"],
+  Rotation: ["player.rotation"],
+};
+function provenance(
+  snapshot: Snapshot,
+  category: SettingsCategory,
+  source: "preset" | "edited",
+) {
+  const paths = prefixes[category] ?? [];
+  return {
+    ...Object.fromEntries(
+      Object.entries(snapshot.provenance).filter(
+        ([path]) => !paths.some((p) => path === p || path.startsWith(p + ".")),
+      ),
+    ),
+    ...Object.fromEntries(paths.map((p) => [p, source])),
+  };
+}
+function validateDraft(snapshot: Snapshot) {
+  const p = snapshot.settings.player,
+    e = snapshot.settings.encounter;
+  if (!p || !e) throw new Error("A player and encounter are required");
+  if (p.class !== getSpec(snapshot.specId).classId)
+    throw new Error("Class does not match specialization");
+  if (
+    !Number.isFinite(e.duration) ||
+    !Number.isFinite(e.durationVariation) ||
+    e.useHealth ||
+    e.duration < 10 ||
+    e.duration > 600 ||
+    e.durationVariation < 0 ||
+    e.durationVariation > e.duration / 2 ||
+    e.targets.length < 1 ||
+    e.targets.length > 10
+  )
+    throw new Error("Use a 10–600 second encounter with 1–10 targets");
+  if (
+    e.targets.some(
+      (target) =>
+        target.level < 80 ||
+        target.level > 83 ||
+        target.stats.some(
+          (v) => !Number.isFinite(v) || Math.abs(v) > 1000000000000,
+        ),
+    )
+  )
+    throw new Error("Invalid target configuration");
+  if (p.profession1 && p.profession1 === p.profession2)
+    throw new Error("Choose two different professions");
+  const errors = validateTalents(snapshot);
+  if (errors.length) throw new Error(errors[0]);
+}
 export function PresetPanel({
-  snapshot,
+  snapshot: initial,
   onChange,
   onClose,
 }: {
@@ -33,507 +96,359 @@ export function PresetPanel({
   onChange: (s: Snapshot) => void;
   onClose: () => void;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const [category, setCategory] =
-      useState<(typeof categories)[number]>("Encounter"),
-    [error, setError] = useState(""),
-    [text, setText] = useState("");
-  useEffect(() => {
-    const node = dialog.current;
-    node?.showModal();
-    return () => node?.close();
-  }, []);
+  const t = useTranslations("settings"),
+    d = useTranslations("diagnostics");
+  const [snapshot, setSnapshot] = useState(initial),
+    [category, setCategory] = useState<SettingsCategory>("Encounter"),
+    [error, setError] = useState<unknown>(null),
+    [text, setText] = useState<string | null>(null),
+    [discard, setDiscard] = useState(false),
+    [validated, setValidated] = useState(false);
   const spec = getSpec(snapshot.specId),
-    defaults = defaultSettings(spec.id),
     p = snapshot.settings.player!,
     encounter = snapshot.settings.encounter!;
-  const json = IndividualSimSettings.toJson(snapshot.settings) as JsonObject,
-    def = IndividualSimSettings.toJson(defaults) as JsonObject;
-  function close() {
-    dialog.current?.close();
-    onClose();
-  }
-  function patch(value: JsonObject) {
-    try {
-      onChange(applySettingsPatch(snapshot, value));
-      setError("");
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-  function categoryJson(name: string, from: JsonObject = json): JsonObject {
-    const player = from.player as JsonObject;
-    switch (name) {
-      case "Talents & glyphs":
-        return {
-          player: {
-            talentsString: player.talentsString ?? "",
-            glyphs: player.glyphs ?? {},
-          },
-        };
-      case "Buffs":
-        return {
-          raidBuffs: from.raidBuffs ?? {},
-          partyBuffs: from.partyBuffs ?? {},
-          debuffs: from.debuffs ?? {},
-          player: { buffs: player.buffs ?? {} },
-        };
-      case "Consumes":
-        return { player: { consumes: player.consumes ?? {} } };
-      default:
-        return from;
-    }
-  }
-  function openCategory(c: typeof category) {
-    setCategory(c);
-    setText(JSON.stringify(categoryJson(c), null, 2));
-    setError("");
-  }
-  const categoryPrefixes: Record<string, string[]> = {
-    Encounter: ["encounter"],
-    Buffs: ["raidBuffs", "partyBuffs", "debuffs", "player.buffs"],
-    Consumes: ["player.consumes"],
-    "Talents & glyphs": ["player.talentsString", "player.glyphs"],
-    Professions: ["player.profession1", "player.profession2"],
-    Rotation: ["player.rotation"],
-  };
-  function categoryProvenance(name: string, source: "preset" | "edited") {
-    const prefixes = categoryPrefixes[name] ?? [];
-    return {
-      ...Object.fromEntries(
-        Object.entries(snapshot.provenance).filter(
-          ([path]) =>
-            !prefixes.some(
-              (prefix) => path === prefix || path.startsWith(prefix + "."),
-            ),
-        ),
-      ),
-      ...Object.fromEntries(prefixes.map((path) => [path, source])),
-    };
-  }
+  const json = IndividualSimSettings.toJson(snapshot.settings) as JsonObject;
+  const dirty =
+    JSON.stringify(snapshot) !== JSON.stringify(initial) || text !== null;
   const sources = Object.entries(snapshot.provenance)
     .filter(([path]) =>
-      (categoryPrefixes[category] ?? []).some(
-        (prefix) => path === prefix || path.startsWith(prefix + "."),
+      (prefixes[category] ?? []).some(
+        (p) => path === p || path.startsWith(p + "."),
       ),
     )
-    .map(([, source]) => source);
-  const sourceLabel = sources.includes("edited")
-    ? "Edited"
-    : sources.includes("imported")
-      ? "Imported"
-      : "Default";
-  function encounterPreset(targetCount: number, duration: number) {
+    .map(([, s]) => s);
+  const sourceLabel = t(
+    sources.includes("edited")
+      ? "source.edited"
+      : sources.includes("imported")
+        ? "source.imported"
+        : "source.default",
+  );
+  function patch(value: JsonObject) {
+    try {
+      setSnapshot(applySettingsPatch(snapshot, value));
+      setError(null);
+      setValidated(false);
+    } catch (e) {
+      setError(e);
+    }
+  }
+  function stageJson(): Snapshot | null {
+    if (text === null) return snapshot;
+    try {
+      const parsed = JSON.parse(text);
+      if (!parsed || Array.isArray(parsed) || typeof parsed !== "object")
+        throw new Error(t("advanced.object"));
+      const next = applySettingsPatch(snapshot, parsed);
+      validateDraft(next);
+      setSnapshot(next);
+      setText(null);
+      setError(null);
+      setValidated(true);
+      return next;
+    } catch (e) {
+      setError(e);
+      return null;
+    }
+  }
+  function openCategory(next: SettingsCategory) {
+    if (text !== null && !stageJson()) return;
+    setCategory(next);
+    setError(null);
+  }
+  function resetCategory() {
+    const defaults = defaultSettings(spec.id),
+      settings = IndividualSimSettings.clone(snapshot.settings);
+    if (category === "Encounter") settings.encounter = defaults.encounter;
+    if (category === "Buffs") {
+      settings.raidBuffs = defaults.raidBuffs;
+      settings.partyBuffs = defaults.partyBuffs;
+      settings.debuffs = defaults.debuffs;
+      settings.player!.buffs = defaults.player!.buffs;
+    }
+    if (category === "Consumes")
+      settings.player!.consumes = defaults.player!.consumes;
+    if (category === "Talents & glyphs") {
+      settings.player!.talentsString = defaults.player!.talentsString;
+      settings.player!.glyphs = defaults.player!.glyphs;
+    }
+    if (category === "Rotation")
+      settings.player!.rotation = defaults.player!.rotation;
+    setSnapshot({
+      ...snapshot,
+      settings,
+      provenance: provenance(snapshot, category, "preset"),
+    });
+    setError(null);
+  }
+  function clearBuffs() {
+    const settings = IndividualSimSettings.clone(snapshot.settings);
+    settings.raidBuffs = undefined;
+    settings.partyBuffs = undefined;
+    settings.debuffs = undefined;
+    settings.player!.buffs = undefined;
+    setSnapshot({
+      ...snapshot,
+      settings,
+      provenance: provenance(snapshot, "Buffs", "edited"),
+    });
+  }
+  function requestClose() {
+    if (dirty) setDiscard(true);
+    else onClose();
+  }
+  function apply() {
+    const next = stageJson();
+    if (!next) return;
+    try {
+      validateDraft(next);
+      onChange(next);
+      onClose();
+    } catch (e) {
+      setError(e);
+    }
+  }
+  function targets(count: number, duration?: number) {
     const current = (json.encounter as JsonObject).targets as JsonObject[];
     patch({
       encounter: {
-        duration,
-        durationVariation: Math.min(encounter.durationVariation, duration / 2),
+        ...(duration
+          ? {
+              duration,
+              durationVariation: Math.min(
+                encounter.durationVariation,
+                duration / 2,
+              ),
+            }
+          : {}),
         targets: Array.from(
-          { length: targetCount },
+          { length: count },
           (_, i) => current[i] ?? current[0],
         ),
       },
     });
   }
-  function resetCategory() {
-    const saved = IndividualSimSettings.clone(snapshot.settings);
-    if (category === "Encounter") saved.encounter = defaults.encounter;
-    else if (category === "Buffs") {
-      saved.raidBuffs = defaults.raidBuffs;
-      saved.partyBuffs = defaults.partyBuffs;
-      saved.debuffs = defaults.debuffs;
-      saved.player!.buffs = defaults.player!.buffs;
-    } else if (category === "Consumes")
-      saved.player!.consumes = defaults.player!.consumes;
-    else if (category === "Talents & glyphs") {
-      saved.player!.talentsString = defaults.player!.talentsString;
-      saved.player!.glyphs = defaults.player!.glyphs;
-    }
-    onChange({
-      ...snapshot,
-      settings: saved,
-      provenance: categoryProvenance(category, "preset"),
-    });
-    setText(JSON.stringify(categoryJson(category, def), null, 2));
-  }
-  const rotationPresets = Object.entries(modules[spec.module].presets).filter(
-    ([, v]) => v.rotation?.rotation,
-  );
-  function chooseRotation(value: string) {
-    if (value === "auto") {
-      patch({ player: { rotation: { type: "TypeAuto" } } });
-      return;
-    }
-    const rotation = rotationPresets.find(([key]) => key === value)?.[1]
-      .rotation?.rotation;
-    if (rotation)
-      patch({
-        player: {
-          rotation: APLRotation.toJson(
-            APLRotation.create(rotation as APLRotation),
-          ),
-        },
-      });
-  }
   return (
-    <dialog
-      ref={dialog}
-      className="settings-dialog simulation-dialog"
-      aria-labelledby="simulation-dialog-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        close();
+    <DialogRoot
+      open
+      onOpenChange={(open) => {
+        if (!open) requestClose();
       }}
     >
-      <div className="section-top simulation-dialog-header">
-        <div>
-          <p className="eyebrow">SIMULATION</p>
-          <h2 id="simulation-dialog-title">Buffs & settings</h2>
-        </div>
-        <button onClick={close}>Done</button>
-      </div>
-      <div
-        className="settings-tabs"
-        role="tablist"
-        aria-label="Settings categories"
-      >
-        {categories.map((c) => (
-          <button
-            key={c}
-            role="tab"
-            id={`settings-tab-${categories.indexOf(c)}`}
-            aria-controls="settings-panel"
-            tabIndex={category === c ? 0 : -1}
-            onKeyDown={(event) => {
-              const i = categories.indexOf(c);
-              const index =
-                event.key === "ArrowRight"
-                  ? (i + 1) % categories.length
-                  : event.key === "ArrowLeft"
-                    ? (i + categories.length - 1) % categories.length
-                    : event.key === "Home"
-                      ? 0
-                      : event.key === "End"
-                        ? categories.length - 1
-                        : -1;
-              if (index >= 0) {
-                event.preventDefault();
-                openCategory(categories[index]);
-                event.currentTarget.parentElement
-                  ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
-                  [index]?.focus();
-              }
-            }}
-            aria-selected={category === c}
-            onClick={() => openCategory(c)}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-      <div
-        className="settings-body"
-        id="settings-panel"
-        role="tabpanel"
-        aria-labelledby={`settings-tab-${categories.indexOf(category)}`}
-      >
-        <div className="section-top">
-          <h3>
-            {category}{" "}
-            {category !== "Advanced" && (
-              <span className="badge settings-source">{sourceLabel}</span>
-            )}
-          </h3>
-          {["Encounter", "Buffs", "Consumes", "Talents & glyphs"].includes(
-            category,
-          ) && (
-            <button className="text-button" onClick={resetCategory}>
-              Simulator default
-            </button>
-          )}
-        </div>
-        {category === "Encounter" && (
-          <>
-            <div
-              className="encounter-presets segmented"
-              aria-label="Encounter shortcuts"
-            >
-              <button onClick={() => encounterPreset(1, 180)}>
-                Single target · 3 min
-              </button>
-              <button onClick={() => encounterPreset(3, 180)}>
-                Cleave · 3 targets
-              </button>
-              <button onClick={() => encounterPreset(1, 60)}>
-                Short fight · 1 min
-              </button>
-            </div>
-            <div className="form-grid">
-              <label>
-                Fight length (seconds)
-                <input
-                  type="number"
-                  min={10}
-                  max={600}
-                  value={encounter.duration}
-                  onChange={(e) =>
-                    patch({ encounter: { duration: Number(e.target.value) } })
-                  }
-                />
-              </label>
-              <label>
-                Duration variation (seconds)
-                <input
-                  type="number"
-                  min={0}
-                  max={encounter.duration / 2}
-                  value={encounter.durationVariation}
-                  onChange={(e) =>
-                    patch({
-                      encounter: { durationVariation: Number(e.target.value) },
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Targets
-                <select
-                  value={encounter.targets.length}
-                  onChange={(e) =>
-                    patch({
-                      encounter: {
-                        targets: Array.from(
-                          { length: Number(e.target.value) },
-                          (_, i) =>
-                            (json.encounter as JsonObject).targets instanceof
-                            Array
-                              ? ((
-                                  (json.encounter as JsonObject)
-                                    .targets as JsonObject[]
-                                )[i] ??
-                                (
-                                  (json.encounter as JsonObject)
-                                    .targets as JsonObject[]
-                                )[0])
-                              : {},
-                        ),
-                      },
-                    })
-                  }
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                    <option key={n}>{n}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <p className="muted">
-              Target stats and other imported encounter settings are preserved.
-            </p>
-          </>
-        )}
-        {category === "Rotation" && (
-          <>
-            <label>
-              Rotation preset
-              <select
-                value={
-                  p.rotation?.type === APLRotation_Type.TypeAPL
-                    ? "custom"
-                    : "auto"
-                }
-                onChange={(e) => chooseRotation(e.target.value)}
-              >
-                <option value="auto">
-                  Automatic · simulator recommendation
-                </option>
-                <option value="custom" disabled>
-                  Imported / selected APL
-                </option>
-                {rotationPresets.map(([key, preset]) => (
-                  <option key={key} value={key}>
-                    {preset.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="muted">
-              Automatic rotation follows the pinned simulator and your current
-              talents, targets and gear.
-            </p>
-          </>
-        )}
-        {category === "Professions" && (
-          <div className="form-grid">
-            {(["profession1", "profession2"] as const).map((field, index) => (
-              <label key={field}>
-                Profession {index + 1}
-                <span className="profession-input">
-                  <SettingIcon
-                    key={p[field]}
-                    icon={professionIcons[p[field]]}
-                  />
-                  <select
-                    value={p[field]}
-                    onChange={(e) =>
-                      patch({ player: { [field]: Number(e.target.value) } })
-                    }
-                  >
-                    {Object.entries(Profession)
-                      .filter(([, v]) => typeof v === "number")
-                      .map(([name, v]) => (
-                        <option key={name} value={v}>
-                          {name === "ProfessionUnknown" ? "None" : name}
-                        </option>
-                      ))}
-                  </select>
-                </span>
-                {snapshot.professionLevels?.[String(p[field])] !==
-                  undefined && (
-                  <small className="muted">
-                    Imported rank: {snapshot.professionLevels[String(p[field])]}{" "}
-                    / 450
-                  </small>
+      <DialogContent className="settings-dialog simulation-dialog max-w-[1200px] overflow-hidden p-0!">
+        <header className="simulation-dialog-header">
+          <div>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("subtitle")}</DialogDescription>
+          </div>
+          <div className="settings-header-actions">
+            <span className="badge">WotLK 3.3.5a</span>
+            <DialogDismiss />
+          </div>
+        </header>
+        <SettingsNavigation
+          value={category}
+          onChange={openCategory}
+          snapshot={snapshot}
+        >
+          <div className="settings-content-heading">
+            <div>
+              <h3>
+                {t(`categories.${categoryKeys[category]}`)}
+                {category !== "Advanced" && (
+                  <span className="badge settings-source">{sourceLabel}</span>
                 )}
-              </label>
-            ))}
-          </div>
-        )}
-        {category === "Buffs" && (
-          <div className="actions">
-            <button
-              onClick={() => {
-                const settings = IndividualSimSettings.clone(snapshot.settings);
-                settings.raidBuffs = undefined;
-                settings.partyBuffs = undefined;
-                settings.debuffs = undefined;
-                settings.player!.buffs = undefined;
-                onChange({
-                  ...snapshot,
-                  settings,
-                  provenance: categoryProvenance("Buffs", "edited"),
-                });
-                setText(
-                  JSON.stringify(
-                    {
-                      raidBuffs: {},
-                      partyBuffs: {},
-                      debuffs: {},
-                      player: { buffs: {} },
-                    },
-                    null,
-                    2,
-                  ),
-                );
-              }}
-            >
-              No external buffs
-            </button>
-          </div>
-        )}
-        {category === "Talents & glyphs" && (
-          <>
-            <label>
-              Talent preset
-              <select
-                aria-label="Talent preset"
-                value={
-                  p.talentsString === spec.talents.talentsString
-                    ? snapshot.specId
-                    : "imported"
-                }
-                onChange={(e) => {
-                  const chosen = getSpec(e.target.value);
-                  const settings = IndividualSimSettings.clone(
-                    snapshot.settings,
-                  );
-                  settings.player!.talentsString = chosen.talents.talentsString;
-                  settings.player!.glyphs = structuredClone(
-                    chosen.talents.glyphs,
-                  );
-                  onChange({
-                    ...snapshot,
-                    specId: chosen.id,
-                    settings,
-                    provenance: categoryProvenance(
-                      "Talents & glyphs",
-                      "preset",
-                    ),
-                  });
-                }}
+              </h3>
+              <p>{t(`descriptions.${categoryKeys[category]}`)}</p>
+            </div>
+            {[
+              "Encounter",
+              "Buffs",
+              "Consumes",
+              "Talents & glyphs",
+              "Rotation",
+            ].includes(category) && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="min-h-10 text-sm"
+                onClick={resetCategory}
               >
-                <option value="imported" disabled>
-                  Imported talents
-                </option>
-                {listSpecs()
-                  .filter((s) => s.module === spec.module)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <GlyphControls snapshot={snapshot} onPatch={patch} />
-            <details className="talent-string">
-              <summary>Talent string</summary>
-              <label>
-                Talent string
-                <input
-                  aria-label="Talent string"
-                  value={p.talentsString}
-                  onChange={(e) =>
-                    patch({ player: { talentsString: e.target.value } })
-                  }
-                />
-              </label>
-            </details>
-          </>
-        )}
-        {category === "Buffs" && (
-          <BuffControls snapshot={snapshot} onPatch={patch} />
-        )}
-        {category === "Consumes" && (
-          <ConsumeControls snapshot={snapshot} onPatch={patch} />
-        )}
-        {category === "Advanced" && (
-          <details className="advanced-settings" open>
-            <summary>Advanced simulator configuration</summary>
-            <label htmlFor="config-json">{category} JSON</label>
-            <textarea
-              id="config-json"
-              rows={12}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              spellCheck={false}
+                {t("reset")}
+                <SettingsIcon name="rotation" />
+              </Button>
+            )}
+          </div>
+          {category === "Encounter" && (
+            <EncounterSettings
+              encounter={encounter}
+              onPreset={(n, s) => targets(n, s)}
+              onDurationChange={(duration) =>
+                patch({
+                  encounter: {
+                    duration,
+                    durationVariation: Math.min(
+                      encounter.durationVariation,
+                      duration / 2,
+                    ),
+                  },
+                })
+              }
+              onVariationChange={(durationVariation) =>
+                patch({ encounter: { durationVariation } })
+              }
+              onTargetsChange={(n) => targets(n)}
             />
-            <button
-              onClick={() => {
-                try {
-                  const parsed = JSON.parse(text);
-                  if (
-                    !parsed ||
-                    Array.isArray(parsed) ||
-                    typeof parsed !== "object"
-                  )
-                    throw new Error("Use a JSON object");
-                  patch(parsed);
-                } catch (e) {
-                  setError((e as Error).message);
-                }
+          )}
+          {category === "Talents & glyphs" && (
+            <>
+              <label className="settings-field">
+                {t("talents.preset")}
+                <Select
+                  aria-label={t("talents.preset")}
+                  value={
+                    p.talentsString === spec.talents.talentsString
+                      ? snapshot.specId
+                      : "imported"
+                  }
+                  onValueChange={(v) => {
+                    const chosen = getSpec(v),
+                      settings = IndividualSimSettings.clone(snapshot.settings);
+                    settings.player!.talentsString =
+                      chosen.talents.talentsString;
+                    settings.player!.glyphs = structuredClone(
+                      chosen.talents.glyphs,
+                    );
+                    setSnapshot({
+                      ...snapshot,
+                      specId: chosen.id,
+                      settings,
+                      provenance: provenance(
+                        snapshot,
+                        "Talents & glyphs",
+                        "preset",
+                      ),
+                    });
+                  }}
+                >
+                  <SelectOption value="imported" disabled>
+                    {t("talents.imported")}
+                  </SelectOption>
+                  {listSpecs()
+                    .filter((s) => s.module === spec.module)
+                    .map((s) => (
+                      <SelectOption key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectOption>
+                    ))}
+                </Select>
+              </label>
+              <p className="settings-note">{t("talents.replaces")}</p>
+              <GlyphControls snapshot={snapshot} onPatch={patch} />
+              <details className="settings-disclosure talent-string">
+                <summary>{t("talents.string")}</summary>
+                <label className="settings-field">
+                  {t("talents.string")}
+                  <input
+                    aria-label={t("talents.string")}
+                    value={p.talentsString}
+                    onChange={(e) =>
+                      patch({ player: { talentsString: e.target.value } })
+                    }
+                  />
+                </label>
+              </details>
+            </>
+          )}
+          {category === "Rotation" && (
+            <RotationSettings snapshot={snapshot} onPatch={patch} />
+          )}
+          {category === "Buffs" && (
+            <BuffControls
+              snapshot={snapshot}
+              onPatch={patch}
+              onClear={clearBuffs}
+            />
+          )}
+          {category === "Consumes" && (
+            <ConsumeControls
+              key={`${p.consumes?.flask ? "flask" : p.consumes?.battleElixir || p.consumes?.guardianElixir ? "elixir" : "none"}`}
+              snapshot={snapshot}
+              onPatch={patch}
+            />
+          )}
+          {category === "Professions" && (
+            <ProfessionSettings
+              snapshot={snapshot}
+              onPatch={patch}
+              onChange={setSnapshot}
+            />
+          )}
+          {category === "Advanced" && (
+            <AdvancedSettings
+              value={text ?? JSON.stringify(json, null, 2)}
+              onChange={(v) => {
+                setText(v);
+                setValidated(false);
+                setError(null);
               }}
+              onApply={() => {
+                if (text === null) {
+                  try {
+                    validateDraft(snapshot);
+                    setValidated(true);
+                  } catch (e) {
+                    setError(e);
+                  }
+                } else stageJson();
+              }}
+              validated={validated}
+            />
+          )}
+          {error != null && (
+            <AlertMessage tone="error">
+              {localizeDiagnostic(error, d)}
+            </AlertMessage>
+          )}
+        </SettingsNavigation>
+        <footer className="settings-footer">
+          <span>
+            <SettingsIcon name="info" />
+            {t("footerHelp")}
+          </span>
+          <div>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="min-h-10 text-sm max-[359px]:px-2 max-[359px]:text-xs"
+              onClick={requestClose}
             >
-              Apply configuration
-            </button>
-          </details>
-        )}
-        {error && (
-          <p role="alert" className="notice error">
-            {error}
-          </p>
-        )}
-      </div>
-    </dialog>
+              {t("cancel")}
+            </Button>
+            <Button
+              size="sm"
+              className="min-h-10 text-sm max-[359px]:px-2 max-[359px]:text-xs"
+              disabled={error != null}
+              onClick={apply}
+            >
+              {t("apply")}
+              <SettingsIcon name="check" />
+            </Button>
+          </div>
+        </footer>
+        <DialogRoot open={discard} onOpenChange={setDiscard}>
+          <DialogContent className="settings-discard-dialog">
+            <DialogTitle>{t("discardTitle")}</DialogTitle>
+            <DialogDescription>{t("discardHelp")}</DialogDescription>
+            <div className="actions">
+              <Button variant="secondary" onClick={() => setDiscard(false)}>
+                {t("keepEditing")}
+              </Button>
+              <Button onClick={onClose}>{t("discard")}</Button>
+            </div>
+          </DialogContent>
+        </DialogRoot>
+      </DialogContent>
+    </DialogRoot>
   );
 }

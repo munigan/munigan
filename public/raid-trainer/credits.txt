@@ -1,0 +1,24 @@
+RAID TRAINER — ASSET CREDITS
+
+AirHorn alert
+Author: Mike Koenig
+Original: https://soundbible.com/1542-Air-Horn.html
+License: Creative Commons Attribution 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Source copy: https://github.com/DeadlyBossMods/DeadlyBossMods/blob/master/DBM-Core/sounds/AirHorn.ogg
+DBM's asset-specific attribution: https://github.com/DeadlyBossMods/DeadlyBossMods/blob/master/DBM-Core/sounds/license%20info.txt
+The recording is used unchanged, with playback volume reduced in the application.
+No DBM code or restricted DBM voice-pack recordings are included. This trainer is not affiliated with or endorsed by DBM.
+
+Original voice callouts
+New synthetic recordings of short training instructions, generated locally with the Samantha system voice. These are not DBM recordings or an imitation of a named performer.
+Wind ambience, countdown ticks, pool placement, damage and completion effects are synthesized by this application.
+
+Lich King portrait and Defile icon
+World of Warcraft artwork, copyright Blizzard Entertainment.
+https://www.wowhead.com/icon=341221/achievement-boss-lichking
+Images sourced through Wowhead's icon CDN, consistent with the existing app's item artwork.
+This fan training experiment is not affiliated with or endorsed by Blizzard Entertainment.
+
+Frozen arena artwork
+Original image generated for this project with the built-in image-generation tool, September 10, 2026.
+Prompt and provenance: docs/design/raid-trainer-experience.md in the project repository.

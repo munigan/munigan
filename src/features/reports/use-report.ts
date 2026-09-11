@@ -1,14 +1,26 @@
 "use client";
 import { useEffect, useState } from "react";
+import { describeError, type ErrorDescriptor } from "@/i18n/error";
 
 export function useReport<T extends { report: { status: string } }>(
   url: string,
+  resourceKey = url,
 ) {
   const [state, setState] = useState<{
     url: string;
+    requestedUrl: string;
+    resourceKey: string;
     data: T | null;
     error: string;
-  }>({ url, data: null, error: "" });
+    diagnostic: ErrorDescriptor | null;
+  }>({
+    url,
+    requestedUrl: url,
+    resourceKey,
+    data: null,
+    error: "",
+    diagnostic: null,
+  });
   useEffect(() => {
     const abort = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -28,17 +40,30 @@ export function useReport<T extends { report: { status: string } }>(
         const next = await response.json();
         if (!response.ok) {
           terminal = response.status === 404 || response.status === 410;
-          throw new Error(next.error || "Could not refresh this report");
+          throw describeError({
+            ...next,
+            error: next.error || "Could not refresh this report",
+          });
         }
         if (abort.signal.aborted) return;
         terminal = !["queued", "running"].includes(next.report.status);
-        setState({ url, data: next, error: "" });
+        setState({
+          url,
+          requestedUrl: url,
+          resourceKey,
+          data: next,
+          error: "",
+          diagnostic: null,
+        });
       } catch (e) {
         if (!abort.signal.aborted) {
           setState((old) => ({
-            url,
-            data: terminal || old.url !== url ? null : old.data,
-            error: (e as Error).message,
+            url: old.resourceKey === resourceKey && old.data ? old.url : url,
+            requestedUrl: url,
+            resourceKey,
+            data: terminal || old.resourceKey !== resourceKey ? null : old.data,
+            error: describeError(e).message,
+            diagnostic: describeError(e),
           }));
           delay = 5000;
         }
@@ -58,6 +83,15 @@ export function useReport<T extends { report: { status: string } }>(
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [url]);
-  return state.url === url ? state : { url, data: null, error: "" };
+  }, [url, resourceKey]);
+  // Pagination shares a resource key; navigating to another report never does.
+  const sameReport = state.resourceKey === resourceKey;
+  return {
+    url: sameReport ? state.url : url,
+    data: sameReport ? state.data : null,
+    error: sameReport && state.requestedUrl === url ? state.error : "",
+    diagnostic:
+      sameReport && state.requestedUrl === url ? state.diagnostic : null,
+    isPending: !sameReport || state.requestedUrl !== url,
+  };
 }

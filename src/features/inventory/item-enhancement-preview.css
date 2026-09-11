@@ -1,0 +1,125 @@
+@layer components {
+  .inventory-enhancement-issues p {
+    margin: 6px 0 0;
+  }
+  .enhancement-conflict-items {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    background: var(--color-surface);
+  }
+  .enhancement-conflict-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 12px;
+    padding-top: 12px;
+    font-size: 14px;
+  }
+  .enhancement-conflict-item > span {
+    flex: 1;
+    min-width: 0;
+  }
+  .enhancement-conflict-item button,
+  .enhancement-conflict-pagination button {
+    padding: 6px 8px;
+    min-height: 36px;
+    font-size: 12px;
+  }
+  .enhancement-conflict-pagination {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .inventory .inventory-row {
+    cursor: pointer;
+  }
+  .inventory .inventory-row[data-editable="false"] {
+    cursor: default;
+  }
+  .inventory .item-row-icon {
+    flex-shrink: 0;
+  }
+  .inventory .item-row-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    flex: 1;
+  }
+  .item-enhancement-preview {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+  }
+  .inventory .item-enhancement-gem {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 24px;
+    width: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-muted);
+    text-decoration: none;
+  }
+  .inventory .item-enhancement-empty {
+    border: 1px solid var(--color-control-border);
+  }
+  .inventory .item-enhancement-gem:hover {
+    filter: brightness(1.2);
+  }
+  .inventory .item-enhancement-gem:focus-visible,
+  .inventory .item-enhancement-enchant:focus-visible {
+    outline: 1px solid var(--color-text);
+    outline-offset: 3px;
+  }
+  .inventory .item-enhancement-enchant {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 24px;
+    flex-shrink: 0;
+    min-height: 24px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 400;
+    text-align: left;
+  }
+  .inventory .item-enhancement-enchant img {
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .inventory .item-enhancement-enchant:hover {
+    color: var(--color-text);
+  }
+  @media (max-width: 640px) {
+    .enhancement-conflict-item {
+      flex-wrap: wrap;
+    }
+    .enhancement-conflict-item > span {
+      flex-basis: 100%;
+    }
+    .inventory .item-choice {
+      align-items: flex-start;
+    }
+    .inventory .item-choice > input {
+      margin-top: 9px;
+    }
+    .inventory .item-enhancement-enchant {
+      max-width: 100%;
+    }
+  }
+}

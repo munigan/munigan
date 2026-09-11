@@ -1,0 +1,233 @@
+{
+  "encounter": {
+    "shortcuts": "Encounter shortcuts",
+    "single": "Single target · 3 min",
+    "cleave": "Cleave · 3 targets",
+    "short": "Short fight · 1 min",
+    "duration": "Fight length (seconds)",
+    "variation": "Duration variation (seconds)",
+    "targets": "Targets",
+    "preserved": "Target stats and other imported encounter settings are preserved.",
+    "presetNames": {
+      "single": "Single target",
+      "cleave": "Cleave",
+      "short": "Short fight"
+    },
+    "presetSummary": "{count, plural, one {# target} other {# targets}} · {seconds}s",
+    "parameters": "Fight parameters",
+    "seconds": "seconds",
+    "targetCount": "{count, plural, one {# target} other {# targets}}",
+    "window": "SIMULATED FIGHT WINDOW",
+    "windowValue": "{min}–{max} seconds",
+    "average": "{seconds}s average",
+    "why": "Why vary the duration?",
+    "whyHelp": "A small window reduces the impact of a fight ending just before a cooldown or proc.",
+    "importedDetails": "Imported target details"
+  },
+  "advanced": {
+    "title": "Advanced simulator configuration",
+    "json": "Advanced JSON",
+    "apply": "Apply configuration",
+    "object": "Use a JSON object",
+    "validate": "Validate configuration",
+    "valid": "Configuration validated",
+    "validateHelp": "Validate changes before applying them.",
+    "help": "JSON edits are staged with your other settings. Invalid configuration must be corrected before leaving this section."
+  },
+  "categories": {
+    "encounter": "Encounter",
+    "talents": "Talents & glyphs",
+    "rotation": "Rotation",
+    "buffs": "Buffs",
+    "consumes": "Consumes",
+    "professions": "Professions",
+    "advanced": "Advanced"
+  },
+  "categoriesLabel": "Settings categories",
+  "source": {
+    "edited": "Edited",
+    "imported": "Imported",
+    "default": "Default"
+  },
+  "simulation": "SIMULATION",
+  "title": "Buffs & settings",
+  "reset": "Simulator default",
+  "rotation": {
+    "preset": "Rotation preset",
+    "auto": "Automatic · simulator recommendation",
+    "imported": "Imported / selected APL",
+    "help": "Automatic rotation follows the pinned simulator and your current\n                talents, targets and gear.",
+    "mode": "Rotation mode",
+    "automatic": "Automatic",
+    "contextTitle": "Matches your character",
+    "context": "The simulator evaluates abilities using your talents, gear and encounter settings.",
+    "priorityTitle": "Action priority",
+    "resolved": "Automatic priorities are resolved by the pinned simulator when the run starts.",
+    "actionCount": "{prepull} pre-pull actions · {combat} combat priority entries",
+    "inspect": "Inspect current rotation"
+  },
+  "profession": {
+    "label": "Profession {number}",
+    "rank": "Imported rank: {rank} / 450",
+    "rankUnknown": "Rank not provided by the import",
+    "choose": "Choose a profession to enable its bonuses.",
+    "benefitsTitle": "What these professions enable",
+    "conflicts": "{count, plural, one {# item needs attention} other {# items need attention}}",
+    "conflictHelp": "These manual enhancements no longer meet the profession requirements. Review the affected items or return their enhancements to automatic.",
+    "useAutomatic": "Use automatic enhancements for affected items",
+    "connection": "Gear configuration stays connected. Choose individual gems and enchants from an item’s row. Automatic choices follow your profession eligibility.",
+    "benefits": {
+      "Engineering": "Eligible tinkers and explosives become available in gear and consume settings.",
+      "Jewelcrafting": "Up to 3 Dragon’s Eyes in each tested gear combination.",
+      "Blacksmithing": "Additional wrist and glove sockets when the required rank is verified.",
+      "Enchanting": "Ring enchants become available when requirements are met.",
+      "Alchemy": "Profession-specific flask and elixir benefits are handled by the simulator.",
+      "Herbalism": "Lifeblood is handled by the simulator.",
+      "Inscription": "Profession-specific shoulder enhancements.",
+      "Leatherworking": "Profession-specific wrist enhancements.",
+      "Mining": "Toughness is handled by the simulator.",
+      "Skinning": "Master of Anatomy is handled by the simulator.",
+      "Tailoring": "Profession-specific cloak enhancements."
+    }
+  },
+  "none": "None",
+  "buffs": {
+    "noExternal": "No external buffs",
+    "find": "Find a buff",
+    "placeholder": "Find a buff or debuff…",
+    "activeOnly": "Active only",
+    "activeCount": "{count, plural, one {# active} other {# active}}",
+    "off": "Off",
+    "normal": "Normal",
+    "improved": "Improved",
+    "glyph": "Improved + glyph",
+    "empty": "No buffs match these filters.",
+    "reset": "Reset filters",
+    "groups": {
+      "raidBuffs": "Raid buffs",
+      "buffs": "Personal buffs",
+      "debuffs": "Target debuffs",
+      "partyBuffs": "Party buffs"
+    },
+    "labels": {
+      "demonicPactSp": "Demonic Pact spell power",
+      "revitalizeRejuvination": "Revitalize: Rejuvenation uptime (%)",
+      "revitalizeWildGrowth": "Revitalize: Wild Growth uptime (%)"
+    },
+    "unknown": "Other buff",
+    "clear": "Clear buffs",
+    "clearConfirm": "Clear all raid, personal, party buffs and target debuffs in this draft?",
+    "categories": "Buff categories",
+    "personalParty": "Personal & party",
+    "sources": "sources",
+    "scope": {
+      "raidBuffs": "Effect shared with the raid",
+      "buffs": "Support applied to your character",
+      "partyBuffs": "Effect shared with your party",
+      "debuffs": "Effect applied to the enemy"
+    },
+    "effects": {
+      "attackPower": "Attack power",
+      "attributes": "Attributes, armor & resistances",
+      "meleeHaste": "Melee haste",
+      "temporaryHaste": "Temporary haste",
+      "spellPower": "Spell power",
+      "armor": "Major armor reduction",
+      "armorHit": "Armor reduction & spell hit support",
+      "spellHit": "Spell hit support",
+      "magicDamage": "Magic damage vulnerability",
+      "priests": "Number of supporting Priests",
+      "rogues": "Number of supporting Rogues",
+      "druids": "Number of supporting Druids",
+      "shamans": "Number of supporting Shamans",
+      "partyHit": "Draenei support in your party"
+    },
+    "source": "source"
+  },
+  "talents": {
+    "preset": "Talent preset",
+    "imported": "Imported talents",
+    "string": "Talent string",
+    "replaces": "Changing the preset also replaces its six glyphs."
+  },
+  "consumes": {
+    "help": "Choose a flask or a battle and guardian elixir. Food and potions are\n        separate.",
+    "pet": "Pet consumables",
+    "labels": {
+      "flask": "Flask",
+      "battleElixir": "Battle elixir",
+      "guardianElixir": "Guardian elixir",
+      "food": "Food",
+      "defaultPotion": "Combat potion",
+      "prepopPotion": "Pre-pull potion",
+      "defaultConjured": "Conjured item",
+      "petFood": "Pet food",
+      "petScrollOfAgility": "Pet agility scroll rank",
+      "petScrollOfStrength": "Pet strength scroll rank",
+      "thermalSapper": "Global Thermal Sapper Charge",
+      "explosiveDecoy": "Explosive Decoy",
+      "fillerExplosive": "Explosive"
+    },
+    "unknown": "Unknown consumable",
+    "longBuff": "Flask or elixirs",
+    "elixirs": "Battle + guardian elixirs",
+    "combat": "Potions & combat consumables",
+    "engineering": "Engineering",
+    "engineerRequired": "These imported choices require Engineering. Review them before running.",
+    "rank": "rank",
+    "petHelp": "Pet controls appear for supported classes. Rank 0 disables a scroll.",
+    "purpose": {
+      "flask": "Long-lasting flask effect",
+      "battleElixir": "Offensive elixir effect",
+      "guardianElixir": "Defensive elixir effect",
+      "food": "Food buff",
+      "prepopPotion": "Used before combat begins",
+      "defaultPotion": "Used during combat",
+      "defaultConjured": "Additional combat consumable",
+      "petFood": "Food buff for your pet",
+      "fillerExplosive": "Engineering explosive"
+    },
+    "scrolls": {
+      "petScrollOfAgility": "Agility scroll",
+      "petScrollOfStrength": "Strength scroll"
+    }
+  },
+  "glyphs": {
+    "major": "Major glyphs",
+    "minor": "Minor glyphs",
+    "empty": "Empty",
+    "imported": "Imported glyph {id}",
+    "majorSlot": "Major glyph {number}",
+    "minorSlot": "Minor glyph {number}",
+    "duplicate": "Already selected in another glyph slot",
+    "choose": "Choose a glyph for this slot."
+  },
+  "subtitle": "Shape the encounter. Fine-tune your character.",
+  "simulationSettings": "SIMULATION SETTINGS",
+  "configurationSources": "Configuration sources",
+  "apply": "Apply changes",
+  "cancel": "Cancel",
+  "footerHelp": "Changes apply to this simulation when saved.",
+  "discardTitle": "Discard unsaved changes?",
+  "discardHelp": "Your changes in all settings sections will be lost. Your saved configuration will stay as it was.",
+  "keepEditing": "Keep editing",
+  "discard": "Discard changes",
+  "navDescriptions": {
+    "encounter": "Duration & targets",
+    "talents": "Build & glyph choices",
+    "rotation": "Action priorities",
+    "buffs": "Raid & target effects",
+    "consumes": "Potions, food & flasks",
+    "professions": "Bonuses & requirements",
+    "advanced": "Simulator configuration"
+  },
+  "descriptions": {
+    "encounter": "Choose the fight you want your gear tested against.",
+    "talents": "Choose a preset, then make it your own.",
+    "rotation": "Choose how your character uses abilities during the fight.",
+    "buffs": "Model the support you’ll actually have in the fight.",
+    "consumes": "Choose the consumables used during your simulation.",
+    "professions": "Match your professions to the character you’re testing.",
+    "advanced": "Inspect and validate your simulator configuration."
+  }
+}

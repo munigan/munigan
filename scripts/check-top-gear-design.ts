@@ -22,3 +22,19 @@ if (/Boss Droptimizer|Raid Droptimizer|Sign in|checkout/.test(shell))
 console.log(
   "Scoped Top Gear design contract and revision 4 references verified.",
 );
+if (approval.munigan?.status !== "approved" || approval.munigan.revision !== 1)
+  throw new Error("Missing Munigan design implementation approval");
+for (const key of [
+  "MUNIGAN.HOME.desktop",
+  "MUNIGAN.IMPORT.desktop",
+  "MUNIGAN.TG-SELECT.desktop",
+  "MUNIGAN.TG-RESULT.desktop",
+  "MUNIGAN.SETTINGS.mobile",
+  "MUNIGAN.SOCIAL",
+  "MUNIGAN.ICON",
+])
+  if (!screens.some((screen) => screen.key === key && screen.revision === 1))
+    throw new Error(`Missing Munigan design reference: ${key}`);
+console.log(
+  "Munigan neutral theme, social artwork and responsive design references verified.",
+);

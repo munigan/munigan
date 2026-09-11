@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const fixture = JSON.parse(
@@ -25,7 +26,9 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
     }),
   );
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Warrior · Fury",
+  });
   await page.getByRole("button", { name: "Select gear" }).click();
   await page.reload();
   await page.getByRole("button", { name: "Restore draft" }).click();
@@ -41,12 +44,12 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByRole("tab", { name: "Professions", exact: true }).click();
   await expect(page.getByText("Imported rank: 425 / 450")).toBeVisible();
-  await expect(page.getByLabel("Profession 1", { exact: false })).toHaveValue(
-    "4",
-  );
+  await expect(
+    page.getByLabel("Profession 1", { exact: false }),
+  ).toHaveAttribute("data-select-value", "4");
   await page.getByRole("tab", { name: "Encounter", exact: true }).click();
   await page.getByLabel("Fight length (seconds)").fill("30");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
   await page.getByRole("button", { name: "Find Top Gear" }).click();
   await expect(page).toHaveURL(/\/reports\//);
   await expect(

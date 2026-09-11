@@ -67,3 +67,105 @@ it("retains received data through temporary errors but stops polling an expired 
   });
   expect(fetch).toHaveBeenCalledTimes(3);
 });
+
+it("keeps the displayed page and its URL through a failed pagination request", async () => {
+  const first = { report: { status: "complete" }, page: 0 };
+  let release!: (value: ReturnType<typeof response>) => void;
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValueOnce(response(200, first))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            release = resolve;
+          }),
+      ),
+  );
+  const { result, rerender } = renderHook(
+    ({ url }) => useReport(url, "report-a"),
+    {
+      initialProps: { url: "/report-a?cursor=0" },
+    },
+  );
+  await act(async () => {});
+  rerender({ url: "/report-a?cursor=20" });
+  expect(result.current.data).toEqual(first);
+  expect(result.current.url).toBe("/report-a?cursor=0");
+  expect(result.current.isPending).toBe(true);
+  await act(async () => {
+    release(response(503, { error: "Try again shortly" }));
+  });
+  expect(result.current.data).toEqual(first);
+  expect(result.current.url).toBe("/report-a?cursor=0");
+  expect(result.current.error).toBe("Try again shortly");
+  expect(result.current.isPending).toBe(false);
+});
+
+it("never shows another report's data and ignores late aborted pages", async () => {
+  const first = { report: { status: "complete" }, name: "First" };
+  const second = { report: { status: "complete" }, name: "Second" };
+  let releasePage!: (value: ReturnType<typeof response>) => void;
+  let releaseReport!: (value: ReturnType<typeof response>) => void;
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValueOnce(response(200, first))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releasePage = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseReport = resolve;
+          }),
+      ),
+  );
+  const { result, rerender } = renderHook(
+    ({ url, key }) => useReport(url, key),
+    {
+      initialProps: { url: "/report-a?cursor=0", key: "a" },
+    },
+  );
+  await act(async () => {});
+  rerender({ url: "/report-a?cursor=20", key: "a" });
+  expect(result.current.data).toEqual(first);
+  rerender({ url: "/report-b?cursor=0", key: "b" });
+  expect(result.current.data).toBeNull();
+  await act(async () => {
+    releaseReport(response(200, second));
+  });
+  await act(async () => {
+    releasePage(response(200, first));
+  });
+  expect(result.current.data).toEqual(second);
+  expect(result.current.url).toBe("/report-b?cursor=0");
+});
+
+it("retains structured API diagnostics while keeping the legacy error string", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue(
+        response(410, {
+          error: "This report has expired",
+          code: "reportExpired",
+          params: {},
+        }),
+      ),
+  );
+  const { result } = renderHook(() => useReport("/report"));
+  await act(async () => {});
+  expect(result.current.error).toBe("This report has expired");
+  expect(result.current.diagnostic).toEqual({
+    message: "This report has expired",
+    code: "reportExpired",
+    params: {},
+  });
+});

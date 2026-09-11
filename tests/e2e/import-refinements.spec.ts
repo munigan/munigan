@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
@@ -45,7 +46,16 @@ test("corrects a malformed bag export without losing character data and imports 
     .getByLabel("Bag export", { exact: true })
     .fill(JSON.stringify(bags));
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Warrior · Fury",
+  });
+  const supportedBags = page.getByRole("list", { name: "Supported bag items" });
+  await expect(supportedBags.getByRole("listitem")).toHaveCount(1);
+  await expect(supportedBags.locator('[href*="item=40528"]')).toHaveAttribute(
+    "data-wowhead",
+    "ench=3817&gems=41285:39996",
+  );
+  await expect(supportedBags.locator('[href*="item=9999999"]')).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Aldren" })).toBeVisible();
   await expect(page.getByText("408 / 450")).toBeVisible();
   await expect(page.getByText("440 / 450")).toBeVisible();
@@ -70,7 +80,9 @@ test("corrects a malformed bag export without losing character data and imports 
     JSON.stringify(bags),
   );
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Warrior · Fury",
+  });
   await page.getByRole("button", { name: "Select gear" }).click();
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
@@ -113,19 +125,140 @@ test("corrects a malformed bag export without losing character data and imports 
   );
 });
 
-test("addon help exposes a copyable command and reports clipboard failure", async ({
+test("addon help shows the guided steps with a compact command and no copy action", async ({
   page,
 }) => {
   await page.goto("/top-gear");
-  await page.getByText("How to get your exports", { exact: true }).click();
-  await page.evaluate(() =>
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText: () => Promise.reject(new Error("denied")) },
+  const guide = page.getByRole("complementary", {
+    name: "How to get your exports",
+  });
+  await expect(guide).toBeVisible();
+  await expect(guide.getByRole("listitem")).toHaveCount(3);
+  await expect(guide.locator("code")).toHaveText("/wse");
+  await expect(guide.getByRole("button")).toHaveCount(0);
+  await expect(
+    guide.getByRole("link", { name: "Get the exporter" }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/Poli93/wowsimsexporter-wotlk-335/archive/refs/heads/main.zip",
+  );
+});
+
+test("replacement alert keeps the current character on desktop and mobile", async ({
+  page,
+}) => {
+  await page.goto("/top-gear");
+  await page.getByLabel("Character export", { exact: true }).fill(character);
+  await page.getByRole("button", { name: "Review import" }).click();
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Warrior · Fury",
+  });
+  await page.getByRole("button", { name: "Select gear", exact: true }).click();
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page
+      .getByRole("button", { name: "Import character" })
+      .first()
+      .click();
+    const notice = page
+      .getByRole("status")
+      .filter({ hasText: "Importing replaces this local selection" });
+    await expect(notice).toBeVisible();
+    await expect(
+      notice.getByRole("button", { name: "Keep current character" }),
+    ).toBeVisible();
+    await notice.screenshot({ path: `/tmp/shared-alert-replace-${width}.png` });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await notice
+      .getByRole("button", { name: "Keep current character" })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Your equipment" }),
+    ).toBeVisible();
+  }
+});
+
+test("previews each export independently without starting review or simulation", async ({
+  page,
+}) => {
+  let jobs = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/top-gear/jobs")) jobs++;
+  });
+  await page.goto("/top-gear");
+  const bags = page.getByLabel("Bag export", { exact: true });
+  const preview = page.getByRole("region", { name: "Bag preview" });
+  await bags.fill(
+    JSON.stringify({
+      items: [
+        { id: 48493, enchant: 3817, gems: [41398, 49110] },
+        { id: 48493, enchant: 0, gems: [] },
+        { id: 1251 },
+        { id: 9999999 },
+      ],
     }),
   );
-  await page.getByRole("button", { name: "Copy /wse" }).click();
+  await expect(preview.getByRole("listitem")).toHaveCount(4);
+  await expect(preview.getByRole("button")).toHaveCount(0);
+  await expect(preview.getByRole("checkbox")).toHaveCount(0);
   await expect(
-    page.getByRole("alert").filter({ hasText: "Copy /wse manually" }),
+    preview.locator('[data-wowhead="ench=3817&gems=41398:49110"]'),
+  ).toHaveCount(1);
+  await expect(
+    preview.getByRole("img", { name: "Item 9999999", exact: true }),
   ).toBeVisible();
+  await page.getByLabel("Character export", { exact: true }).fill(character);
+  const equipment = page.getByRole("region", { name: "Equipped gear preview" });
+  await expect(equipment.locator(".import-equipped-icons > *")).toHaveCount(
+    player.equipment.items.filter((item: { id: number }) => item.id).length,
+  );
+  await expect(
+    page.getByRole("button", { name: "Review import" }),
+  ).toBeVisible();
+  await bags.fill("{broken");
+  await expect(preview).toHaveCount(0);
+  await expect(equipment).toBeVisible();
+  await expect(page.locator("#content").getByRole("alert")).toHaveCount(0);
+  await bags.fill(JSON.stringify({ items: [{ id: 1251 }] }));
+  await expect(preview.getByRole("listitem")).toHaveCount(1);
+  await page.getByLabel("Character export", { exact: true }).fill("");
+  await expect(equipment).toHaveCount(0);
+  await expect(preview).toBeVisible();
+  await bags.fill("");
+  await expect(preview).toHaveCount(0);
+  expect(jobs).toBe(0);
+});
+
+test("bag preview stays bounded at the 200-item limit and rejects oversized exports", async ({
+  page,
+}) => {
+  await page.goto("/top-gear");
+  const bags = page.getByLabel("Bag export", { exact: true });
+  const preview = page.getByRole("region", { name: "Bag preview" });
+  const items = Array.from({ length: 200 }, (_, index) => ({
+    id: index % 2 ? 1251 : 45931,
+  }));
+  await bags.fill(JSON.stringify({ items }));
+  await expect(preview.getByRole("listitem")).toHaveCount(200);
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await preview
+        .getByRole("list")
+        .evaluate((list) => list.clientHeight <= 320),
+    ).toBe(true);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  await bags.fill(JSON.stringify({ items: [...items, { id: 1251 }] }));
+  await expect(preview).toHaveCount(0);
+  await bags.fill(JSON.stringify({ items: [] }));
+  await expect(preview).toContainText("No bag items");
 });
