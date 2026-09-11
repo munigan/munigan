@@ -3,10 +3,9 @@ import { AccountError, authUnavailable } from "@/server/auth/errors";
 import { AdmissionError } from "@/server/jobs/admit";
 import { body, failure, mutation, privateHeaders } from "./api";
 
-export async function savingBody(
+export async function accountMutationBody(
   request: NextRequest,
-  completion = false,
-): Promise<string | null> {
+): Promise<Record<string, unknown>> {
   mutation(request);
   if (
     request.headers
@@ -19,7 +18,13 @@ export async function savingBody(
   const value: unknown = await body(request, 2048);
   if (value === null || typeof value !== "object" || Array.isArray(value))
     throw new AccountError("INVALID_REQUEST", 400);
-  const fields = value as Record<string, unknown>;
+  return value as Record<string, unknown>;
+}
+export async function savingBody(
+  request: NextRequest,
+  completion = false,
+): Promise<string | null> {
+  const fields = await accountMutationBody(request);
   if (completion) {
     if (
       Object.keys(fields).length !== 1 ||

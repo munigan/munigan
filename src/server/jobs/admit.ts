@@ -85,17 +85,13 @@ export async function admitJob(args: {
     );
     if (existing.rowCount) {
       const j = existing.rows[0];
+      if (j.deleted_at) throw new AccountError("NOT_FOUND", 404);
       if (
         j.admission_account_id !== accountId ||
         (j.account_id && j.account_id !== accountId)
       )
         throw new AdmissionError(
           "This submission key belongs to a different admission identity",
-          409,
-        );
-      if (j.deleted_at)
-        throw new AdmissionError(
-          "This submission key belongs to a deleted report",
           409,
         );
       if (j.request_hash !== requestHash && !sameRequest(j.request, frozen))
