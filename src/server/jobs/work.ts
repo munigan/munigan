@@ -2,20 +2,17 @@ import { randomUUID } from "node:crypto";
 import { pool, transaction } from "@/server/db/client";
 import {
   decodeSnapshot,
-  encodeSnapshot,
   encodeRequest,
 } from "@/domain/top-gear/request-schema";
 import type {
   TopGearRequest,
   RunPlan,
   WorkPolicy,
-  SimulationResult,
   TopGearReport,
 } from "@/domain/top-gear/model";
-import { planRun, loadoutKey } from "@/domain/equipment/enumerate";
-import { rankResults } from "@/domain/top-gear/report";
-import { recommendedBuild } from "@/domain/top-gear/recommendation";
+import { planRun } from "@/domain/equipment/enumerate";
 import { evaluate } from "@/server/simulator/evaluate";
+import { encodeReport, projectReport } from "@/server/reports/projection";
 import { digest } from "./capabilities";
 import { limits } from "./policy";
 import { AdmissionError, admitJob } from "./admit";
@@ -43,10 +40,6 @@ type Job = {
 function requestOf(job: Job): TopGearRequest {
   return { ...job.request, snapshot: decodeSnapshot(job.request.snapshot) };
 }
-const encodeReport = (report: TopGearReport) => ({
-  ...report,
-  snapshot: encodeSnapshot(report.snapshot),
-});
 async function claim(jobId?: string) {
   return transaction(async (c) => {
     await c.query("SELECT pg_advisory_xact_lock(33050336)");
@@ -77,39 +70,6 @@ async function claim(jobId?: string) {
     };
   });
 }
-async function projection(job: Job): Promise<TopGearReport> {
-  const request = requestOf(job);
-  const work = await pool.query(
-    "SELECT result,error FROM tg_work WHERE job_id=$1",
-    [job.id],
-  );
-  const results = work.rows
-    .filter((r) => r.result)
-    .map((r) => r.result as SimulationResult);
-  const ranked = rankResults(
-    request.snapshot,
-    results,
-    job.plan?.candidateLoadouts ?? [],
-  );
-  return {
-    token: "",
-    status: job.status,
-    phase: job.phase,
-    snapshot: request.snapshot,
-    selection: request.selection,
-    policy: job.policy,
-    ...ranked,
-    coverage: {
-      planned: job.plan?.simulations.length ?? null,
-      succeeded: results.length,
-      failed: work.rows.filter((r) => r.error && !r.result).length,
-      returned: ranked.rows.length,
-      exhaustive: job.status === "complete",
-    },
-    termination: job.termination,
-    expiresAt: job.expires_at.toISOString(),
-  };
-}
 async function finish(
   jobId: string,
   lease: string,
@@ -122,7 +82,7 @@ async function finish(
   );
   if (!rows.rowCount) return;
   const job = rows.rows[0] as Job;
-  const report = await projection(job);
+  const report = await projectReport(job.id);
   const all =
     report.coverage.planned !== null &&
     report.coverage.succeeded === report.coverage.planned &&
@@ -335,64 +295,6 @@ export async function executeTopGear(
     signal.removeEventListener("abort", abort);
   }
   return true;
-}
-export async function readReport(token: string, ownerKey?: string) {
-  if (!/^[\w-]{43}$/.test(token))
-    throw new AdmissionError("Report not found", 404);
-  const r = await pool.query(
-    "SELECT * FROM tg_jobs WHERE token_hash=$1 AND deleted_at IS NULL",
-    [digest(token)],
-  );
-  if (!r.rowCount) throw new AdmissionError("Report not found", 404);
-  const job = r.rows[0] as Job;
-  if (job.expires_at.getTime() < Date.now())
-    throw new AdmissionError("This report has expired", 410);
-  let report = job.report ?? encodeReport(await projection(job));
-  const snapshot = decodeSnapshot(report.snapshot);
-  if (
-    new Set(
-      report.rows.map((row) =>
-        loadoutKey(snapshot, row.loadout, row.isEquipped),
-      ),
-    ).size < report.rows.length
-  ) {
-    // Normalize the read projection of historical reports before pagination.
-    // Preserve the frozen stored report and each chosen simulation's metrics.
-    const ranked = rankResults(
-      snapshot,
-      report.rows.map((row) => ({
-        isReference: row.isEquipped,
-        loadout: row.loadout,
-        gemOverrides: row.gemOverrides,
-        enchantOverrides: row.enchantOverrides,
-        enchantWarnings: row.enchantWarnings,
-        gemWarnings: row.gemWarnings,
-        inputHash: row.inputHash,
-        metric: {
-          mean: row.dps,
-          stdev: row.stdev ?? null,
-          iterations: row.iterations,
-        },
-        stats: row.stats ?? [],
-      })),
-      report.rows.filter((row) => row.eligible).map((row) => row.loadout),
-    );
-    report = {
-      ...report,
-      ...ranked,
-      coverage: { ...report.coverage, returned: ranked.rows.length },
-    };
-  }
-  return {
-    jobId: job.id,
-    report: {
-      ...report,
-      token,
-      recommendedId: recommendedBuild(snapshot, report.rows),
-    },
-    canManage: !!ownerKey && digest(ownerKey) === job.owner_hash,
-    error: job.error,
-  };
 }
 export async function retryJob(
   jobId: string,

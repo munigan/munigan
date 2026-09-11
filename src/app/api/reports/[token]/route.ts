@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readReport } from "@/server/jobs/work";
-import { owner, failure, privateHeaders } from "@/server/http/api";
+import { getIdentity } from "@/server/auth/identity";
+import { readReport } from "@/server/reports/read";
+import { ensureOwnerCookie, failure, privateHeaders } from "@/server/http/api";
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
 ) {
   try {
-    const data = await readReport((await params).token, owner(request));
+    const data = await readReport(
+      (await params).token,
+      await getIdentity(request),
+    );
     const rows = data.report.rows;
     const offset = Math.max(
       0,
@@ -20,7 +24,7 @@ export async function GET(
         data.report.recommendedId,
       ].includes(r.id),
     );
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         ...data,
         report: { ...data.report, rows: rows.slice(offset, offset + size) },
@@ -30,6 +34,8 @@ export async function GET(
       },
       { headers: privateHeaders },
     );
+    ensureOwnerCookie(request, response);
+    return response;
   } catch (e) {
     return failure(e);
   }

@@ -2,12 +2,18 @@ import { beforeAll, afterAll, it, expect } from "vitest";
 import { pool } from "@/server/db/client";
 import { createTestDatabase, dropTestDatabase } from "../support/database";
 import { admitJob, cancelJob } from "@/server/jobs/admit";
-import { executeTopGear, readReport } from "@/server/jobs/work";
+import { executeTopGear } from "@/server/jobs/work";
+import { readReport } from "@/server/reports/read";
+import { digest } from "@/server/jobs/capabilities";
 import { fixtureRequest } from "../support/fixtures";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 import { randomUUID } from "node:crypto";
 import { Stat } from "@/generated/wotlk/common";
 process.env.CAPABILITY_KEY = "a".repeat(64);
+const anonymous = (ownerKey: string) => ({
+  account: null,
+  ownerHash: digest(ownerKey),
+});
 beforeAll(async () => {
   await createTestDatabase();
 });
@@ -47,7 +53,7 @@ it("refreshes legacy recommendations from all stored results without rewriting t
       };
     },
   );
-  const { report } = await readReport(job.reportToken, ownerKey);
+  const { report } = await readReport(job.reportToken, anonymous(ownerKey));
   expect(report.highestId).toBe("highest");
   expect(report.recommendedId).toBe("capped");
   const stored = { ...report, recommendedId: "highest" };
@@ -56,7 +62,8 @@ it("refreshes legacy recommendations from all stored results without rewriting t
     JSON.stringify(stored),
   ]);
   expect(
-    (await readReport(job.reportToken, ownerKey)).report.recommendedId,
+    (await readReport(job.reportToken, anonymous(ownerKey))).report
+      .recommendedId,
   ).toBe("capped");
   expect(
     (await pool.query("SELECT report FROM tg_jobs WHERE id=$1", [job.jobId]))
@@ -84,7 +91,7 @@ it("persists every set and duplicate delivery does not rerun completed work", as
   const count = calls;
   await executeTopGear(job.jobId, new AbortController().signal, evaluator);
   expect(calls).toBe(count);
-  const report = await readReport(job.reportToken, owner);
+  const report = await readReport(job.reportToken, anonymous(owner));
   expect(report.report.status).toBe("complete");
   expect(report.report.coverage.exhaustive).toBe(true);
   expect(report.report.rows).toHaveLength(calls);
@@ -101,9 +108,9 @@ it("cancels queued work without executing or losing a budget reservation", async
   await executeTopGear(job.jobId, new AbortController().signal, async () => {
     throw new Error("Must not execute");
   });
-  expect((await readReport(job.reportToken, owner)).report.status).toBe(
-    "canceled",
-  );
+  expect(
+    (await readReport(job.reportToken, anonymous(owner))).report.status,
+  ).toBe("canceled");
   const state = await pool.query("SELECT settled FROM tg_jobs WHERE id=$1", [
     job.jobId,
   ]);
@@ -127,7 +134,7 @@ it("groups historical ring permutations on read without changing the stored repo
       stats: [],
     }),
   );
-  const { report } = await readReport(job.reportToken, owner);
+  const { report } = await readReport(job.reportToken, anonymous(owner));
   const baseline = report.rows[0];
   const swapped = {
     ...baseline,
@@ -151,7 +158,7 @@ it("groups historical ring permutations on read without changing the stored repo
     job.jobId,
     JSON.stringify(stored),
   ]);
-  const projected = await readReport(job.reportToken, owner);
+  const projected = await readReport(job.reportToken, anonymous(owner));
   expect(projected.report.rows).toHaveLength(1);
   expect(projected.report.rows[0]).toMatchObject({
     dps: 10000,
@@ -200,7 +207,7 @@ it("retains completed rows when cancellation interrupts the next set", async () 
       );
     },
   );
-  const data = await readReport(job.reportToken, owner);
+  const data = await readReport(job.reportToken, anonymous(owner));
   expect(data.report.status).toBe("canceled");
   expect(data.report.coverage.succeeded).toBe(1);
   expect(data.report.coverage.exhaustive).toBe(false);
@@ -224,7 +231,8 @@ it("settles queued expiry without an available CPU worker", async () => {
   );
   expect(state.rows[0]).toEqual({ settled: true, status: "canceled" });
   expect(
-    (await readReport(job.reportToken, owner)).report.coverage.succeeded,
+    (await readReport(job.reportToken, anonymous(owner))).report.coverage
+      .succeeded,
   ).toBe(0);
 });
 it("retries a transient native infrastructure failure within the work attempt cap", async () => {
@@ -251,9 +259,9 @@ it("retries a transient native infrastructure failure within the work attempt ca
       };
     },
   );
-  expect((await readReport(job.reportToken, owner)).report.status).toBe(
-    "complete",
-  );
+  expect(
+    (await readReport(job.reportToken, anonymous(owner))).report.status,
+  ).toBe("complete");
   const attempts = await pool.query(
     "SELECT max(attempts) count FROM tg_work WHERE job_id=$1",
     [job.jobId],
@@ -311,7 +319,7 @@ it("keeps enhancement-only reference and candidate rows distinct through worker 
     [39996, 40022],
     [40112, 0],
   ]);
-  const { report } = await readReport(job.reportToken, ownerKey);
+  const { report } = await readReport(job.reportToken, anonymous(ownerKey));
   expect(report.status).toBe("complete");
   expect(report.rows).toHaveLength(2);
   expect(report.equippedId).toBe("enhancement-reference");
