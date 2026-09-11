@@ -138,8 +138,12 @@ it("reserves once for simultaneous retries and rejects changed request under the
   expect(rows.rowCount).toBe(1);
   args.request.selection.lockedSlots.head = args.request.snapshot.equipped.head;
   await expect(admitJob(args)).rejects.toThrow(/different/i);
-  expect(await cancelJob(a.jobId, "someone-else")).toBe(false);
-  expect(await cancelJob(a.jobId, args.ownerKey)).toBe(true);
+  await expect(
+    cancelJob(a.jobId, { account: null, ownerHash: digest("someone-else") }),
+  ).rejects.toMatchObject({ status: 404 });
+  await expect(
+    cancelJob(a.jobId, { account: null, ownerHash: digest(args.ownerKey) }),
+  ).resolves.toBeUndefined();
 });
 
 it("serializes distinct submissions so only one can reserve the remaining daily budget", async () => {

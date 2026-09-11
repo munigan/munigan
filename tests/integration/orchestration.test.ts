@@ -104,7 +104,7 @@ it("cancels queued work without executing or losing a budget reservation", async
       ownerKey: owner,
       idempotencyKey: randomUUID(),
     });
-  await cancelJob(job.jobId, owner);
+  await cancelJob(job.jobId, anonymous(owner));
   await executeTopGear(job.jobId, new AbortController().signal, async () => {
     throw new Error("Must not execute");
   });
@@ -199,7 +199,7 @@ it("retains completed rows when cancellation interrupts the next set", async () 
           metric: { mean: 10000, stdev: 100, iterations: i },
           stats: [],
         };
-      await cancelJob(job.jobId, owner);
+      await cancelJob(job.jobId, anonymous(owner));
       return new Promise((_resolve, reject) =>
         signal.addEventListener("abort", () => reject(new Error("canceled")), {
           once: true,

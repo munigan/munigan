@@ -24,6 +24,8 @@ export function workPolicy(): WorkPolicy {
 export const limits = () => ({
   dailyUnits: integer("GLOBAL_DAILY_UNITS", 10000000),
   backlog: integer("MAX_QUEUED_JOBS", 20),
+  accountActive: 2,
+  accountDaily: 20,
   ownerActive: 2,
   ownerDaily: 20,
   concurrency: 2,

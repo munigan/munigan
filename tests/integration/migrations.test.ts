@@ -34,6 +34,7 @@ it("creates a fresh schema and records the baseline", async () => {
     { name: "0000_top_gear.sql" },
     { name: "0001_auth.sql" },
     { name: "0002_report_accounts.sql" },
+    { name: "0003_job_admission_identity.sql" },
   ]);
   expect(
     (

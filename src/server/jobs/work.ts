@@ -1,3 +1,5 @@
+import type { RequestIdentity } from "@/domain/accounts/contracts";
+import { publishReport } from "@/server/library/repository";
 import { randomUUID } from "node:crypto";
 import { pool, transaction } from "@/server/db/client";
 import {
@@ -13,11 +15,12 @@ import type {
 import { planRun } from "@/domain/equipment/enumerate";
 import { evaluate } from "@/server/simulator/evaluate";
 import { encodeReport, projectReport } from "@/server/reports/projection";
-import { digest } from "./capabilities";
 import { limits } from "./policy";
 import { AdmissionError, admitJob } from "./admit";
 type StoredRequest = ReturnType<typeof encodeRequest>;
 type Job = {
+  account_id: string | null;
+  deleted_at: Date | null;
   id: string;
   owner_hash: string;
   request: StoredRequest;
@@ -76,39 +79,51 @@ async function finish(
   termination: TopGearReport["termination"],
   error?: string,
 ) {
-  const rows = await pool.query(
-    "SELECT * FROM tg_jobs WHERE id=$1 AND lease=$2",
-    [jobId, lease],
-  );
-  if (!rows.rowCount) return;
-  const job = rows.rows[0] as Job;
-  const report = await projectReport(job.id);
-  const all =
-    report.coverage.planned !== null &&
-    report.coverage.succeeded === report.coverage.planned &&
-    report.coverage.failed === 0;
-  report.status =
-    termination === "complete" && all
-      ? "complete"
-      : termination === "canceled"
-        ? "canceled"
-        : report.rows.length
-          ? "partial"
-          : "failed";
-  report.phase = "complete";
-  report.termination =
-    report.status === "complete"
-      ? "complete"
-      : termination === "complete"
-        ? "failed"
-        : termination;
-  report.coverage.exhaustive = report.status === "complete";
   await transaction(async (c) => {
+    const account = await c.query(
+      "SELECT account_id FROM tg_jobs WHERE id=$1",
+      [jobId],
+    );
+    if (!account.rowCount) return;
+    let deleting = false;
+    if (account.rows[0].account_id) {
+      const lifecycle = await c.query(
+        "SELECT status FROM account_lifecycle WHERE user_id=$1 FOR UPDATE",
+        [account.rows[0].account_id],
+      );
+      deleting = lifecycle.rows[0]?.status !== "active";
+    }
     const locked = await c.query(
       "SELECT * FROM tg_jobs WHERE id=$1 AND lease=$2 FOR UPDATE",
       [jobId, lease],
     );
     if (!locked.rowCount || locked.rows[0].settled) return;
+    const job = locked.rows[0] as Job;
+    const deleted = !!job.deleted_at || deleting;
+    let report: TopGearReport | null = null;
+    if (!deleted) {
+      report = await projectReport(job.id, c);
+      const all =
+        report.coverage.planned !== null &&
+        report.coverage.succeeded === report.coverage.planned &&
+        report.coverage.failed === 0;
+      report.status =
+        termination === "complete" && all
+          ? "complete"
+          : termination === "canceled"
+            ? "canceled"
+            : report.rows.length
+              ? "partial"
+              : "failed";
+      report.phase = "complete";
+      report.termination =
+        report.status === "complete"
+          ? "complete"
+          : termination === "complete"
+            ? "failed"
+            : termination;
+      report.coverage.exhaustive = report.status === "complete";
+    }
     const attempts = await c.query(
       "SELECT coalesce(sum(attempts),0)::int count FROM tg_work WHERE job_id=$1",
       [jobId],
@@ -123,13 +138,21 @@ async function finish(
       [
         jobId,
         lease,
-        report.status,
-        report.phase,
-        report.termination,
+        report?.status ?? "canceled",
+        report?.phase ?? "complete",
+        report?.termination ?? "canceled",
         error?.slice(0, 500) ?? null,
-        JSON.stringify(encodeReport(report)),
+        report ? JSON.stringify(encodeReport(report)) : null,
       ],
     );
+    if (
+      job.account_id &&
+      report &&
+      report.rows.length &&
+      ["complete", "partial", "canceled"].includes(report.status)
+    ) {
+      await publishReport(c, { jobId, userId: job.account_id, report });
+    }
   });
 }
 export async function executeTopGear(
@@ -172,12 +195,15 @@ export async function executeTopGear(
       checking = false;
     }
   }, 1000);
+  let finishing = false;
   try {
     if (job.cancel_requested) {
+      finishing = true;
       await finish(job.id, job.lease, "canceled");
       return true;
     }
     if (job.deadline_at.getTime() <= Date.now()) {
+      finishing = true;
       await finish(job.id, job.lease, "runtime-limit");
       return true;
     }
@@ -270,8 +296,10 @@ export async function executeTopGear(
           [job.id, job.lease],
         );
     }
+    finishing = true;
     await finish(job.id, job.lease, "complete");
   } catch (e) {
+    if (finishing) throw e;
     if (!leaseLost)
       await finish(
         job.id,
@@ -298,17 +326,19 @@ export async function executeTopGear(
 }
 export async function retryJob(
   jobId: string,
-  ownerKey: string,
+  identity: RequestIdentity,
   idempotencyKey: string,
+  ownerKey: string,
   sourceHash?: string,
 ) {
   const rows = await pool.query(
-    "SELECT * FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND deleted_at IS NULL AND status IN ('partial','failed','canceled')",
-    [jobId, digest(ownerKey)],
+    "SELECT * FROM tg_jobs WHERE id=$1 AND ((account_id IS NOT NULL AND account_id=$2) OR (account_id IS NULL AND owner_hash=$3)) AND deleted_at IS NULL AND status IN ('partial','failed','canceled')",
+    [jobId, identity.account?.id ?? null, identity.ownerHash],
   );
   if (!rows.rowCount) throw new AdmissionError("Retry is unavailable", 404);
   const old = rows.rows[0] as Job;
   return admitJob({
+    identity,
     request: old.request,
     ownerKey,
     idempotencyKey,

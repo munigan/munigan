@@ -13,6 +13,7 @@ import {
 import { loadoutKey } from "@/domain/equipment/enumerate";
 import { rankResults } from "@/domain/top-gear/report";
 import { recommendedBuild } from "@/domain/top-gear/recommendation";
+import type pg from "pg";
 import { pool } from "@/server/db/client";
 
 type StoredRequest = ReturnType<typeof encodeRequest>;
@@ -38,12 +39,15 @@ export const encodeReport = (report: TopGearReport) => ({
   snapshot: encodeSnapshot(report.snapshot),
 });
 
-export async function projectReport(jobId: string): Promise<TopGearReport> {
-  const jobs = await pool.query("SELECT * FROM tg_jobs WHERE id=$1", [jobId]);
+export async function projectReport(
+  jobId: string,
+  client: Pick<pg.PoolClient, "query"> = pool,
+): Promise<TopGearReport> {
+  const jobs = await client.query("SELECT * FROM tg_jobs WHERE id=$1", [jobId]);
   if (!jobs.rowCount) throw new Error("Report job not found");
   const job = jobs.rows[0] as ProjectionJob;
   const request = requestOf(job);
-  const work = await pool.query(
+  const work = await client.query(
     "SELECT result,error FROM tg_work WHERE job_id=$1",
     [job.id],
   );

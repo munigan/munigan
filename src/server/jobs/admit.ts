@@ -1,3 +1,6 @@
+import type { RequestIdentity } from "@/domain/accounts/contracts";
+import { lockActiveAccount } from "@/server/auth/account-lock";
+import { AccountError } from "@/server/auth/errors";
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { transaction } from "@/server/db/client";
@@ -30,6 +33,7 @@ export class AdmissionError extends Error {
   }
 }
 export async function admitJob(args: {
+  identity?: RequestIdentity;
   request: unknown;
   ownerKey: string;
   idempotencyKey: string;
@@ -50,14 +54,45 @@ export async function admitJob(args: {
     requestHash = digest(JSON.stringify(frozen)),
     ownerHash = digest(args.ownerKey),
     caps = limits();
+  const identity = args.identity ?? { account: null, ownerHash };
+  const accountId = identity.account?.id ?? null;
   return transaction(async (c) => {
+    if (accountId) await lockActiveAccount(c, accountId);
     await c.query("SELECT pg_advisory_xact_lock(33050335)");
+    let prior;
+    if (args.priorJob) {
+      const rows = await c.query(
+        "SELECT *, expires_at<=now() expired, EXISTS(SELECT 1 FROM library_items li WHERE li.job_id=tg_jobs.id AND li.deleted_at IS NULL) retained FROM tg_jobs WHERE id=$1 FOR UPDATE",
+        [args.priorJob],
+      );
+      prior = rows.rows[0];
+      if (
+        !prior ||
+        prior.deleted_at ||
+        (prior.account_id
+          ? prior.account_id !== accountId
+          : prior.owner_hash !== identity.ownerHash)
+      )
+        throw new AccountError("NOT_FOUND", 404);
+      if (!prior.retained && prior.expired)
+        throw new AccountError("REPORT_EXPIRED", 410);
+      if (!["partial", "failed", "canceled"].includes(prior.status))
+        throw new AccountError("NOT_FOUND", 404);
+    }
     const existing = await c.query(
-      "SELECT id,request_hash,token_cipher,request,deleted_at FROM tg_jobs WHERE owner_hash=$1 AND intent=$2",
+      "SELECT id,request_hash,token_cipher,request,deleted_at,account_id,admission_account_id FROM tg_jobs WHERE owner_hash=$1 AND intent=$2",
       [ownerHash, args.idempotencyKey],
     );
     if (existing.rowCount) {
       const j = existing.rows[0];
+      if (
+        j.admission_account_id !== accountId ||
+        (j.account_id && j.account_id !== accountId)
+      )
+        throw new AdmissionError(
+          "This submission key belongs to a different admission identity",
+          409,
+        );
       if (j.deleted_at)
         throw new AdmissionError(
           "This submission key belongs to a deleted report",
@@ -71,8 +106,8 @@ export async function admitJob(args: {
       return { jobId: j.id, reportToken: decrypt(j.token_cipher) };
     }
     const counts = await c.query(
-      "SELECT count(*) FILTER(WHERE status IN ('queued','running'))::int backlog, count(*) FILTER(WHERE owner_hash=$1 AND status IN ('queued','running'))::int active, count(*) FILTER(WHERE owner_hash=$1 AND created_at>=date_trunc('day',now()))::int daily FROM tg_jobs",
-      [ownerHash],
+      "SELECT count(*) FILTER(WHERE status IN ('queued','running'))::int backlog, count(*) FILTER(WHERE owner_hash=$1 AND status IN ('queued','running'))::int active, count(*) FILTER(WHERE owner_hash=$1 AND created_at>=date_trunc('day',now()))::int daily, count(*) FILTER(WHERE account_id=$2 AND status IN ('queued','running'))::int account_active, count(*) FILTER(WHERE account_id=$2 AND created_at>=date_trunc('day',now()))::int account_daily FROM tg_jobs",
+      [ownerHash, accountId],
     );
     if (counts.rows[0].backlog >= caps.backlog)
       throw new AdmissionError(
@@ -81,7 +116,9 @@ export async function admitJob(args: {
       );
     if (
       counts.rows[0].active >= caps.ownerActive ||
-      counts.rows[0].daily >= caps.ownerDaily
+      counts.rows[0].daily >= caps.ownerDaily ||
+      counts.rows[0].account_active >= caps.accountActive ||
+      counts.rows[0].account_daily >= caps.accountDaily
     )
       throw new AdmissionError(
         "Your free simulation limit has been reached. Try again later.",
@@ -114,7 +151,7 @@ export async function admitJob(args: {
     const jobId = randomUUID(),
       reportToken = capability();
     await c.query(
-      "INSERT INTO tg_jobs(id,owner_hash,intent,request_hash,token_hash,token_cipher,request,policy,budget_day,reserved,prior_job) VALUES($1,$2,$3,$4,$5,$6,$7,$8,current_date,$9,$10)",
+      "INSERT INTO tg_jobs(id,owner_hash,intent,request_hash,token_hash,token_cipher,request,policy,budget_day,reserved,prior_job,account_id,admission_account_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,current_date,$9,$10,$11,$11)",
       [
         jobId,
         ownerHash,
@@ -126,6 +163,7 @@ export async function admitJob(args: {
         JSON.stringify(policy),
         reserve,
         args.priorJob ?? null,
+        accountId,
       ],
     );
     if (args.sourceHash)
@@ -133,16 +171,11 @@ export async function admitJob(args: {
         jobId,
         args.sourceHash,
       ]);
-    if (args.priorJob) {
-      const prior = await c.query(
-        "SELECT policy,request,request_hash FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND deleted_at IS NULL",
-        [args.priorJob, ownerHash],
-      );
+    if (prior) {
       if (
-        prior.rowCount &&
-        (prior.rows[0].request_hash === requestHash ||
-          sameRequest(prior.rows[0].request, frozen)) &&
-        prior.rows[0].policy.iterationsPerSet === policy.iterationsPerSet
+        (prior.request_hash === requestHash ||
+          sameRequest(prior.request, frozen)) &&
+        prior.policy.iterationsPerSet === policy.iterationsPerSet
       )
         await c.query(
           // Ordered-pair results predate this optimizer and must be recomputed.
@@ -160,12 +193,16 @@ export async function admitJob(args: {
     return { jobId, reportToken };
   });
 }
-export async function cancelJob(jobId: string, ownerKey: string) {
-  return transaction(async (c) => {
+export async function cancelJob(
+  jobId: string,
+  identity: RequestIdentity,
+): Promise<void> {
+  await transaction(async (c) => {
+    if (identity.account) await lockActiveAccount(c, identity.account.id);
     const r = await c.query(
-      "UPDATE tg_jobs SET cancel_requested=true WHERE id=$1 AND owner_hash=$2 AND status IN ('queued','running') RETURNING id",
-      [jobId, digest(ownerKey)],
+      "UPDATE tg_jobs SET cancel_requested=true WHERE id=$1 AND deleted_at IS NULL AND ((account_id IS NOT NULL AND account_id=$2) OR (account_id IS NULL AND owner_hash=$3)) AND status IN ('queued','running') AND expires_at>now() RETURNING id",
+      [jobId, identity.account?.id ?? null, identity.ownerHash],
     );
-    return !!r.rowCount;
+    if (!r.rowCount) throw new AccountError("NOT_FOUND", 404);
   });
 }
