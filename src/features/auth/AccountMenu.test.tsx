@@ -34,9 +34,11 @@ describe("AccountMenu", () => {
     render(view());
     const trigger = screen.getByRole("button", { name: "Account menu" });
     trigger.focus();
-    await userEvent.keyboard("{Enter}{ArrowDown}");
+    await userEvent.keyboard("{Enter}");
     expect(await screen.findByRole("menu")).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Sign out" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "My Library" })).toHaveFocus();
+    await userEvent.keyboard("{ArrowDown}");
+    expect(screen.getByRole("menuitem", { name: "Sign out" })).toHaveFocus();
     expect(screen.getByRole("menuitem", { name: "Delete account" })).toBeInTheDocument();
     await userEvent.keyboard("{Escape}");
     expect(trigger).toHaveFocus();

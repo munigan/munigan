@@ -13,6 +13,7 @@
     "test:integration": "vitest run --project integration",
     "test:sim": "vitest run --project simulator",
     "test:e2e": "playwright test",
+    "test:e2e:auth": "playwright test --config playwright.auth-controls.config.ts",
     "sim:build": "bash tools/simulator/build.sh",
     "data:settings": "tsx tools/data/settings-ui.ts",
     "data:generate": "tsx tools/data/generate.ts",
