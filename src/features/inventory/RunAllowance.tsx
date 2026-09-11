@@ -3,6 +3,7 @@ import { AlertMessage } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import type { TopGearRequest, WorkPolicy } from "@/domain/top-gear/model";
 import type { estimateAllowance } from "@/domain/equipment/enumerate";
+import { RunIterations } from "./RunIterations";
 export function RunAllowance({
   request,
   policy,
@@ -69,6 +70,7 @@ export function RunAllowance({
             })}
           </p>
         </details>
+        <RunIterations iterations={policy?.iterationsPerSet ?? null} />
       </div>
       {(error || readinessError || (allowance && !allowance.allowed)) && (
         <AlertMessage className="run-feedback" tone="error">

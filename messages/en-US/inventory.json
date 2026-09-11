@@ -30,6 +30,13 @@
     "help": "Upper bound, including equipped gear once. Illegal or identical combinations are removed by the worker. Each admitted set receives {iterations} simulation iterations.",
     "reduce": "Select fewer items to stay within the free set limit."
   },
+  "iterations": {
+    "label": "Iterations per set",
+    "help": "More iterations reduce random variation but take longer to simulate.",
+    "freeLimit": "Free plan limit",
+    "value": "{count} iterations",
+    "blocked": "Free is limited to {count} iterations. Your simulation will run with {count} per set."
+  },
   "sources": {
     "equipped": "Equipped",
     "custom": "Custom",
