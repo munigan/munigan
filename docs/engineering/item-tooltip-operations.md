@@ -57,3 +57,12 @@ Live verification completed at `2026-09-11T19:05:07.216Z`. Both Deathbringer's W
 Live browser verification confirmed keyboard focus first shows local details, then enriches the owned tooltip with armor, stats, effects, sockets and full set references from Cavern of Time. Exactly one tooltip was visible; Escape dismissed it. The document loaded no Wowhead or Cavern of Time scripts. The Gear Lab import page remained available after navigation. Maintained browser tests cover the remaining hover, touch, modal and enhancement interactions.
 
 The previous custom-domain deployment was `dpl_8wfjt3UVxREBTPPwYgzhoipoaraN` (`https://wow-droptimizer-5drzizv8g-diego-fernandes-projects.vercel.app`). To roll back the web application, promote that deployment; its existing environment and Warmane importer are independent of the tooltip service. The Worker may remain available with its private authentication and preserved snapshots.
+
+
+## Enchant layout correction — 2026-09-11
+
+Source commit `eadc054` fixes two CSS collisions exposed by Lightweave Embroidery and Chest - Major Spirit: a broad header span selector gave the icon frame `flex: 1`, and generic component-layer tooltip styles overrode the compact rules in the base layer. The expanding title now has an explicit class shared by item, gem and enchant headers. Enchant overrides live in the components layer alongside the generic tooltip styles, with sufficient specificity to preserve their intended padding and typography.
+
+The browser regression first reproduced a 90×32 px frame and then the incorrect `6px 9px` padding. After correction, both enchant names passed at 1440 px and 390 px widths, with square frames, 16 px padding, 13/20 px body text and no horizontal overflow. All 11 tooltip/enhancement browser checks, 34 component tests, TypeScript, focused ESLint and diff-check passed; scoped code review approved the changes.
+
+The production build passed and `dpl_91SPwQN1VgpAZXd8b8VSo5LdvBQr` (`https://wow-droptimizer-ii5wadisb-diego-fernandes-projects.vercel.app`) was promoted to munigan.app. Live browser measurements confirmed both reported enchants use 32×32 px frames, 16 px padding and 13/20 px body text without horizontal overflow. No Worker deployment or cache invalidation was needed.
