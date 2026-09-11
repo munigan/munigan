@@ -15,7 +15,6 @@ export function HomePage({
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
-      <div className="home-artwork" aria-hidden="true" />
       <HomeHero />
       <FeaturedTool />
       <FutureTools />

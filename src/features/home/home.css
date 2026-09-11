@@ -15,8 +15,8 @@
   z-index: -1;
   top: 0;
   right: calc(-1 * var(--shell-gutter));
-  width: calc(100% + 2 * var(--shell-gutter));
-  height: clamp(360px, 30vw, 560px);
+  width: min(940px, calc(100% + 2 * var(--shell-gutter)));
+  height: 100%;
   pointer-events: none;
   overflow: hidden;
 }
@@ -24,9 +24,9 @@
   content: "";
   position: absolute;
   inset: 0 0 0 auto;
-  width: 100%;
+  width: min(820px, 100%);
   background: url("/images/icecrown.webp") center 30% / cover;
-  opacity: 0.19;
+  opacity: 0.75;
 }
 .home-artwork::after {
   content: "";
@@ -35,12 +35,42 @@
   background:
     linear-gradient(
       90deg,
-      var(--color-canvas),
-      transparent 45%,
-      transparent 80%,
-      var(--color-canvas)
+      var(--color-canvas) 0%,
+      color-mix(in srgb, var(--color-canvas) 80%, transparent) 30%,
+      transparent 75%
     ),
-    linear-gradient(0deg, var(--color-canvas), transparent);
+    linear-gradient(0deg, var(--color-canvas) 0%, transparent 45%);
+}
+.home-wrath-identity {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 104px;
+  /* Align the visible artwork, accounting for the logo's transparent inset. */
+  margin-left: -16px;
+}
+.home-wrath-logo {
+  width: 222px;
+  height: 100px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.home-wrath-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 24px;
+  border-left: 1px solid #3c4851;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  color: #b2bec7;
+}
+.home-wrath-version {
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: #9cd6f0;
 }
 .home-eyebrow {
   font-size: 12px;
@@ -295,5 +325,36 @@
   }
   .home-example {
     padding: 20px;
+  }
+}
+@media (max-width: 639px) {
+  .home-wrath-identity {
+    gap: 12px;
+  }
+  .home-wrath-logo {
+    width: 190px;
+    height: 84px;
+  }
+  .home-wrath-label {
+    padding-left: 12px;
+    font-size: 10px;
+  }
+  .home-wrath-version {
+    font-size: 13px;
+  }
+  .home-artwork {
+    height: 360px;
+  }
+  .home-artwork::before {
+    opacity: 0.5;
+  }
+}
+@media (max-width: 359px) {
+  .home-wrath-identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .home-wrath-label {
+    margin-left: 16px;
   }
 }
