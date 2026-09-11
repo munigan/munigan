@@ -128,3 +128,15 @@ percentage point. They do not imply inclusion of attack-specific crit bonuses,
 target suppression, temporary procs, or multiplicative haste buffs; hover and
 screen-reader descriptions state their scope. Missing results say “Stats
 unavailable”. The grid uses equal-height rows and wraps summaries on narrow screens.
+
+## Compact comparison presentation
+
+The approved [Option 01 in Paper](https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/W-0)
+uses aligned stat, effective percentage, reference, cap, and rating-to-cap columns.
+On narrow screens each stat becomes a compact summary with cap context below.
+A shared ledger lists each identical bonus once with all affected stat/hand labels;
+weapon racials remain scoped to the applicable hand. Conditional and spell-scoped
+bonuses and dual-wield auto-attack caps are listed separately as cap context.
+Tooltips keep dashed number triggers, show status before the cap reference, and
+separate named talent amounts under “Already included”. All numerical cap and
+simulation calculations remain unchanged.

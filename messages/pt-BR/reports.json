@@ -206,5 +206,16 @@
     "mainHand": "MPrinc",
     "offHand": "MSec",
     "ranged": "Dist."
+  },
+  "comparison": {
+    "stat": "Atributo",
+    "effective": "Efetivo",
+    "reference": "Referência",
+    "cap": "Limite",
+    "status": "Índice até o limite",
+    "included": "Já incluído",
+    "context": "Contexto do limite",
+    "autoAttackCap": "Limite de ataques automáticos com duas armas: {value}",
+    "expertiseProgress": "{current} / {cap} de aptidão"
   }
 }

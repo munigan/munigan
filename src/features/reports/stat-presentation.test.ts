@@ -11,6 +11,7 @@ import {
   type StatCap,
 } from "./character-stats";
 import {
+  accuracyLedger,
   localizedCapDifference,
   presentCombinationStat,
   reportPercentage,
@@ -102,4 +103,54 @@ describe("localized stat presentation", () => {
     expect(value.description).toContain("Seal of Vengeance");
     expect(value.description).not.toContain("legacy");
   });
+});
+
+it("groups shared talents once while preserving hand scope and conditional bonuses", () => {
+  const talent = {
+    talent: "Tundra Stalker",
+    amount: 5,
+    unit: "expertise" as const,
+    stat: Stat.StatExpertise,
+  };
+  const caps = [
+    {
+      id: "mh",
+      stat: Stat.StatExpertise,
+      talentBonuses: [talent],
+      presentation: {
+        label: "expertise-mh",
+        context: "behind",
+        bonuses: [{ kind: "racial", amount: 5 }],
+      },
+    },
+    {
+      id: "oh",
+      stat: Stat.StatExpertise,
+      talentBonuses: [talent],
+      presentation: { label: "expertise-oh", context: "behind", bonuses: [] },
+    },
+    {
+      id: "spell",
+      stat: Stat.StatSpellHit,
+      talentBonuses: [],
+      presentation: {
+        label: "spell",
+        context: "spells",
+        bonuses: [{ kind: "debuff", amount: 3 }],
+      },
+    },
+  ] as StatCap[];
+  const before = JSON.stringify(caps);
+  for (const [t, locale] of [
+    [english, "en-US"],
+    [portuguese, "pt-BR"],
+  ] as const) {
+    const ledger = accuracyLedger(caps, t, locale);
+    expect(ledger.included).toHaveLength(2);
+    expect(ledger.included[0][1]).toHaveLength(2);
+    expect(ledger.included[1][1]).toEqual([t("labels.expertise-mh")]);
+    expect(ledger.context).toHaveLength(1);
+    expect(ledger.context[0][1]).toEqual([t("labels.spell")]);
+  }
+  expect(JSON.stringify(caps)).toBe(before);
 });

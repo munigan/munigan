@@ -95,14 +95,13 @@ test("talent contributions appear in compact row tooltips and the stats dialog",
     .first();
   await expect(stat).not.toHaveAttribute("title");
   const trigger = stat.getByRole("button");
-  const popup = page
-    .getByRole("tooltip")
-    .filter({ hasText: "Includes +5 expertise from Tundra Stalker" });
+  const popup = page.getByRole("tooltip").filter({ hasText: "Tundra Stalker" });
   await expect(trigger).toHaveCSS("text-decoration-style", "dashed");
   await trigger.hover();
-  await expect(popup).toContainText(
-    "Includes +5 expertise from Tundra Stalker",
-  );
+  await expect(
+    popup.getByLabel("Includes +5 expertise from Tundra Stalker"),
+  ).toBeVisible();
+  await expect(popup).toContainText("Already included");
   await page.screenshot({
     path: testInfo.outputPath("stat-tooltip-desktop.png"),
   });
@@ -466,8 +465,15 @@ test("desktop stats put cap percentages above the primary metrics", async ({
   const accuracy = await dialog.locator(".stats-accuracy").boundingBox();
   expect(primary!.y).toBeGreaterThan(accuracy!.y + accuracy!.height);
   const caps = await dialog.locator(".accuracy-stat").all();
-  expect((await caps[0].boundingBox())!.y).toBe(
-    (await caps[1].boundingBox())!.y,
+  expect((await caps[1].boundingBox())!.y).toBeGreaterThan(
+    (await caps[0].boundingBox())!.y,
+  );
+  const values = await dialog.locator(".accuracy-value").all();
+  expect((await values[0].boundingBox())!.x).toBe(
+    (await values[1].boundingBox())!.x,
+  );
+  await expect(dialog.locator(".accuracy-columns")).toContainText(
+    "Rating to cap",
   );
   await expect(dialog.locator(".accuracy-value strong").first()).toHaveText(
     "8.00%",

@@ -1,8 +1,9 @@
 import { useLocale, useTranslations } from "next-intl";
 import {
   capLabel,
-  capContext,
-  capBonuses,
+  accuracyLedger,
+  compactCapContext,
+  capReferenceValue,
   localizedCapDifference,
   reportPercentage,
   talentBonusLines,
@@ -47,8 +48,16 @@ function StatPercentage({ stat, rating }: { stat: Stat; rating: number }) {
 function AccuracyStats({ stats }: { stats: StatCap[] }) {
   const t = useTranslations("reports");
   const locale = useLocale();
+  const ledger = accuracyLedger(stats, t, locale);
   return (
     <section className="stats-accuracy" aria-label={t("accuracy")}>
+      <div className="accuracy-columns" aria-hidden="true">
+        {(["stat", "effective", "reference", "cap", "status"] as const).map(
+          (key) => (
+            <span key={key}>{t(`comparison.${key}`)}</span>
+          ),
+        )}
+      </div>
       <dl className="accuracy-stats">
         {stats.map((item) => {
           const expertise = item.stat === Stat.StatExpertise;
@@ -89,27 +98,34 @@ function AccuracyStats({ stats }: { stats: StatCap[] }) {
                 {localizedCapDifference(item, t, locale)}
               </dd>
               <dd className="accuracy-reference">
-                {t("capReference", {
-                  value: expertise
-                    ? t("expertiseValue", { value: number(item.cap, locale) })
-                    : t("hitValue", {
-                        value: reportPercentage(item.cap, locale, 0),
-                      }),
-                  context: capContext(item, t, locale),
-                })}
+                <span className="sr-only">{t("comparison.cap")}: </span>
+                {capReferenceValue(item, t, locale)} ·{" "}
+                {compactCapContext(item, t, locale)}
               </dd>
-              {[
-                ...capBonuses(item, t, locale),
-                ...talentBonusLines(item.talentBonuses, t, locale),
-              ].map((bonus) => (
-                <dd className="accuracy-reference" key={bonus}>
-                  {bonus}
-                </dd>
-              ))}
             </div>
           );
         })}
       </dl>
+      {(ledger.included.length > 0 || ledger.context.length > 0) && (
+        <div className="accuracy-ledger">
+          {(["included", "context"] as const).map(
+            (kind) =>
+              ledger[kind].length > 0 && (
+                <section key={kind}>
+                  <h3>{t(`comparison.${kind}`)}</h3>
+                  <ul>
+                    {ledger[kind].map(([line, labels]) => (
+                      <li key={line}>
+                        <span>{line}</span>
+                        <small>{labels.join(" · ")}</small>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ),
+          )}
+        </div>
+      )}
     </section>
   );
 }

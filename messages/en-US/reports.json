@@ -206,5 +206,16 @@
     "mainHand": "MHand",
     "offHand": "OHand",
     "ranged": "Range"
+  },
+  "comparison": {
+    "stat": "Stat",
+    "effective": "Effective",
+    "reference": "Reference",
+    "cap": "Cap",
+    "status": "Rating to cap",
+    "included": "Already included",
+    "context": "Cap context",
+    "autoAttackCap": "Dual-wield auto-attack cap: {value}",
+    "expertiseProgress": "{current} / {cap} expertise"
   }
 }

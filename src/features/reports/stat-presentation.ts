@@ -48,7 +48,7 @@ export function capBonuses(cap: StatCap, t: Translation, locale: string) {
     }),
   );
 }
-export function talentBonusLines(
+export function talentBonusEntries(
   bonuses: TalentStatBonus[] = [],
   t: Translation,
   locale: string,
@@ -69,8 +69,79 @@ export function talentBonusLines(
               locale,
               Number.isInteger(bonus.amount) ? 0 : 2,
             );
-    return t("talentContribution", { amount, talent: bonus.talent });
+    return {
+      name: bonus.talent,
+      amount,
+      description: t("talentContribution", { amount, talent: bonus.talent }),
+    };
   });
+}
+export function talentBonusLines(
+  bonuses: TalentStatBonus[] = [],
+  t: Translation,
+  locale: string,
+) {
+  return talentBonusEntries(bonuses, t, locale).map(
+    (entry) => entry.description,
+  );
+}
+export function capBreakdown(cap: StatCap, t: Translation, locale: string) {
+  const included = talentBonusLines(cap.talentBonuses, t, locale);
+  const context: string[] = [];
+  const lines = capBonuses(cap, t, locale);
+  cap.presentation.bonuses.forEach((bonus, index) => {
+    (bonus.kind === "racial" ? included : context).push(lines[index]);
+  });
+  return { included, context };
+}
+export function accuracyLedger(
+  stats: StatCap[],
+  t: Translation,
+  locale: string,
+) {
+  const included = new Map<string, string[]>();
+  const context = new Map<string, string[]>();
+  for (const cap of stats) {
+    const breakdown = capBreakdown(cap, t, locale);
+    for (const [target, lines] of [
+      [included, breakdown.included],
+      [context, breakdown.context],
+    ] as const) {
+      for (const line of lines) {
+        const labels = target.get(line) ?? [];
+        const label = capLabel(cap, t);
+        if (!labels.includes(label)) labels.push(label);
+        target.set(line, labels);
+      }
+    }
+    if (cap.presentation.autoAttackCap !== undefined) {
+      context.set(
+        t("comparison.autoAttackCap", {
+          value: percentage(cap.presentation.autoAttackCap, locale, 0),
+        }),
+        [capLabel(cap, t)],
+      );
+    }
+  }
+  return { included: [...included], context: [...context] };
+}
+export function capReferenceValue(
+  cap: StatCap,
+  t: Translation,
+  locale: string,
+) {
+  return cap.stat === Stat.StatExpertise
+    ? t("expertiseValue", { value: decimal(cap.cap, locale, 0) })
+    : t("hitValue", { value: percentage(cap.cap, locale, 0) });
+}
+export function compactCapContext(
+  cap: StatCap,
+  t: Translation,
+  locale: string,
+) {
+  return cap.presentation.context === "dualWield"
+    ? t("context.special")
+    : capContext(cap, t, locale);
 }
 export function capLabel(cap: StatCap, t: Translation, compact = false) {
   return t(`${compact ? "compact" : "labels"}.${cap.presentation.label}`);
