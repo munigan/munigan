@@ -74,3 +74,9 @@ Source commit `bef9935` implements the approved Paper loading design: known cata
 Validation passed: 41 focused component tests, 12 tooltip/enhancement browser tests, TypeScript, focused ESLint, design checks and scoped review. The browser regression verifies actual animation duration, reduced motion, delayed enrichment and stable 336 px width; its screenshot was visually reviewed. Production compilation, TypeScript and static generation passed.
 
 Deployment `dpl_5MhdsuJisDfFPuCW6Pm24Q9nDRAS` at `https://wow-droptimizer-b9t0at5xl-diego-fernandes-projects.vercel.app` was verified and promoted to munigan.app. The protected deployment returned complete original trinket JSON; the public Gear Lab page and generated CSS contain the approved loading copy and pulse rules. No Worker deployment was required. The previous application deployment is `dpl_91SPwQN1VgpAZXd8b8VSo5LdvBQr` for rollback.
+
+## Quiet enrichment status — 2026-09-11
+
+Source `c7c90d5` revises the loading design after feedback on a fully enhanced chest item: known catalog content now remains contiguous with no body or requirement placeholders. A single footer status says “Fetching additional details…” with a small pulsing dot; unknown items retain four body skeleton lines. Cached details, local-complete gems, failures, retries and reduced-motion support remain intact. The obsolete two-second status transition was removed.
+
+Validation: 27 component tests, all 12 tooltip/enhancement browser tests, TypeScript, focused lint, formatting, design checks and scoped review passed. A browser screenshot confirmed the compact footer layout. Production build `dpl_GU6rXRUhw7h46KpG6ZmSybKsycti` (`https://wow-droptimizer-lxow4ctl5-diego-fernandes-projects.vercel.app`) passed and was promoted to munigan.app after verifying its page and CSS. The public page and dot styles were also verified. No Worker change was needed.
