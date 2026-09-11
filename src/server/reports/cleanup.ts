@@ -9,7 +9,7 @@ export async function cleanupReports(): Promise<{
 }> {
   const counts = { scrubbed: 0, expired: 0 };
   const candidates = await pool.query(
-    `SELECT j.id,j.account_id FROM tg_jobs j WHERE ${eligible} ORDER BY j.created_at,j.id LIMIT 100`,
+    `SELECT j.id,j.account_id,j.deleted_at FROM tg_jobs j WHERE ${eligible} ORDER BY j.created_at,j.id LIMIT 100`,
   );
   for (const candidate of candidates.rows) {
     const result = await transaction(async (c) => {
@@ -20,6 +20,23 @@ export async function cleanupReports(): Promise<{
         );
         if (!account.rowCount) return null;
       }
+      // Physical deletion cascades into intents. Match completion's lifecycle ->
+      // intent -> job order and defer a candidate with any busy intent.
+      const intentLocks = candidate.deleted_at
+        ? null
+        : await c.query(
+            "SELECT token_hash FROM report_save_intents WHERE job_id=$1 ORDER BY token_hash FOR UPDATE SKIP LOCKED",
+            [candidate.id],
+          );
+      async function hasUnlockedIntents() {
+        if (!intentLocks) return false;
+        const result = await c.query(
+          "SELECT 1 FROM report_save_intents WHERE job_id=$1 AND NOT (token_hash=ANY($2::text[])) LIMIT 1",
+          [candidate.id, intentLocks.rows.map((row) => row.token_hash)],
+        );
+        return Boolean(result.rowCount);
+      }
+      if (await hasUnlockedIntents()) return null;
       const locked = await c.query(
         `SELECT j.id,j.account_id,j.deleted_at FROM tg_jobs j WHERE j.id=$1 AND ${eligible} FOR UPDATE OF j SKIP LOCKED`,
         [candidate.id],
@@ -46,6 +63,9 @@ export async function cleanupReports(): Promise<{
         );
         return "scrubbed" as const;
       }
+      // A begin-intent transaction could commit between the intent scan and
+      // job lock. Never let the cascade acquire an uncoordinated intent lock.
+      if (await hasUnlockedIntents()) return null;
       await c.query("DELETE FROM tg_jobs WHERE id=$1", [job.id]);
       return "expired" as const;
     });

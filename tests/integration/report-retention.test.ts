@@ -178,3 +178,110 @@ it("detaches retry children when scrubbing a deleted parent and preserves copied
     readReport(child.token, { account: null, ownerHash: null }),
   ).resolves.toHaveProperty("report");
 });
+
+import { beginSaveIntent, completeSaveIntent } from "@/server/library/claims";
+it("locks old save intents before expiry deletes so actual completion cannot deadlock on the job", async () => {
+  vi.stubEnv("REPORT_SAVING_ENABLED", "true");
+  const account = await seedAccount();
+  const job = await seedTerminalReport();
+  const identity = { account, ownerHash: digest(job.ownerKey) };
+  const intent = await beginSaveIntent(job.token, identity);
+  await pool.query(
+    "UPDATE tg_jobs SET expires_at=now()-interval '31 days' WHERE id=$1",
+    [job.jobId],
+  );
+  const gate = await pool.connect();
+  await gate.query("SELECT pg_advisory_lock(827432)");
+  await pool.query(
+    "CREATE FUNCTION hold_intent_expiry() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_advisory_xact_lock(827432); RETURN OLD; END $$",
+  );
+  await pool.query(
+    "CREATE TRIGGER hold_intent_expiry BEFORE DELETE ON tg_jobs FOR EACH ROW EXECUTE FUNCTION hold_intent_expiry()",
+  );
+  let cleanup: Promise<unknown> | undefined;
+  let completion: Promise<unknown> | undefined;
+  try {
+    cleanup = cleanupReports().then(
+      (value) => ({ value }),
+      (error) => ({ error }),
+    );
+    await waitForLock("DELETE FROM tg_jobs%");
+    completion = completeSaveIntent(intent.token, identity).then(
+      (value) => ({ value }),
+      (error) => ({ error }),
+    );
+    // The old order instead lets completion lock its intent and block on the job,
+    // then the DELETE cascade waits on that intent, forming a deadlock.
+    await waitForLock("SELECT * FROM report_save_intents%");
+    await gate.query("SELECT pg_advisory_unlock(827432)");
+    expect(await cleanup).toEqual({ value: { scrubbed: 0, expired: 1 } });
+    expect(await completion).toMatchObject({
+      error: { code: "NOT_FOUND", status: 404 },
+    });
+  } finally {
+    await gate.query("SELECT pg_advisory_unlock(827432)");
+    gate.release();
+    await cleanup;
+    await completion;
+    await pool.query("DROP TRIGGER hold_intent_expiry ON tg_jobs");
+    await pool.query("DROP FUNCTION hold_intent_expiry()");
+    vi.unstubAllEnvs();
+  }
+});
+it("defers busy intents and preserves completion when an expiry candidate becomes live", async () => {
+  vi.stubEnv("REPORT_SAVING_ENABLED", "true");
+  const account = await seedAccount();
+  const job = await seedTerminalReport();
+  const identity = { account, ownerHash: digest(job.ownerKey) };
+  const intent = await beginSaveIntent(job.token, identity);
+  await pool.query(
+    "UPDATE tg_jobs SET expires_at=now()-interval '31 days' WHERE id=$1",
+    [job.jobId],
+  );
+  const blocker = await pool.connect();
+  await blocker.query("BEGIN");
+  await blocker.query(
+    "SELECT token_hash FROM report_save_intents WHERE token_hash=$1 FOR UPDATE",
+    [digest(intent.token)],
+  );
+  let completion: Promise<unknown> | undefined;
+  let cleanup: Promise<unknown> | undefined;
+  try {
+    completion = completeSaveIntent(intent.token, identity).then(
+      (value) => ({ value }),
+      (error) => ({ error }),
+    );
+    await waitForLock("SELECT * FROM report_save_intents%");
+    cleanup = cleanupReports();
+    expect(await cleanup).toEqual({ scrubbed: 0, expired: 0 });
+    expect(
+      (
+        await blocker.query(
+          "SELECT token_hash FROM report_save_intents WHERE token_hash=$1",
+          [digest(intent.token)],
+        )
+      ).rowCount,
+    ).toBe(1);
+    // Restore eligibility for the pending explicit save before releasing its lock.
+    await blocker.query(
+      "UPDATE tg_jobs SET expires_at=now()+interval '1 day' WHERE id=$1",
+      [job.jobId],
+    );
+    await blocker.query("COMMIT");
+    expect(await completion).toHaveProperty("value");
+    await pool.query(
+      "UPDATE tg_jobs SET expires_at=now()-interval '31 days' WHERE id=$1",
+      [job.jobId],
+    );
+    expect(await cleanupReports()).toEqual({ scrubbed: 0, expired: 0 });
+    await expect(
+      completeSaveIntent(intent.token, identity),
+    ).resolves.toHaveProperty("itemId");
+  } finally {
+    await blocker.query("ROLLBACK");
+    blocker.release();
+    await completion;
+    await cleanup;
+    vi.unstubAllEnvs();
+  }
+});
