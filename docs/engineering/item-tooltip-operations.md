@@ -86,3 +86,11 @@ Validation: 27 component tests, all 12 tooltip/enhancement browser tests, TypeSc
 Source `59302c3` adds a cancellable 250 ms hover delay to custom item/gem popovers and sets Base UI enchant triggers to the same delay. Keyboard focus and touch inspection stay immediate. Leaving, blurring, dismissing, unmounting or changing item identity cancels pending opening; ownership cleanup remains independent of identity changes.
 
 All 29 item component tests, 12 tooltip/enhancement browser tests, TypeScript, focused lint and scoped review passed. Production build `dpl_7wTkEL3vyc1SiMKH6Je46iD2Nxdc` (`https://wow-droptimizer-jy8lg7zmk-diego-fernandes-projects.vercel.app`) passed, its Gear Lab page was verified, and it was promoted to munigan.app. No Worker changes were required.
+
+## Matching local and enriched formatting — 2026-09-11
+
+Source `331447e` routes catalog fallback data through the same TooltipLine section renderer as service data. Local rows now include supported slot/type facts, Heroic metadata, armor before base stats, green equipment bonuses, and paired weapon damage/speed plus DPS. Gems retain their bonus formatting. Missing binding, durability, requirements and proc descriptions are not inferred. Numeric values and shared-rating suppression are preserved.
+
+Validation passed: 31 focused tests, 13 tooltip/enhancement browser checks, TypeScript, lint, design checks and scoped review. The reported chest (47425) is covered using an actual service response fixture; armor/base-stat row order stays identical and total height changes by no more than 40 px at the tested desktop viewport. Local/enriched screenshots were reviewed. Longer newly fetched effects can still expand a tooltip. Review also checked both catalogs in EN/PT for missing translations and invalid values.
+
+Production build `dpl_DJ4MBx4RcUc6oSfGfN69D7xBfrED` (`https://wow-droptimizer-db2zhr1ih-diego-fernandes-projects.vercel.app`) passed and was promoted to munigan.app after verifying the page and localized format messages; the public page was verified afterward. No Worker changes were required.
