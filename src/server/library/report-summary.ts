@@ -27,8 +27,14 @@ export function summarizeReport(report: TopGearReport): LibrarySummary {
   const gainDps =
     equippedDps === null ? null : finite(dps - equippedDps, "DPS gain");
   const player = report.snapshot.settings.player;
-  const characterName = boundedText(player?.name, 80, "character name").trim();
-  if (!characterName) throw new Error("Invalid character name");
+  // Admission and historical frozen reports permit empty names. This fallback
+  // belongs only to library display metadata; never rewrite the report snapshot.
+  const characterName =
+    boundedText(
+      player?.name === "" ? "Unnamed character" : player?.name,
+      80,
+      "character name",
+    ).trim() || "Unnamed character";
 
   return {
     characterName,

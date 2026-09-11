@@ -344,3 +344,36 @@ it("serializes competing direct and intent claims", async () => {
     reason: { code: "CLAIM_CONFLICT" },
   });
 });
+
+it.each(["", "   "])(
+  "claims historical unnamed report %j without changing frozen results",
+  async (name) => {
+    const account = await seedAccount(),
+      job = await seedTerminalReport();
+    const frozen = (
+      await pool.query(
+        "UPDATE tg_jobs SET report=jsonb_set(report,'{snapshot,settings,player,name}',$2::jsonb) WHERE id=$1 RETURNING report",
+        [job.jobId, JSON.stringify(name)],
+      )
+    ).rows[0].report;
+    const intent = await beginSaveIntent(job.token, anonymous(job.ownerKey));
+    const identity = { ...anonymous(job.ownerKey), account };
+    await completeSaveIntent(intent.token, identity);
+    await completeSaveIntent(intent.token, identity);
+    expect(
+      (
+        await pool.query("SELECT settled,report FROM tg_jobs WHERE id=$1", [
+          job.jobId,
+        ])
+      ).rows[0],
+    ).toEqual({ settled: true, report: frozen });
+    expect(
+      (
+        await pool.query(
+          "SELECT character_name FROM library_items WHERE job_id=$1",
+          [job.jobId],
+        )
+      ).rows,
+    ).toEqual([{ character_name: "Unnamed character" }]);
+  },
+);

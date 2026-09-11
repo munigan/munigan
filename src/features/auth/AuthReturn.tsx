@@ -23,22 +23,40 @@ import {
 
 type Flow = { kind: "intent" | "flow"; key: string };
 const activeKey = "munigan.auth.active";
-function invalidateActiveReturn() {
+function invalidateActiveReturn(params: URLSearchParams) {
   const raw = sessionStorage.getItem(activeKey);
   sessionStorage.removeItem(activeKey);
-  if (!raw) return;
-  const stored = JSON.parse(raw);
+  // A first provider return has a query context but no active pointer yet.
+  // Rejected state uses only the trusted local pointer, never query recovery.
+  const kind = params.has("intent") ? "intent" : "flow";
+  const key = params.get(kind);
+  const supplied =
+    params.get("error") !== "state_mismatch" &&
+    !(params.has("intent") && params.has("flow")) &&
+    params.getAll(kind).length === 1 &&
+    key &&
+    validFlowKey(key);
+  const stored = supplied
+    ? { version: 1, kind, key }
+    : raw
+      ? JSON.parse(raw)
+      : null;
   if (
     stored?.version !== 1 ||
     typeof stored.key !== "string" ||
     !validFlowKey(stored.key)
   )
     return;
+  const reportPath =
+    supplied && stored.kind === "intent"
+      ? loadReturnState(stored.key)?.reportPath
+      : undefined;
   if (stored.kind === "intent") clearReturnState(stored.key);
   if (stored.kind === "flow") {
     clearSignInReturn(stored.key);
     if (loadDeletionReturn()?.flow === stored.key) clearDeletionReturn();
   }
+  return reportPath;
 }
 export function AuthReturn() {
   const t = useTranslations("auth"),
@@ -58,8 +76,11 @@ export function AuthReturn() {
     try {
       // Invalidate before stripping the marker so a clean-URL reload cannot resume
       // a rejected save or reconfirmation. Storage failure keeps the marker intact.
-      const rejected = params.get("error") === "state_mismatch";
-      if (rejected) invalidateActiveReturn();
+      const rejected = params.has("error");
+      if (rejected) {
+        const reportPath = invalidateActiveReturn(params);
+        if (reportPath) queueMicrotask(() => setBack(reportPath));
+      }
       // Strip OAuth/error parameters before asynchronous work or completion POST.
       history.replaceState(history.state, "", "/auth/return");
       if (rejected) throw new Error("lost");
@@ -102,7 +123,11 @@ export function AuthReturn() {
       queueMicrotask(() => setFlow(next));
     } catch {
       queueMicrotask(() => {
-        setError("returnLost");
+        setError(
+          params.has("error") && params.get("error") !== "state_mismatch"
+            ? "returnOAuthFailed"
+            : "returnLost",
+        );
         setPending(false);
       });
     }
@@ -140,7 +165,11 @@ export function AuthReturn() {
                       result.code,
                     )
                   ? "returnLost"
-                  : "saveFailedAfterLogin",
+                  : ["OWNER_COOKIE_REQUIRED", "AUTH_UNAVAILABLE"].includes(
+                        result.code,
+                      )
+                    ? `errors.${result.code}`
+                    : "saveFailedAfterLogin",
             );
             return;
           }

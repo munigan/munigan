@@ -22,6 +22,24 @@ function invalidRequest(): AccountError {
 
 type Cursor = { savedAt: string; id: string };
 
+// Validate canonical UTC timestamps without rounding PostgreSQL microseconds.
+function validCursorTimestamp(value: string): boolean {
+  const parts =
+    /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3,6}Z$/.exec(
+      value,
+    );
+  if (!parts) return false;
+  const year = Number(parts[1]),
+    month = Number(parts[2]),
+    day = Number(parts[3]);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return (
+    year > 0 &&
+    day <=
+      [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+  );
+}
+
 function parseCursor(value: string | undefined): Cursor | null {
   if (!value) return null;
   if (value.length > maximumCursorLength) throw invalidRequest();
@@ -31,22 +49,20 @@ function parseCursor(value: string | undefined): Cursor | null {
     ) as Record<string, unknown>;
     if (
       typeof parsed.savedAt !== "string" ||
-      !Number.isFinite(Date.parse(parsed.savedAt)) ||
+      !validCursorTimestamp(parsed.savedAt) ||
       typeof parsed.id !== "string" ||
       !uuidPattern.test(parsed.id)
     )
       throw invalidRequest();
-    return { savedAt: new Date(parsed.savedAt).toISOString(), id: parsed.id };
+    return { savedAt: parsed.savedAt, id: parsed.id };
   } catch (error) {
     if (error instanceof AccountError) throw error;
     throw invalidRequest();
   }
 }
 
-function encodeCursor(savedAt: Date, id: string): string {
-  return Buffer.from(
-    JSON.stringify({ savedAt: savedAt.toISOString(), id }),
-  ).toString("base64url");
+function encodeCursor(savedAt: string, id: string): string {
+  return Buffer.from(JSON.stringify({ savedAt, id })).toString("base64url");
 }
 
 function escapeSearch(value: string): string {
@@ -129,7 +145,8 @@ export async function listLibrary(
   }
   values.push(pageSize + 1);
   const result = await pool.query(
-    `SELECT id,tool,kind,title,summary,created_at,saved_at
+    `SELECT id,tool,kind,title,summary,created_at,saved_at,
+              to_char(saved_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_saved_at
        FROM library_items
       WHERE ${conditions.join(" AND ")}
       ORDER BY saved_at DESC,id DESC
@@ -144,6 +161,7 @@ export async function listLibrary(
     summary: LibraryItem["summary"];
     created_at: Date;
     saved_at: Date;
+    cursor_saved_at: string;
   }>;
   return {
     items: pageRows.map((row) => ({
@@ -157,7 +175,7 @@ export async function listLibrary(
     })),
     nextCursor:
       result.rows.length > pageSize && pageRows.length
-        ? encodeCursor(pageRows.at(-1)!.saved_at, pageRows.at(-1)!.id)
+        ? encodeCursor(pageRows.at(-1)!.cursor_saved_at, pageRows.at(-1)!.id)
         : null,
     tools: ["top-gear"],
   };

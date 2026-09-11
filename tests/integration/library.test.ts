@@ -74,40 +74,43 @@ it("escapes search metacharacters and excludes full report fields", async () => 
   expect((await listLibrary(account.id, { search: "%_x" })).items).toEqual([]);
 });
 
-it("paginates equal timestamps by id and validates bounded cursors", async () => {
-  const account = await seedAccount();
-  const savedAt = new Date("2026-01-01T00:00:00.000Z");
-  for (let index = 0; index < 22; index += 1) {
-    const job = await seedTerminalReport({ accountId: account.id });
-    await publishSeededReport(job, account);
-    await pool.query("UPDATE library_items SET saved_at=$2 WHERE job_id=$1", [
-      job.jobId,
-      savedAt,
-    ]);
-  }
+it.each([false, true])(
+  "paginates microsecond timestamps with mixed boundary=%s and validates cursors",
+  async (mixed) => {
+    const account = await seedAccount();
+    const savedAt = "2026-01-01T00:00:00.123456Z";
+    for (let index = 0; index < 22; index += 1) {
+      const job = await seedTerminalReport({ accountId: account.id });
+      await publishSeededReport(job, account);
+      await pool.query("UPDATE library_items SET saved_at=$2 WHERE job_id=$1", [
+        job.jobId,
+        mixed && index >= 20 ? "2026-01-01T00:00:00.123123Z" : savedAt,
+      ]);
+    }
 
-  const first = await listLibrary(account.id, {});
-  const second = await listLibrary(account.id, { cursor: first.nextCursor! });
-  expect(first.items).toHaveLength(20);
-  expect(second.items).toHaveLength(2);
-  expect(
-    new Set([...first.items, ...second.items].map((item) => item.id)).size,
-  ).toBe(22);
-  await expect(
-    listLibrary(account.id, { cursor: "bad" }),
-  ).rejects.toMatchObject({
-    code: "INVALID_REQUEST",
-    status: 400,
-  } satisfies Partial<AccountError>);
-  await expect(
-    listLibrary(account.id, { cursor: "x".repeat(1025) }),
-  ).rejects.toMatchObject({ status: 400 });
-  await expect(
-    listLibrary(account.id, { tool: "other" as "top-gear" }),
-  ).rejects.toMatchObject({
-    status: 400,
-  });
-});
+    const first = await listLibrary(account.id, {});
+    const second = await listLibrary(account.id, { cursor: first.nextCursor! });
+    expect(first.items).toHaveLength(20);
+    expect(second.items).toHaveLength(2);
+    expect(
+      new Set([...first.items, ...second.items].map((item) => item.id)).size,
+    ).toBe(22);
+    await expect(
+      listLibrary(account.id, { cursor: "bad" }),
+    ).rejects.toMatchObject({
+      code: "INVALID_REQUEST",
+      status: 400,
+    } satisfies Partial<AccountError>);
+    await expect(
+      listLibrary(account.id, { cursor: "x".repeat(1025) }),
+    ).rejects.toMatchObject({ status: 400 });
+    await expect(
+      listLibrary(account.id, { tool: "other" as "top-gear" }),
+    ).rejects.toMatchObject({
+      status: 400,
+    });
+  },
+);
 
 it("publishes partial and canceled successes but rejects failed empty reports", async () => {
   const account = await seedAccount();

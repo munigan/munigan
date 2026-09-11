@@ -585,3 +585,49 @@ it("rejects expiry before replaying a retry token", async () => {
     retryJob(job.jobId, identity, key, ownerKey),
   ).rejects.toMatchObject({ code: "REPORT_EXPIRED", status: 410 });
 });
+
+it.each(["", "   "])(
+  "settles an admitted unnamed report %j with display-only fallback",
+  async (name) => {
+    const account = await seedAccount(),
+      ownerKey = capability(),
+      input = fixtureRequest();
+    input.snapshot.settings.player!.name = name;
+    const job = await admitJob({
+      request: encodeRequest(input),
+      ownerKey,
+      idempotencyKey: randomUUID(),
+      identity: { account, ownerHash: digest(ownerKey) },
+    });
+    const admittedSnapshot = (
+      await pool.query("SELECT request FROM tg_jobs WHERE id=$1", [job.jobId])
+    ).rows[0].request.snapshot;
+    await executeTopGear(job.jobId, undefined, evaluator);
+    const row = (
+      await pool.query(
+        "SELECT status,settled,report FROM tg_jobs WHERE id=$1",
+        [job.jobId],
+      )
+    ).rows[0];
+    expect(row).toMatchObject({ status: "complete", settled: true });
+    // Compare canonical stored data: protobuf JSON omits the default empty name.
+    expect(row.report.snapshot).toEqual(admittedSnapshot);
+    const frozen = row.report;
+    await executeTopGear(job.jobId, undefined, evaluator);
+    expect(
+      (await pool.query("SELECT report FROM tg_jobs WHERE id=$1", [job.jobId]))
+        .rows[0].report,
+    ).toEqual(frozen);
+    expect(
+      (
+        await pool.query(
+          "SELECT character_name FROM library_items WHERE job_id=$1",
+          [job.jobId],
+        )
+      ).rows,
+    ).toEqual([{ character_name: "Unnamed character" }]);
+    expect(
+      (await pool.query("SELECT reserved FROM tg_budgets")).rows[0].reserved,
+    ).toBe("0");
+  },
+);

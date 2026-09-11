@@ -288,7 +288,7 @@ test("authentication survives save failure and retries the same intent exactly o
   try {
     await page.getByRole("button", { name: "Allow", exact: true }).click();
     await expect(page.locator(".auth-return [role=alert]")).toContainText(
-      "this report wasn't saved",
+      "We couldn't check your session",
     );
     expect((await db.query("SELECT id FROM auth_session")).rowCount).toBe(1);
     expect((await db.query("SELECT id FROM library_items")).rowCount).toBe(0);
@@ -325,7 +325,7 @@ test("replayed callback invalidates a pending save across clean return reload", 
   try {
     await page.getByRole("button", { name: "Allow", exact: true }).click();
     await expect(page.locator(".auth-return [role=alert]")).toContainText(
-      "this report wasn't saved",
+      "We couldn't check your session",
     );
   } finally {
     await db.query("DROP TRIGGER fail_save ON library_items");
@@ -373,7 +373,7 @@ test("missing original browser proof permits login but never saves", async ({
   await page.getByRole("button", { name: "Allow", exact: true }).click();
   expect((await (await completed).json()).code).toBe("OWNER_COOKIE_REQUIRED");
   await expect(page.locator(".auth-return [role=alert]")).toContainText(
-    "this report wasn't saved",
+    "original browser",
   );
   expect((await db.query("SELECT id FROM auth_session")).rowCount).toBe(1);
   expect((await db.query("SELECT id FROM library_items")).rowCount).toBe(0);
@@ -463,3 +463,95 @@ test("reauthentication with a different account never authorizes account deletio
     ).rowCount,
   ).toBe(0);
 });
+
+for (const kind of ["save", "signin", "deletion"] as const) {
+  test(`provider denial with existing session invalidates ${kind} across clean reload`, async ({
+    page,
+    context,
+    browser,
+  }) => {
+    if (kind === "save") await prepareSave(page);
+    else if (kind === "signin") await signin(page);
+    else {
+      await signin(page);
+      await page.getByRole("button", { name: "Allow", exact: true }).click();
+      await expect(
+        page.getByRole("button", { name: "Account menu" }),
+      ).toBeVisible();
+      await db.query(
+        "UPDATE auth_session SET created_at=now()-interval '10 minutes'",
+      );
+      await page.getByRole("button", { name: "Account menu" }).click();
+      await page.getByRole("menuitem", { name: "Delete account" }).click();
+      await page
+        .getByRole("button", { name: "Delete my account", exact: true })
+        .click();
+      await page.getByRole("button", { name: "Verify with Discord" }).click();
+    }
+    // Introduce a real-handler session while preserving this pending OAuth state.
+    if (kind !== "deletion") {
+      const authenticated = await browser.newContext();
+      const other = await authenticated.newPage();
+      await signin(other);
+      await other.getByRole("button", { name: "Allow", exact: true }).click();
+      await expect(
+        other.getByRole("button", { name: "Account menu" }),
+      ).toBeVisible();
+      await context.addCookies(
+        (await authenticated.cookies()).filter((cookie) =>
+          cookie.name.endsWith(".session_token"),
+        ),
+      );
+      await authenticated.close();
+    }
+    const prior = await page.request.get("/api/account/session");
+    const accountId = (await prior.json()).account.id;
+    let completions = 0;
+    page.on("request", (req) => {
+      if (new URL(req.url()).pathname === "/api/library/save-intents/complete")
+        completions++;
+    });
+    const denial = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/auth/callback/discord",
+    );
+    await page.getByRole("button", { name: "Deny", exact: true }).click();
+    expect(
+      new URL(
+        (await denial).headers().location,
+        "http://127.0.0.1:3100",
+      ).searchParams.get("error"),
+    ).toBe("access_denied");
+    await expect(page).toHaveURL(/\/auth\/return$/);
+    await expect(page.locator(".auth-return [role=alert]")).toContainText(
+      "canceled or could not finish",
+    );
+    if (kind === "save")
+      await expect(
+        page.getByRole("button", { name: "Back to report" }),
+      ).toBeVisible();
+    await page.reload();
+    await expect(page.locator(".auth-return [role=alert]")).toContainText(
+      "missing or expired",
+    );
+    expect(completions).toBe(0);
+    expect((await db.query("SELECT id FROM library_items")).rowCount).toBe(0);
+    expect((await db.query("SELECT id FROM auth_session")).rowCount).toBe(1);
+    expect(
+      (await (await page.request.get("/api/account/session")).json()).account
+        .id,
+    ).toBe(accountId);
+    expect(
+      await page.evaluate(() =>
+        sessionStorage.getItem("munigan.auth.account-deletion"),
+      ),
+    ).toBeNull();
+    expect(
+      (
+        await db.query(
+          "SELECT user_id FROM account_lifecycle WHERE status='deleting'",
+        )
+      ).rowCount,
+    ).toBe(0);
+  });
+}

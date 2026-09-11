@@ -95,7 +95,7 @@ it("retains a failed intent across reload and retries saving without another OAu
   vi.stubGlobal("fetch", fetch);
   view();
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "You're signed in, but this report wasn't saved. Try saving again.",
+    en.errors.AUTH_UNAVAILABLE,
   );
   expect(sessionStorage.getItem("munigan.auth.active")).toContain(key);
   await userEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -229,3 +229,84 @@ it("does not clear deletion reconfirmation owned by a different flow", async () 
   expect(loadDeletionReturn()?.flow).toBe(other);
   expect(loadSignInReturn(key)).toBeNull();
 });
+
+it.each(["access_denied", "server_error", ""])(
+  "invalidates provider error %s for a first return and clean reload",
+  async (error) => {
+    storeReturnState(key, state);
+    history.replaceState(null, "", `/auth/return?intent=${key}&error=${error}`);
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(Response.json({ reportPath: state.reportPath }));
+    vi.stubGlobal("fetch", fetch);
+    const first = view();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      en.returnOAuthFailed,
+    );
+    expect(replace).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: en.back }));
+    expect(replace).toHaveBeenCalledWith(state.reportPath);
+    replace.mockClear();
+    first.unmount();
+    expect(location.search).toBe("");
+    view();
+    expect(await screen.findByRole("alert")).toHaveTextContent(en.returnLost);
+    expect(loadReturnState(key)).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
+  },
+);
+it.each([false, true])(
+  "provider denial invalidates sign-in and deletion=%s despite an existing session",
+  async (deletion) => {
+    const { storeDeletionReturn, loadDeletionReturn } =
+      await import("./deletion-return");
+    if (deletion) storeDeletionReturn(key, "account-a");
+    const other = "b".repeat(43);
+    storeReturnState(other, state);
+    sessionStorage.setItem("munigan.top-gear.admission", "unrelated-draft");
+    storeSignInReturn(key, {
+      returnPath: "/library",
+      locale: "en-US",
+      expectedUserId: "account-a",
+    });
+    history.replaceState(
+      null,
+      "",
+      `/auth/return?flow=${key}&error=access_denied`,
+    );
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(Response.json({ account: { id: "account-a" } }));
+    vi.stubGlobal("fetch", fetch);
+    const first = view();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      en.returnOAuthFailed,
+    );
+    first.unmount();
+    view();
+    expect(await screen.findByRole("alert")).toHaveTextContent(en.returnLost);
+    expect(loadSignInReturn(key)).toBeNull();
+    expect(loadReturnState(other)).toEqual(state);
+    expect(sessionStorage.getItem("munigan.top-gear.admission")).toBe(
+      "unrelated-draft",
+    );
+    expect(loadDeletionReturn()).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
+  },
+);
+it.each(["OWNER_COOKIE_REQUIRED", "AUTH_UNAVAILABLE"] as const)(
+  "explains completion %s without claiming authentication succeeded",
+  async (code) => {
+    storeReturnState(key, state);
+    history.replaceState(null, "", `/auth/return?intent=${key}`);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ code }, { status: 503 })),
+    );
+    view();
+    expect(await screen.findByRole("alert")).toHaveTextContent(en.errors[code]);
+    expect(loadReturnState(key)).toEqual(state);
+  },
+);
