@@ -143,5 +143,12 @@
   "warmaneNotFound": "Character not found. Check the name and realm.",
   "warmaneUnavailable": "Warmane Armory is unavailable or limiting requests. Try again shortly, or use an addon export.",
   "warmaneInvalidProfile": "Could not read this Armory profile completely. Try again or use an addon export.",
-  "warmaneUnknownGem": "Armory gem {id} could not be identified. Use an addon export to preserve your gems."
+  "warmaneUnknownGem": "Armory gem {id} could not be identified. Use an addon export to preserve your gems.",
+  "warmaneRateLimited": "Warmane is limiting requests. Please wait {seconds} seconds before trying again.",
+  "warmaneTimeout": "Warmane took too long to respond. Try again shortly or use a saved profile.",
+  "warmaneAccessDenied": "Warmane did not allow this profile request. Try again later or use an addon export.",
+  "warmaneNetwork": "Could not connect to Warmane. Try again shortly or use a saved profile.",
+  "warmaneRelayUnavailable": "The Armory import service is temporarily unavailable. Your input has been kept.",
+  "warmaneNoSavedProfile": "No recent saved Armory profile is available. Refresh from Armory or use an addon export.",
+  "warmaneBusy": "Please wait {seconds} seconds before refreshing this profile again."
 }

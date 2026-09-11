@@ -25,7 +25,20 @@ import { ImportReview, type Review } from "./ImportReview";
 import { ImportInstructions } from "./ImportInstructions";
 import { ExportPreview } from "./ExportPreview";
 import { WarmaneFields } from "./WarmaneFields";
-import { validateWarmaneLookup } from "./warmane";
+import {
+  validateWarmaneLookup,
+  type WarmaneImportFailure,
+  type WarmaneImportMeta,
+  type WarmaneImportMode,
+} from "./warmane";
+import {
+  WarmaneImportStatus,
+  WarmaneSavedProfileOffer,
+} from "./WarmaneImportStatus";
+import {
+  isWarmaneImportMeta,
+  savedProfileRetrievedAt,
+} from "./warmane-import-meta";
 
 import {
   importFormDraftKey,
@@ -59,7 +72,13 @@ export function ImportPanel({
   const [draft, setDraft] = useState<ImportDraft | null>(null);
   const [bagDraft, setBagDraft] = useState<ImportDraft | null>(null);
   const [preset, setPreset] = useState("");
+  const presetRef = useRef("");
   const [resolved, setResolved] = useState<Review | null>(null);
+  const [armoryMeta, setArmoryMeta] = useState<WarmaneImportMeta | null>(null);
+  const [savedProfile, setSavedProfile] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<ErrorDescriptor | null>(
+    null,
+  );
   const [errors, setErrors] = useState<{
     character?: ErrorDescriptor;
     bags?: ErrorDescriptor;
@@ -100,10 +119,12 @@ export function ImportPanel({
         armory,
         preset,
         reviewing: !!draft,
+        ...(kind === "warmane" && draft && armoryMeta ? { armoryMeta } : {}),
       };
       localStorage.setItem(importFormDraftKey, JSON.stringify(saved));
     },
     restoreDraft() {
+      stopArmoryRequest();
       const saved = loadImportFormDraft();
       if (!saved) return false;
       // Re-parse the saved source through the same validation as a new import.
@@ -120,14 +141,105 @@ export function ImportPanel({
       setBags(saved.bags);
       setArmory(saved.armory);
       setPreset(saved.preset);
+      presetRef.current = saved.preset;
       setDraft(next);
       setBagDraft(bag);
+      setArmoryMeta(
+        saved.kind === "warmane" && saved.reviewing
+          ? (saved.armoryMeta ?? null)
+          : null,
+      );
+      setSavedProfile(null);
+      setRefreshError(null);
       setErrors({});
       if (next) resolve(next, bag, saved.preset);
       return true;
     },
   }));
-  async function review() {
+
+  function stopArmoryRequest() {
+    armoryRequest.current?.abort();
+    armoryRequest.current = null;
+    setPending(false);
+  }
+
+  function describeWarmaneFailure(value: unknown): ErrorDescriptor {
+    const described = describeError(value);
+    const retryAfterSeconds =
+      value && typeof value === "object"
+        ? (value as Partial<WarmaneImportFailure>).retryAfterSeconds
+        : undefined;
+    if (
+      typeof retryAfterSeconds === "number" &&
+      Number.isFinite(retryAfterSeconds)
+    )
+      return {
+        ...described,
+        params: { ...described.params, seconds: retryAfterSeconds },
+      };
+    if (described.code) return described;
+    return {
+      code: "warmaneUnavailable",
+      message:
+        "Warmane Armory is unavailable or limiting requests. Try again shortly, or use an addon export.",
+    };
+  }
+
+  async function requestArmory(
+    mode: WarmaneImportMode,
+    surface: "import" | "review",
+  ): Promise<ImportDraft | null> {
+    const lookup = validateWarmaneLookup(armory);
+    armoryRequest.current?.abort();
+    const controller = new AbortController();
+    armoryRequest.current = controller;
+    setPending(true);
+    setSavedProfile(null);
+    if (surface === "import") setErrors({});
+    else setRefreshError(null);
+    try {
+      const response = await fetch(
+        `/api/import/warmane?${new URLSearchParams({ ...lookup, mode })}`,
+        { signal: controller.signal },
+      );
+      const result: unknown = await response.json();
+      if (controller.signal.aborted || armoryRequest.current !== controller)
+        return null;
+      if (!response.ok) {
+        const described = describeWarmaneFailure(result);
+        if (surface === "review") setRefreshError(described);
+        else {
+          setErrors({ character: described });
+          setSavedProfile(savedProfileRetrievedAt(result));
+        }
+        return null;
+      }
+      const payload = result as { character?: unknown; meta?: unknown };
+      const exported = JSON.stringify(payload.character);
+      const next = parseExport(exported, "character");
+      if (controller.signal.aborted || armoryRequest.current !== controller)
+        return null;
+      setCharacter(exported);
+      setArmoryMeta(isWarmaneImportMeta(payload.meta) ? payload.meta : null);
+      setErrors({});
+      setRefreshError(null);
+      return next;
+    } catch (error) {
+      if (controller.signal.aborted || armoryRequest.current !== controller)
+        return null;
+      const described = describeWarmaneFailure(error);
+      if (surface === "review") setRefreshError(described);
+      else setErrors({ character: described });
+      return null;
+    } finally {
+      if (armoryRequest.current === controller) {
+        armoryRequest.current = null;
+        setPending(false);
+      }
+    }
+  }
+
+  async function review(mode: WarmaneImportMode = "auto") {
     if (pending) return;
     const nextErrors: typeof errors = {};
     let next: ImportDraft | null = null,
@@ -145,33 +257,9 @@ export function ImportPanel({
         return;
       }
       try {
-        const lookup = validateWarmaneLookup(armory);
-        armoryRequest.current?.abort();
-        const controller = new AbortController();
-        armoryRequest.current = controller;
-        setPending(true);
-        setErrors({});
-        const response = await fetch(
-          `/api/import/warmane?${new URLSearchParams(lookup)}`,
-          { signal: controller.signal },
-        );
-        const result = await response.json();
-        if (!response.ok) throw result;
-        const exported = JSON.stringify(result.character);
-        next = parseExport(exported, "character");
-        setCharacter(exported);
+        next = await requestArmory(mode, "import");
       } catch (error) {
-        if (armoryRequest.current?.signal.aborted) return;
-        const described = describeError(error);
-        nextErrors.character = described.code
-          ? described
-          : {
-              code: "warmaneUnavailable",
-              message:
-                "Warmane Armory is unavailable or limiting requests. Try again shortly, or use an addon export.",
-            };
-      } finally {
-        setPending(false);
+        nextErrors.character = describeWarmaneFailure(error);
       }
     } else {
       try {
@@ -180,8 +268,11 @@ export function ImportPanel({
         nextErrors.character = describeError(error);
       }
     }
-    setErrors(nextErrors);
-    if (!next || Object.keys(nextErrors).length) return;
+    if (!next || Object.keys(nextErrors).length) {
+      if (Object.keys(nextErrors).length) setErrors(nextErrors);
+      return;
+    }
+    setErrors({});
     const talents = (next.settingsJson.player as { talentsString?: string })
       ?.talentsString;
     const id =
@@ -193,7 +284,30 @@ export function ImportPanel({
     setDraft(next);
     setBagDraft(bag);
     setPreset(id);
+    presetRef.current = id;
     resolve(next, bag, id);
+  }
+
+  async function refreshArmory() {
+    if (pending || kind !== "warmane" || !draft) return;
+    let next: ImportDraft | null = null;
+    try {
+      next = await requestArmory("refresh", "review");
+    } catch (error) {
+      setRefreshError(describeWarmaneFailure(error));
+    }
+    if (!next) return;
+    setDraft(next);
+    resolve(next, bagDraft, presetRef.current);
+  }
+
+  function changeKind(next: "character" | "profile" | "warmane") {
+    stopArmoryRequest();
+    setKind(next);
+    setErrors({});
+    setSavedProfile(null);
+    setArmoryMeta(null);
+    setRefreshError(null);
   }
   return (
     <div className="import-refinement">
@@ -210,10 +324,7 @@ export function ImportPanel({
                 disabled={pending}
                 className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
                 aria-pressed={kind === "character"}
-                onClick={() => {
-                  setKind("character");
-                  setErrors({});
-                }}
+                onClick={() => changeKind("character")}
               >
                 <svg
                   width="18"
@@ -236,10 +347,7 @@ export function ImportPanel({
                 disabled={pending}
                 className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
                 aria-pressed={kind === "profile"}
-                onClick={() => {
-                  setKind("profile");
-                  setErrors({});
-                }}
+                onClick={() => changeKind("profile")}
               >
                 <svg
                   width="18"
@@ -262,10 +370,7 @@ export function ImportPanel({
                 disabled={pending}
                 className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
                 aria-pressed={kind === "warmane"}
-                onClick={() => {
-                  setKind("warmane");
-                  setErrors({});
-                }}
+                onClick={() => changeKind("warmane")}
               >
                 <svg
                   width="18"
@@ -292,7 +397,11 @@ export function ImportPanel({
                   invalid={!!errors.character}
                   onReview={review}
                   onChange={(value) => {
+                    stopArmoryRequest();
                     setArmory(value);
+                    setSavedProfile(null);
+                    setArmoryMeta(null);
+                    setRefreshError(null);
                     setErrors((current) => ({
                       ...current,
                       character: undefined,
@@ -341,6 +450,13 @@ export function ImportPanel({
                   {localizeDiagnostic(errors.character, td)}
                 </AlertMessage>
               )}
+              {savedProfile && (
+                <WarmaneSavedProfileOffer
+                  retrievedAt={savedProfile}
+                  pending={pending}
+                  onUse={() => void review("saved")}
+                />
+              )}
             </div>
             <div className="import-input-section">
               <div className="import-field-title">
@@ -378,7 +494,7 @@ export function ImportPanel({
             <Button
               variant="primary"
               className="primary"
-              onClick={kind === "warmane" ? undefined : review}
+              onClick={kind === "warmane" ? undefined : () => void review()}
               type={kind === "warmane" ? "submit" : "button"}
               form={kind === "warmane" ? "warmane-import" : undefined}
               disabled={
@@ -394,24 +510,39 @@ export function ImportPanel({
             </Button>
           </>
         ) : (
-          <ImportReview
-            draft={draft}
-            bagDraft={bagDraft}
-            resolved={resolved}
-            preset={preset}
-            errors={errors}
-            onPreset={(id) => {
-              setPreset(id);
-              setErrors({});
-              resolve(draft, bagDraft, id);
-            }}
-            onBack={() => {
-              setDraft(null);
-              setResolved(null);
-              setErrors({});
-            }}
-            onResolved={onResolved}
-          />
+          <>
+            {kind === "warmane" && (
+              <WarmaneImportStatus
+                meta={armoryMeta}
+                pending={pending}
+                error={refreshError}
+                onRefresh={() => void refreshArmory()}
+              />
+            )}
+            <ImportReview
+              draft={draft}
+              bagDraft={bagDraft}
+              resolved={resolved}
+              preset={preset}
+              errors={errors}
+              onPreset={(id) => {
+                presetRef.current = id;
+                setPreset(id);
+                setErrors({});
+                resolve(draft, bagDraft, id);
+              }}
+              onBack={() => {
+                stopArmoryRequest();
+                setDraft(null);
+                setResolved(null);
+                setErrors({});
+                setArmoryMeta(null);
+                setSavedProfile(null);
+                setRefreshError(null);
+              }}
+              onResolved={onResolved}
+            />
+          </>
         )}
       </div>
       <ImportInstructions armory={kind === "warmane"} />

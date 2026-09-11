@@ -16,6 +16,29 @@ const pt = createTranslator<Record<string, string>>({
 });
 
 describe("diagnostic localization", () => {
+  it("translates relay recovery failures and cooldowns in both languages", () => {
+    for (const code of [
+      "warmaneTimeout",
+      "warmaneAccessDenied",
+      "warmaneNetwork",
+      "warmaneRelayUnavailable",
+      "warmaneNoSavedProfile",
+    ] as const) {
+      expect(localizeDiagnostic({ code }, en)).toBe(english[code]);
+      expect(localizeDiagnostic({ code }, pt)).toBe(portuguese[code]);
+    }
+    expect(
+      localizeDiagnostic(
+        { code: "warmaneRateLimited", params: { seconds: 30 } },
+        en,
+      ),
+    ).toBe(
+      "Warmane is limiting requests. Please wait 30 seconds before trying again.",
+    );
+    expect(
+      localizeDiagnostic({ code: "warmaneBusy", params: { seconds: 10 } }, pt),
+    ).toBe("Aguarde 10 segundos antes de atualizar este perfil novamente.");
+  });
   it("translates structured Armory lookup errors and preserves the gem ID", () => {
     expect(
       localizeDiagnostic(

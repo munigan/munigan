@@ -143,5 +143,12 @@
   "warmaneNotFound": "Personagem não encontrado. Confira o nome e o reino.",
   "warmaneUnavailable": "O Armory da Warmane está indisponível ou limitando consultas. Tente novamente em instantes ou use uma exportação do addon.",
   "warmaneInvalidProfile": "Não foi possível ler este perfil do Armory por completo. Tente novamente ou use uma exportação do addon.",
-  "warmaneUnknownGem": "A gema {id} do Armory não pôde ser identificada. Use uma exportação do addon para preservar suas gemas."
+  "warmaneUnknownGem": "A gema {id} do Armory não pôde ser identificada. Use uma exportação do addon para preservar suas gemas.",
+  "warmaneRateLimited": "A Warmane está limitando as solicitações. Aguarde {seconds} segundos antes de tentar novamente.",
+  "warmaneTimeout": "A Warmane demorou para responder. Tente novamente em breve ou use um perfil salvo.",
+  "warmaneAccessDenied": "A Warmane não permitiu esta solicitação de perfil. Tente mais tarde ou use uma exportação do addon.",
+  "warmaneNetwork": "Não foi possível conectar à Warmane. Tente novamente em breve ou use um perfil salvo.",
+  "warmaneRelayUnavailable": "A importação do Armory está temporariamente indisponível. Seus dados foram mantidos.",
+  "warmaneNoSavedProfile": "Não há um perfil recente do Armory salvo. Atualize pelo Armory ou use uma exportação do addon.",
+  "warmaneBusy": "Aguarde {seconds} segundos antes de atualizar este perfil novamente."
 }

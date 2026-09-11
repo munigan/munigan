@@ -291,6 +291,13 @@ const recognizedCodes = new Set([
   "warmaneUnavailable",
   "warmaneInvalidProfile",
   "warmaneUnknownGem",
+  "warmaneRateLimited",
+  "warmaneTimeout",
+  "warmaneAccessDenied",
+  "warmaneNetwork",
+  "warmaneRelayUnavailable",
+  "warmaneNoSavedProfile",
+  "warmaneBusy",
 ]);
 /** Only existing message text is retained. Never serialize errors, stacks, or response objects. */
 export function safeOriginalDetails(message: string): string {
