@@ -53,11 +53,16 @@ export async function admitJob(args: {
   return transaction(async (c) => {
     await c.query("SELECT pg_advisory_xact_lock(33050335)");
     const existing = await c.query(
-      "SELECT id,request_hash,token_cipher,request FROM tg_jobs WHERE owner_hash=$1 AND intent=$2",
+      "SELECT id,request_hash,token_cipher,request,deleted_at FROM tg_jobs WHERE owner_hash=$1 AND intent=$2",
       [ownerHash, args.idempotencyKey],
     );
     if (existing.rowCount) {
       const j = existing.rows[0];
+      if (j.deleted_at)
+        throw new AdmissionError(
+          "This submission key belongs to a deleted report",
+          409,
+        );
       if (j.request_hash !== requestHash && !sameRequest(j.request, frozen))
         throw new AdmissionError(
           "This submission key belongs to a different selection",
@@ -130,7 +135,7 @@ export async function admitJob(args: {
       ]);
     if (args.priorJob) {
       const prior = await c.query(
-        "SELECT policy,request,request_hash FROM tg_jobs WHERE id=$1 AND owner_hash=$2",
+        "SELECT policy,request,request_hash FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND deleted_at IS NULL",
         [args.priorJob, ownerHash],
       );
       if (

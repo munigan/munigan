@@ -30,7 +30,11 @@ it("creates a fresh schema and records the baseline", async () => {
 
   expect(
     (await pool.query("SELECT name FROM app_migrations ORDER BY name")).rows,
-  ).toEqual([{ name: "0000_top_gear.sql" }]);
+  ).toEqual([
+    { name: "0000_top_gear.sql" },
+    { name: "0001_auth.sql" },
+    { name: "0002_report_accounts.sql" },
+  ]);
   expect(
     (
       await pool.query(

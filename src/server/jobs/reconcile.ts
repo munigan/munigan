@@ -20,6 +20,6 @@ export async function reconcileJobs() {
   });
   // Keep a 30-day expiry grace period (410), then remove only settled unreferenced reports.
   await pool.query(
-    "DELETE FROM tg_jobs j WHERE expires_at<now()-interval '30 days' AND settled AND NOT EXISTS(SELECT 1 FROM tg_jobs child WHERE child.prior_job=j.id)",
+    "DELETE FROM tg_jobs j WHERE expires_at<now()-interval '30 days' AND settled AND deleted_at IS NULL AND published_at IS NULL AND NOT EXISTS(SELECT 1 FROM tg_jobs child WHERE child.prior_job=j.id)",
   );
 }

@@ -55,7 +55,7 @@ async function claim(jobId?: string) {
     );
     if (busy.rows[0].count >= limits().concurrency) return null;
     const rows = await c.query(
-      "SELECT * FROM tg_jobs WHERE (status='queued' AND (lease_until IS NULL OR lease_until<now()) OR status='running' AND lease_until<now()) AND ($1::uuid IS NULL OR id=$1) ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED",
+      "SELECT * FROM tg_jobs WHERE deleted_at IS NULL AND (status='queued' AND (lease_until IS NULL OR lease_until<now()) OR status='running' AND lease_until<now()) AND ($1::uuid IS NULL OR id=$1) ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED",
       [jobId ?? null],
     );
     if (!rows.rowCount) return null;
@@ -339,9 +339,10 @@ export async function executeTopGear(
 export async function readReport(token: string, ownerKey?: string) {
   if (!/^[\w-]{43}$/.test(token))
     throw new AdmissionError("Report not found", 404);
-  const r = await pool.query("SELECT * FROM tg_jobs WHERE token_hash=$1", [
-    digest(token),
-  ]);
+  const r = await pool.query(
+    "SELECT * FROM tg_jobs WHERE token_hash=$1 AND deleted_at IS NULL",
+    [digest(token)],
+  );
   if (!r.rowCount) throw new AdmissionError("Report not found", 404);
   const job = r.rows[0] as Job;
   if (job.expires_at.getTime() < Date.now())
@@ -400,7 +401,7 @@ export async function retryJob(
   sourceHash?: string,
 ) {
   const rows = await pool.query(
-    "SELECT * FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND status IN ('partial','failed','canceled')",
+    "SELECT * FROM tg_jobs WHERE id=$1 AND owner_hash=$2 AND deleted_at IS NULL AND status IN ('partial','failed','canceled')",
     [jobId, digest(ownerKey)],
   );
   if (!rows.rowCount) throw new AdmissionError("Retry is unavailable", 404);
