@@ -1,6 +1,6 @@
 import { beforeAll, afterAll, it, expect } from "vitest";
-import { readFile } from "node:fs/promises";
-import { pool, testSchema } from "@/server/db/client";
+import { pool } from "@/server/db/client";
+import { createTestDatabase, dropTestDatabase } from "../support/database";
 import { admitJob, cancelJob } from "@/server/jobs/admit";
 import { executeTopGear, readReport } from "@/server/jobs/work";
 import { fixtureRequest } from "../support/fixtures";
@@ -9,11 +9,10 @@ import { randomUUID } from "node:crypto";
 import { Stat } from "@/generated/wotlk/common";
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(async () => {
-  await pool.query(`CREATE SCHEMA ${testSchema}`);
-  await pool.query(await readFile("drizzle/0000_top_gear.sql", "utf8"));
+  await createTestDatabase();
 });
 afterAll(async () => {
-  await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
+  await dropTestDatabase();
   await pool.end();
 });
 it("refreshes legacy recommendations from all stored results without rewriting the report", async () => {

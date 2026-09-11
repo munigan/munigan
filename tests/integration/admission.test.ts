@@ -7,8 +7,8 @@ import {
   expect,
   vi,
 } from "vitest";
-import { readFile } from "node:fs/promises";
-import { pool, testSchema } from "@/server/db/client";
+import { pool } from "@/server/db/client";
+import { createTestDatabase, dropTestDatabase } from "../support/database";
 import { admitJob, cancelJob } from "@/server/jobs/admit";
 import { fixtureRequest } from "../support/fixtures";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
@@ -19,15 +19,14 @@ import { digest } from "@/server/jobs/capabilities";
 import { workPolicy } from "@/server/jobs/policy";
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(async () => {
-  await pool.query(`CREATE SCHEMA ${testSchema}`);
-  await pool.query(await readFile("drizzle/0000_top_gear.sql", "utf8"));
+  await createTestDatabase();
 });
 beforeEach(async () => {
   await pool.query("TRUNCATE tg_jobs, tg_budgets CASCADE");
 });
 afterEach(() => vi.unstubAllEnvs());
 afterAll(async () => {
-  await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
+  await dropTestDatabase();
   await pool.end();
 });
 it("accepts legacy Classic retries but does not reuse ordered-pair work", async () => {

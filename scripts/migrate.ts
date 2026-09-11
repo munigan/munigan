@@ -1,8 +1,10 @@
-import { readFile } from "node:fs/promises";
 import { pool } from "../src/server/db/client";
+import { migrate } from "../src/server/db/migrate";
+const client = await pool.connect();
 try {
-  await pool.query(await readFile("drizzle/0000_top_gear.sql", "utf8"));
+  await migrate(client);
   console.log("Top Gear schema ready");
 } finally {
+  client.release();
   await pool.end();
 }
