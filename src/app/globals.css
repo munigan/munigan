@@ -1736,15 +1736,19 @@
     background: var(--color-border);
     animation: tooltip-skeleton-pulse 1400ms ease-in-out infinite;
   }
-  .compact-tooltip-pending-requirements {
+  .compact-tooltip-loading-status:not(:empty) {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    height: 18px;
+    gap: 6px;
     margin-bottom: 8px;
   }
-  .compact-tooltip-pending-requirements .compact-tooltip-skeleton {
-    height: 8px;
+  .compact-tooltip-loading-dot {
+    width: 5px;
+    height: 5px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+    animation: tooltip-skeleton-pulse 1400ms ease-in-out infinite;
   }
   .compact-tooltip-details[data-reveal="true"] {
     animation: tooltip-details-reveal 120ms ease-out;
@@ -1768,6 +1772,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .compact-tooltip-skeleton,
+    .compact-tooltip-loading-dot,
     .compact-tooltip-details[data-reveal="true"] {
       animation: none;
     }

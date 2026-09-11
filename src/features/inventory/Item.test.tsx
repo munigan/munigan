@@ -80,7 +80,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-it("delays the skeleton, reassures during slow requests, and opens cached details immediately", async () => {
+it("keeps known content free of skeletons and opens cached details immediately", async () => {
   vi.useFakeTimers();
   let resolve!: (value: Response) => void;
   vi.mocked(fetch).mockReturnValueOnce(
@@ -103,21 +103,18 @@ it("delays the skeleton, reassures during slow requests, and opens cached detail
   await act(() => vi.advanceTimersByTimeAsync(119));
   expect(tooltip.querySelector(".compact-tooltip-skeleton")).toBeNull();
   await act(() => vi.advanceTimersByTimeAsync(1));
-  expect(
-    tooltip.querySelectorAll(
-      ".compact-tooltip-loading .compact-tooltip-skeleton",
-    ),
-  ).toHaveLength(4);
-  expect(
-    tooltip.querySelectorAll('.compact-tooltip-skeleton[aria-hidden="true"]'),
-  ).toHaveLength(6);
+  expect(tooltip.querySelectorAll(".compact-tooltip-skeleton")).toHaveLength(0);
   expect(within(tooltip).getByRole("status")).toHaveTextContent(
-    "Loading details…",
+    "Fetching additional details…",
   );
+  expect(
+    tooltip.querySelector(
+      ".compact-tooltip-footer .compact-tooltip-loading-dot",
+    ),
+  ).not.toBeNull();
   await act(() => vi.advanceTimersByTimeAsync(1880));
-  expect(tooltip).toHaveTextContent("Still loading. Your stats are available.");
   expect(within(tooltip).getByRole("status")).toHaveTextContent(
-    "Loading details…",
+    "Fetching additional details…",
   );
   await act(async () => {
     resolve(new Response(JSON.stringify(response(50362))));
@@ -139,7 +136,7 @@ it("delays the skeleton, reassures during slow requests, and opens cached detail
   expect(fetch).toHaveBeenCalledTimes(1);
 });
 
-it("stops pending skeletons on failure while retaining local item details", async () => {
+it("stops the footer loading indicator on failure and retries on reopen", async () => {
   vi.useFakeTimers();
   let reject!: (reason: Error) => void;
   vi.mocked(fetch).mockReturnValueOnce(
@@ -151,7 +148,7 @@ it("stops pending skeletons on failure while retaining local item details", asyn
   fireEvent.focus(screen.getByRole("link"));
   await act(() => vi.advanceTimersByTimeAsync(120));
   expect(
-    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-loading-dot"),
   ).not.toBeNull();
   await act(async () => {
     reject(new Error("offline"));
@@ -171,7 +168,7 @@ it("stops pending skeletons on failure while retaining local item details", asyn
   fireEvent.focus(screen.getByRole("link", { name: "Item" }));
   await act(() => vi.advanceTimersByTimeAsync(120));
   expect(
-    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-loading-dot"),
   ).not.toBeNull();
   expect(screen.getByRole("tooltip")).not.toHaveTextContent(
     "Additional details unavailable",
@@ -497,6 +494,22 @@ it("keeps enrichment visible for meta gems with missing activation details", asy
   fireEvent.focus(screen.getByRole("link"));
   await act(() => vi.advanceTimersByTimeAsync(120));
   expect(
-    screen.getByRole("tooltip").querySelector(".compact-tooltip-skeleton"),
+    screen.getByRole("tooltip").querySelector(".compact-tooltip-loading-dot"),
   ).not.toBeNull();
+});
+
+it("uses skeletons only when an item has no local catalog details", async () => {
+  vi.useFakeTimers();
+  render(
+    view(
+      <ItemLink item={{ ...item, itemId: 999999, enchantId: 0, gemIds: [] }}>
+        Unknown
+      </ItemLink>,
+    ),
+  );
+  fireEvent.focus(screen.getByRole("link"));
+  await act(() => vi.advanceTimersByTimeAsync(120));
+  expect(
+    screen.getByRole("tooltip").querySelectorAll(".compact-tooltip-skeleton"),
+  ).toHaveLength(4);
 });

@@ -28,18 +28,12 @@ export function useTooltipLoading(scope: string | null, pending: boolean) {
       () => setState((current) => ({ ...current, phase: 1 })),
       120,
     );
-    const slow = setTimeout(
-      () => setState((current) => ({ ...current, phase: 2 })),
-      2000,
-    );
     return () => {
       clearTimeout(visible);
-      clearTimeout(slow);
     };
   }, [scope, pending]);
   return {
     visible: !!scope && pending && state.phase > 0,
-    slow: state.phase === 2,
     reveal: state.reveal,
   };
 }

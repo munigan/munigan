@@ -427,17 +427,11 @@ export function ClassicCompactItemLink({
                   </>
                 )}
           </span>
-          <span className="sr-only" role="status">
-            {loading.visible ? t("tooltip.loading") : ""}
-          </span>
-          {loading.visible && (
+          {loading.visible && !statsItem && (
             <span className="compact-tooltip-loading">
               {["100%", "92%", "96%", "63%"].map((width) => (
                 <Skeleton key={width} width={width} />
               ))}
-              <span className="compact-tooltip-muted" aria-hidden="true">
-                {t(loading.slow ? "tooltip.loadingSlow" : "tooltip.loading")}
-              </span>
             </span>
           )}
           {!!item.enchantId && (
@@ -500,12 +494,20 @@ export function ClassicCompactItemLink({
             </span>
           )}
           <span className="compact-tooltip-footer">
-            {loading.visible && (
-              <span className="compact-tooltip-pending-requirements">
-                <Skeleton width="116px" />
-                <Skeleton width="52px" />
-              </span>
-            )}
+            <span
+              role="status"
+              className="compact-tooltip-loading-status compact-tooltip-muted"
+            >
+              {loading.visible && (
+                <>
+                  <span
+                    className="compact-tooltip-loading-dot"
+                    aria-hidden="true"
+                  />
+                  {t(statsItem ? "tooltip.fetchingDetails" : "tooltip.loading")}
+                </>
+              )}
+            </span>
             {details &&
               sourceLines(
                 details.lines.filter(

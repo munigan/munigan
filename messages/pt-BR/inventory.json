@@ -421,7 +421,7 @@
     "classic": "Wrath Classic",
     "original": "Wrath Original",
     "loading": "Carregando detalhes…",
-    "loadingSlow": "Ainda carregando. Seus atributos estão disponíveis.",
+    "fetchingDetails": "Buscando detalhes adicionais…",
     "unavailable": "Detalhes adicionais indisponíveis",
     "sockets": "Engastes",
     "active": "Ativo",

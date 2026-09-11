@@ -268,7 +268,7 @@ test("touch inspects a noneditable trinket from its icon and name without openin
   await context.close();
 });
 
-test("pending details pulse subtly and respect reduced motion", async ({
+test("known content stays uninterrupted with a subtle footer loading dot", async ({
   page,
 }) => {
   await setup(page);
@@ -283,27 +283,25 @@ test("pending details pulse subtly and respect reduced motion", async ({
   await page.locator('.inventory-row a[data-item-id="45931"]').first().hover();
   const tooltip = activeTooltip(page);
   const bars = tooltip.locator(".compact-tooltip-skeleton");
-  await expect(bars).toHaveCount(6);
-  await expect(
-    tooltip.locator(".compact-tooltip-loading .compact-tooltip-skeleton"),
-  ).toHaveCount(4);
-  await expect(bars.first()).toHaveCSS("animation-duration", "1.4s");
-  await expect(bars.first()).toHaveCSS(
-    "animation-name",
-    "tooltip-skeleton-pulse",
+  const dot = tooltip.locator(
+    ".compact-tooltip-footer .compact-tooltip-loading-dot",
   );
-  await expect(tooltip).toContainText(
-    "Still loading. Your stats are available.",
+  await expect(bars).toHaveCount(0);
+  await expect(dot).toHaveCSS("animation-duration", "1.4s");
+  await expect(dot).toHaveCSS("animation-name", "tooltip-skeleton-pulse");
+  await expect(tooltip.getByRole("status")).toHaveText(
+    "Fetching additional details…",
   );
   await expect(tooltip).toHaveCSS("width", "336px");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(bars.first()).toHaveCSS("animation-name", "none");
+  await expect(dot).toHaveCSS("animation-name", "none");
   await page.screenshot({
     path: ".artifacts/tooltip-release/loading-state.png",
   });
   release();
   await expect(tooltip).toContainText("Full effect 12");
   await expect(bars).toHaveCount(0);
+  await expect(dot).toHaveCount(0);
   await expect(tooltip.locator('[data-reveal="true"]')).toHaveCSS(
     "animation-name",
     "none",
