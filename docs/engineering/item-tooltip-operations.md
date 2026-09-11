@@ -66,3 +66,11 @@ Source commit `eadc054` fixes two CSS collisions exposed by Lightweave Embroider
 The browser regression first reproduced a 90×32 px frame and then the incorrect `6px 9px` padding. After correction, both enchant names passed at 1440 px and 390 px widths, with square frames, 16 px padding, 13/20 px body text and no horizontal overflow. All 11 tooltip/enhancement browser checks, 34 component tests, TypeScript, focused ESLint and diff-check passed; scoped code review approved the changes.
 
 The production build passed and `dpl_91SPwQN1VgpAZXd8b8VSo5LdvBQr` (`https://wow-droptimizer-ii5wadisb-diego-fernandes-projects.vercel.app`) was promoted to munigan.app. Live browser measurements confirmed both reported enchants use 32×32 px frames, 16 px padding and 13/20 px body text without horizontal overflow. No Worker deployment or cache invalidation was needed.
+
+## Tooltip loading state — 2026-09-11
+
+Source commit `bef9935` implements the approved Paper loading design: known catalog details remain visible, four effect skeleton lines and two requirement bars appear after 120 ms, and the status becomes reassuring after two seconds. Skeleton shapes pulse in opacity over 1.4 seconds; ready details reveal over 120 ms. Reduced motion disables both animations. Cached data and complete ordinary gems open directly; meta gems retain enrichment feedback. Failed requests stop the skeleton and can retry on a later reopen without restarting loading on a mere re-hover.
+
+Validation passed: 41 focused component tests, 12 tooltip/enhancement browser tests, TypeScript, focused ESLint, design checks and scoped review. The browser regression verifies actual animation duration, reduced motion, delayed enrichment and stable 336 px width; its screenshot was visually reviewed. Production compilation, TypeScript and static generation passed.
+
+Deployment `dpl_5MhdsuJisDfFPuCW6Pm24Q9nDRAS` at `https://wow-droptimizer-b9t0at5xl-diego-fernandes-projects.vercel.app` was verified and promoted to munigan.app. The protected deployment returned complete original trinket JSON; the public Gear Lab page and generated CSS contain the approved loading copy and pulse rules. No Worker deployment was required. The previous application deployment is `dpl_91SPwQN1VgpAZXd8b8VSo5LdvBQr` for rollback.
