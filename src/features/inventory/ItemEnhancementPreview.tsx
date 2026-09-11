@@ -162,7 +162,7 @@ export function ItemEnhancementPreview({
           >
             <span className="compact-tooltip-header">
               <EnchantImage enchant={enchant} size={32} />
-              <strong>{enchantName}</strong>
+              <strong className="compact-tooltip-title">{enchantName}</strong>
             </span>
             {enchantDetails && (
               <span className="compact-tooltip-section compact-tooltip-enchant-effect">

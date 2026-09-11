@@ -324,7 +324,7 @@ export function ClassicCompactItemLink({
         >
           <span className="compact-tooltip-header">
             <Icon icon={meta?.icon ?? details?.icon} size={gem ? 32 : 36} />
-            <span>
+            <span className="compact-tooltip-title">
               <strong data-quality={details?.quality ?? statsItem?.quality}>
                 {details?.name ??
                   meta?.name ??
