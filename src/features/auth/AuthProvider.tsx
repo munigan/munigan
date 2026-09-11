@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -55,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const controller = useRef<AbortController | null>(null);
   const session = authClient.useSession();
   const sawInitialSession = useRef(false);
-  const sourceId = useId();
+  const broadcast = useRef<BroadcastChannel | null>(null);
 
   const refresh = useCallback(async () => {
     const requestGeneration = ++generation.current;
@@ -108,10 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const channel = typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(channelName);
-    const invalidate = (event?: MessageEvent<{ source?: string }>) => {
-      if (event?.data?.source === sourceId) return;
-      void refresh();
-    };
+    broadcast.current = channel;
+    const invalidate = () => void refresh();
     if (channel) channel.addEventListener("message", invalidate);
     const onStorage = (event: StorageEvent) => {
       if (event.key === storageKey) invalidate();
@@ -120,9 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       channel?.removeEventListener("message", invalidate);
       channel?.close();
+      broadcast.current = null;
       window.removeEventListener("storage", onStorage);
     };
-  }, [refresh, sourceId]);
+  }, [refresh]);
 
   const signOut = useCallback(async () => {
     const result = await authClient.signOut();
@@ -130,14 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ++generation.current;
     controller.current?.abort();
     setState((current) => ({ ...current, status: "anonymous", account: null }));
-    if (typeof BroadcastChannel !== "undefined") {
-      const channel = new BroadcastChannel(channelName);
-      channel.postMessage({ source: sourceId });
-      channel.close();
+    if (broadcast.current) {
+      broadcast.current.postMessage("invalidate");
     } else {
       localStorage.setItem(storageKey, String(Date.now()));
     }
-  }, [sourceId]);
+  }, []);
 
   const value = useMemo(() => ({ ...state, refresh, signOut }), [refresh, signOut, state]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

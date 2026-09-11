@@ -15,6 +15,7 @@ export function AccountMenu({ mobile = false, onNavigate }: { mobile?: boolean; 
   const pathname = usePathname();
   const [signInOpen, setSignInOpen] = useState(false);
   const [callbackPath, setCallbackPath] = useState(pathname);
+  const [signOutError, setSignOutError] = useState(false);
   const className = mobile ? "auth-control auth-control-mobile" : "auth-control";
 
   if (auth.status === "loading") return <div className={`${className} auth-loading`} aria-label={t("loading")} />;
@@ -26,9 +27,25 @@ export function AccountMenu({ mobile = false, onNavigate }: { mobile?: boolean; 
     </div>
   );
   const account = auth.account!;
+  async function attemptSignOut() {
+    setSignOutError(false);
+    try {
+      await auth.signOut();
+    } catch {
+      setSignOutError(true);
+    }
+  }
+  if (mobile) return (
+    <div className={className}>
+      <div className="auth-mobile-profile"><span className="auth-avatar">{account.name.slice(0, 1).toUpperCase()}</span><div><strong>{account.name}</strong><small>{t("discordAccount")}</small></div></div>
+      <Link className="auth-mobile-library" href="/library" onClick={onNavigate}>{t("library")}</Link>
+      <button className="auth-mobile-action" onClick={() => void attemptSignOut()}>{t("signOut")}</button>
+      <button className="auth-mobile-action auth-menu-danger" onClick={() => window.dispatchEvent(new CustomEvent("munigan:account-delete-request"))}>{t("deleteAccount")}</button>
+      {signOutError && <div className="auth-mobile-error" role="alert"><span>{t("signOutFailed")}</span><button onClick={() => void attemptSignOut()}>{t("retrySignOut")}</button></div>}
+    </div>
+  );
   return (
     <div className={className}>
-      {mobile && <Link className="auth-mobile-library" href="/library" onClick={onNavigate}>{t("library")}</Link>}
       <Menu.Root>
         <Menu.Trigger className="auth-account-trigger" aria-label={t("accountMenu")}>
           {account.image ? <Image src={account.image} alt="" width={32} height={32} unoptimized /> : <span>{account.name.slice(0, 1).toUpperCase()}</span>}
@@ -39,12 +56,13 @@ export function AccountMenu({ mobile = false, onNavigate }: { mobile?: boolean; 
             <Menu.Popup className="auth-menu">
               <div className="auth-menu-profile"><span className="auth-avatar">{account.name.slice(0, 1).toUpperCase()}</span><div><strong>{account.name}</strong><small>{t("discordAccount")}</small></div></div>
               <Menu.Item className="auth-menu-item" render={<Link href="/library" />} onClick={onNavigate}>{t("library")}</Menu.Item>
-              <Menu.Item className="auth-menu-item" onClick={() => void auth.signOut()}>{t("signOut")}</Menu.Item>
+              <Menu.Item className="auth-menu-item" onClick={() => void attemptSignOut()}>{t("signOut")}</Menu.Item>
               <Menu.Item className="auth-menu-item auth-menu-danger" onClick={() => window.dispatchEvent(new CustomEvent("munigan:account-delete-request"))}>{t("deleteAccount")}</Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
+      {signOutError && <div className="auth-sign-out-error" role="alert"><span>{t("signOutFailed")}</span><button onClick={() => void attemptSignOut()}>{t("retrySignOut")}</button></div>}
     </div>
   );
 }

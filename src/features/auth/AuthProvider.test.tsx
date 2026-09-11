@@ -75,4 +75,25 @@ describe("AuthProvider", () => {
     await act(async () => resolveOld(Response.json({ account: { id: "old", name: "Old", image: null }, savingEnabled: true, enrollmentEnabled: true })));
     expect(screen.queryByText("Old")).not.toBeInTheDocument();
   });
+
+  it("refreshes when another tab broadcasts account invalidation", async () => {
+    class FakeBroadcastChannel extends EventTarget {
+      static instances: FakeBroadcastChannel[] = [];
+      static posted: unknown;
+      constructor(public name: string) { super(); FakeBroadcastChannel.instances.push(this); }
+      postMessage(data: unknown) { FakeBroadcastChannel.posted = data; }
+      close() {}
+    }
+    vi.stubGlobal("BroadcastChannel", FakeBroadcastChannel);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ account: null, savingEnabled: true, enrollmentEnabled: true }),
+    );
+    render(<AuthProvider><Probe /></AuthProvider>);
+    await screen.findByText("anonymous");
+    signOut.mockResolvedValue({ data: null, error: null });
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    FakeBroadcastChannel.instances[0].dispatchEvent(new MessageEvent("message", { data: FakeBroadcastChannel.posted }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    vi.unstubAllGlobals();
+  });
 });

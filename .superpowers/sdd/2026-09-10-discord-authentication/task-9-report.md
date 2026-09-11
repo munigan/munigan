@@ -47,3 +47,25 @@ The sign-in dialog uses the existing Base UI wrappers, current dark/green tokens
 - `/library` and final auth-return routing are supplied by Task 10; this task only renders the navigation targets and validates the local return path before OAuth starts.
 - The delete-account menu action emits `munigan:account-delete-request`; Task 11 owns the confirmation and deletion flow.
 - No real OAuth credentials, production database, deployment, or port 3000 process was used.
+
+## Review round 1
+
+Resolved the review findings with focused regression coverage:
+
+- Replaced deterministic `useId()` sender filtering with one persistent `BroadcastChannel` per provider. Native channels do not deliver a message back to the posting channel, while another tab's matching provider channel now always refreshes. A regression test replays the exact posted payload as a foreign message and observes a second sanitized-session fetch.
+- Standardized every desktop auth state on a 184px slot. Avatar/name, loading placeholder, English controls, and longer Portuguese retry copy remain within that fixed width with internal truncation. Mobile controls explicitly reset to full drawer width.
+- Added `AccountMenu.test.tsx` coverage for loading/authenticated/unavailable transitions, desktop keyboard navigation and focus return, directly visible mobile library/sign-out/delete actions, and rejected sign-out with translated retry while the account remains rendered.
+- Rejected sign-out promises are handled in the UI. The provider retains the authenticated account because it only clears state after Better Auth reports success.
+
+### Browser layout evidence
+
+A dedicated `127.0.0.1:3100` Next dev server was used and stopped after the check. Playwright intercepted only the account session DTO; no OAuth credentials or production services were used.
+
+- Desktop loading, authenticated-long-name, and Portuguese unavailable states each measured exactly 184px wide.
+- At a 390px viewport, the dialog measured 358px, the document had no horizontal overflow, and the 340px mobile drawer exposed My Library, sign out, and delete account directly.
+- Screenshots inspected after capture:
+  - `task-9-browser/desktop-authenticated.png`
+  - `task-9-browser/mobile-authenticated-390.png`
+  - `task-9-browser/mobile-sign-in-390.png`
+
+Review-round focused verification: 11 UI tests passed across `AuthProvider`, `AccountMenu`, and `SignInDialog`. Focused ESLint and TypeScript evidence is recorded with the follow-up commit.
