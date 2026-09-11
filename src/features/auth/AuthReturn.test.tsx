@@ -132,3 +132,19 @@ it("validates a matching deletion return without sending a deletion request", as
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(fetch.mock.calls[0][0]).toBe("/api/account/session");
 });
+
+it("does not resume a stored intent after rejected OAuth state", async () => {
+  storeReturnState(key, state);
+  sessionStorage.setItem(
+    "munigan.auth.active",
+    JSON.stringify({ version: 1, kind: "intent", key }),
+  );
+  history.replaceState(null, "", "/auth/return?error=state_mismatch");
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  view();
+  expect(await screen.findByRole("alert")).toHaveTextContent(en.returnLost);
+  expect(fetch).not.toHaveBeenCalled();
+  expect(replace).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: en.backGearLab })).toBeVisible();
+});

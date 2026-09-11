@@ -12,7 +12,7 @@
     "test": "vitest run --project unit --project ui",
     "test:integration": "vitest run --project integration",
     "test:sim": "vitest run --project simulator",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test && playwright test --config playwright.oauth.config.ts && playwright test --config playwright.oauth-rollback.config.ts",
     "test:e2e:auth": "playwright test --config playwright.auth-controls.config.ts",
     "sim:build": "bash tools/simulator/build.sh",
     "data:settings": "tsx tools/data/settings-ui.ts",
@@ -29,7 +29,8 @@
     "jobs:dispatch:watch": "node --env-file=.env.local --import tsx scripts/dispatch.ts --watch",
     "check:design": "tsx scripts/check-top-gear-design.ts",
     "check:specs": "tsx scripts/check-spec-coverage.ts",
-    "format": "prettier --write src scripts tests tools/data/generate.ts *.ts *.mjs"
+    "format": "prettier --write src scripts tests tools/data/generate.ts *.ts *.mjs",
+    "test:e2e:oauth": "playwright test --config playwright.oauth.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",

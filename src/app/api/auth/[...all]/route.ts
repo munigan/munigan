@@ -74,6 +74,24 @@ async function handle(request: Request) {
         ].includes(code)
       )
         return accountFailure(authUnavailable());
+      const destination = new URL(location, request.url);
+      if (
+        destination.origin === new URL(process.env.BETTER_AUTH_URL!).origin &&
+        destination.pathname === "/api/auth/error"
+      ) {
+        // Better Auth cannot recover a trusted callback for invalid/replayed state.
+        // Send only a fixed failure marker; never forward provider query values.
+        const headers = new Headers(response.headers);
+        headers.set(
+          "location",
+          new URL(
+            "/auth/return?error=state_mismatch",
+            process.env.BETTER_AUTH_URL!,
+          ).href,
+        );
+        headers.set("cache-control", "no-store");
+        return new Response(null, { status: response.status, headers });
+      }
     }
     return response;
   } catch (error) {

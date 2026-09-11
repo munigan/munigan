@@ -39,7 +39,7 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
     page.getByRole("alert").filter({ hasText: "profession below 450" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
+    page.getByRole("button", { name: "Run Gear Lab" }),
   ).toBeEnabled();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByRole("tab", { name: "Professions", exact: true }).click();
@@ -48,9 +48,11 @@ test("restores and simulates a draft with sufficient crafting profession ranks",
     page.getByLabel("Profession 1", { exact: false }),
   ).toHaveAttribute("data-select-value", "4");
   await page.getByRole("tab", { name: "Encounter", exact: true }).click();
-  await page.getByLabel("Fight length (seconds)").fill("30");
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("button", { name: "Find Top Gear" }).click();
+  await page.getByLabel("Fight length (seconds)", { exact: true }).fill("30");
+  await page
+    .getByRole("button", { name: "Apply changes", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Run Gear Lab" }).click();
   await expect(page).toHaveURL(/\/reports\//);
   await expect(
     page.getByText("All admitted combinations evaluated", { exact: false }),

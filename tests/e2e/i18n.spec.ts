@@ -205,7 +205,7 @@ for (const width of [390, 1440])
     const page = await context.newPage();
     await page.goto("/pt-br");
     await expect(page.locator("h1")).toContainText("Seu próximo upgrade");
-    await page.getByRole("link", { name: "Abrir Top Gear" }).click();
+    await page.getByRole("link", { name: "Abrir Gear Lab" }).click();
     await page.waitForURL("**/top-gear");
     await page.locator("#character").waitFor();
     await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");

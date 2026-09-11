@@ -452,3 +452,16 @@ it("returns unavailable when OAuth account lookup fails after state creation", a
       );
   }
 });
+
+it("routes rejected state to fixed app recovery without exposing the built-in error endpoint", async () => {
+  const response = await GET(
+    new Request(
+      "http://localhost:3000/api/auth/callback/discord?code=invalid&state=invalid",
+    ),
+  );
+  expect(response.status).toBe(302);
+  expect(response.headers.get("location")).toBe(
+    "http://localhost:3000/auth/return?error=state_mismatch",
+  );
+  expect((await pool.query("SELECT id FROM auth_session")).rowCount).toBe(0);
+});

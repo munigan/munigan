@@ -11,6 +11,7 @@ export default defineConfig({
   workers: 1,
   use: {
     locale: "en-US",
+    viewport: { width: 1440, height: 900 },
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",
   },

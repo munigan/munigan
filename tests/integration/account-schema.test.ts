@@ -83,20 +83,24 @@ it("serializes session creation behind the account lifecycle lock", async () => 
       "UPDATE account_lifecycle SET status='deleting' WHERE user_id=$1",
       [account.id],
     );
+    const pid = (await session.query("SELECT pg_backend_pid() pid")).rows[0]
+      .pid;
     const insert = session.query(
       "INSERT INTO auth_session(id,token,user_id,expires_at,created_at,updated_at) VALUES($1,$2,$3,now()+interval '1 day',now(),now())",
       [randomUUID(), randomUUID(), account.id],
     );
-    const beforeCommit = await Promise.race([
-      insert.then(
-        () => "inserted",
-        () => "rejected",
-      ),
-      new Promise<"blocked">((resolve) =>
-        setTimeout(() => resolve("blocked"), 50),
-      ),
-    ]);
-    expect(beforeCommit).toBe("blocked");
+    // Observe the blocked backend instead of treating elapsed time as evidence.
+    await expect
+      .poll(async () => {
+        await pool.query("SELECT pg_stat_clear_snapshot()");
+        return (
+          await pool.query(
+            "SELECT wait_event_type FROM pg_stat_activity WHERE pid=$1",
+            [pid],
+          )
+        ).rows[0]?.wait_event_type;
+      })
+      .toBe("Lock");
 
     await deletion.query("COMMIT");
     await expect(insert).rejects.toThrow(/active account lifecycle/i);

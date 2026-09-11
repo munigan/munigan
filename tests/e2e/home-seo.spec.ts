@@ -15,7 +15,7 @@ test("homepage is useful without JavaScript and publishes public sharing metadat
     "Your next upgradestarts here.",
   );
   await expect(
-    page.getByRole("link", { name: /Open Top Gear/ }),
+    page.getByRole("link", { name: /Open Gear Lab/ }),
   ).toHaveAttribute("href", "/top-gear");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
@@ -51,13 +51,13 @@ test("report URLs opt out of indexing and referrers", async ({ request }) => {
   const robots = await request.get("/robots.txt");
   expect(await robots.text()).not.toContain("Disallow: /reports");
 });
-for (const width of [390, 768, 1024, 1440])
+for (const width of [390, 768, 1024, 1099, 1100, 1399, 1400, 1440])
   test(`workbench navigation fits and stays consistent at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
     const openNav = async () => {
-      if (width < 1024)
+      if (width < 1400)
         await page.getByRole("button", { name: "Open navigation" }).click();
       return page.getByRole("navigation", { name: "Tools" });
     };
@@ -80,7 +80,11 @@ for (const width of [390, 768, 1024, 1440])
       );
       if (expectedLinks) expect(links).toEqual(expectedLinks);
       else expectedLinks = links;
-      await expect(nav.getByText("Future", { exact: true })).toHaveCount(4);
+      await nav.getByRole("button", { name: "More tools" }).click();
+      const menu = page.getByRole("menu");
+      await expect(menu.getByText("Future", { exact: true })).toHaveCount(4);
+      await expect(menu.getByRole("menuitem")).toHaveCount(4);
+      await page.keyboard.press("Escape");
       await expect(
         nav.getByRole("link", {
           name: /Raid Upgrades|Gear Balance|Talent Lab|Log Review/,
@@ -89,7 +93,7 @@ for (const width of [390, 768, 1024, 1440])
       const active = nav.locator('[aria-current="page"]');
       if (path === "/") await expect(active).toHaveText("Overview");
       else if (path === "/top-gear")
-        await expect(active).toHaveText("Top Gear");
+        await expect(active).toHaveText("Gear Lab");
       else await expect(active).toHaveCount(0);
       const rows = await nav
         .locator(".workbench-nav-row")
@@ -106,9 +110,10 @@ for (const width of [390, 768, 1024, 1440])
       rows.forEach((row, i) => {
         expect(row.scroll).toBeLessThanOrEqual(row.width);
         expect(row.right).toBeLessThanOrEqual(width);
-        if (i) expect(row.y).toBeGreaterThanOrEqual(rows[i - 1].bottom);
+        if (i && width < 1400)
+          expect(row.y).toBeGreaterThanOrEqual(rows[i - 1].bottom);
       });
-      if (width < 1024) {
+      if (width < 1400) {
         await page.keyboard.press("Escape");
         await expect(
           page.getByRole("dialog", { name: "Navigation" }),
@@ -120,7 +125,26 @@ for (const width of [390, 768, 1024, 1440])
     }
     await page.goto("/");
     const nav = await openNav();
-    await nav.getByRole("link", { name: "Top Gear", exact: true }).click();
+    await nav.getByRole("link", { name: "Gear Lab", exact: true }).click();
     await expect(page).toHaveURL(/\/top-gear$/);
     await expect(page.getByRole("dialog", { name: "Navigation" })).toBeHidden();
   });
+
+for (const locale of ["en-us", "pt-br"])
+  for (const width of [1399, 1400])
+    test(`localized account header boundary ${locale} ${width}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/" + locale);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+      ).toBe(width);
+      await expect(page.locator(".workbench-menu-button")).toBeVisible({
+        visible: width < 1400,
+      });
+      if (width === 1400)
+        expect(
+          (await page.locator(".auth-control").first().boundingBox())!.width,
+        ).toBe(184);
+    });

@@ -120,7 +120,7 @@ test("batch picker retains selections across filters, restores drafts and submit
     });
   });
   await page
-    .getByRole("button", { name: "Find Top Gear", exact: true })
+    .getByRole("button", { name: "Run Gear Lab", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Custom candidates received" }),

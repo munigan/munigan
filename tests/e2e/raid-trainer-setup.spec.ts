@@ -54,7 +54,7 @@ for (const width of [1440, 390]) {
       navigation.getByRole("link", { name: "Raid Trainer", exact: true }),
     ).toHaveAttribute("aria-current", "page");
     await navigation
-      .getByRole("link", { name: "Top Gear", exact: true })
+      .getByRole("link", { name: "Gear Lab", exact: true })
       .click();
     await expect(
       page.getByLabel("Character export", { exact: true }),

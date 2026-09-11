@@ -121,7 +121,7 @@ test("return removes secrets, retains failed intent through reload and exposes p
   const response = await page.goto(`/auth/return?intent=${key}&code=secret`);
   await expect(page).toHaveURL(/\/auth\/return$/);
   await expect(page.locator(".auth-return").getByRole("alert")).toContainText(
-    "Saving can be retried",
+    "this report wasn't saved",
   );
   // Next dev deliberately overwrites this header; production evidence uses the same suite with next start.
   if (process.env.AUTH_CONTROLS_PRODUCTION === "1")
@@ -134,7 +134,27 @@ test("return removes secrets, retains failed intent through reload and exposes p
   expect(response!.headers()["x-robots-tag"]).toContain("noindex");
   await page.reload();
   await expect(page.locator(".auth-return").getByRole("alert")).toContainText(
-    "Saving can be retried",
+    "this report wasn't saved",
   );
   expect(attempts).toBe(2);
+});
+
+test("report documents and private APIs prevent caching", async ({
+  request,
+}) => {
+  const document = await request.get("/reports/cache-verification");
+  expect(document.status()).toBe(200);
+  if (process.env.AUTH_CONTROLS_PRODUCTION === "1")
+    expect(document.headers()["cache-control"]).toContain("no-store");
+  for (const path of [
+    "/api/reports/invalid",
+    "/api/library",
+    "/api/account/session",
+  ]) {
+    const response = await request.get(path);
+    expect(response.headers()["cache-control"]).toContain("no-store");
+  }
+  const unavailable = await request.get("/api/auth/get-session");
+  expect(unavailable.status()).toBe(503);
+  expect((await unavailable.json()).code).toBe("AUTH_UNAVAILABLE");
 });

@@ -1,10 +1,21 @@
-import { pool } from "../src/server/db/client";
+import pg from "pg";
 import { migrate } from "../src/server/db/migrate";
-const client = await pool.connect();
+import { migrationDatabaseUrl } from "../src/server/db/migration-url";
+const pool = new pg.Pool({
+  connectionString: migrationDatabaseUrl({
+    DATABASE_URL_UNPOOLED: process.env.DATABASE_URL_UNPOOLED,
+    DATABASE_URL: process.env.DATABASE_URL,
+  }),
+  max: 1,
+});
 try {
-  await migrate(client);
-  console.log("Top Gear schema ready");
+  const client = await pool.connect();
+  try {
+    await migrate(client);
+    console.log("Top Gear schema ready");
+  } finally {
+    client.release();
+  }
 } finally {
-  client.release();
   await pool.end();
 }

@@ -53,7 +53,7 @@ The homepage describes Gear Lab as: **Compare your gear. Test upgrades. Find you
 
 The design uses the existing seven-day anonymous report access expiry from `docs/engineering/top-gear-operations.md`, not a newly approved retention policy. Use the actual server expiry timestamp and format it in the visitor's locale/time zone. Avoid implying immediate physical deletion when access expires; the existing cleanup process has a grace period.
 
-Account-saved report retention, account deletion and individual report removal still need product decisions before implementation. The design does not promise permanent storage. Future tools can reuse the same account and history entry point.
+Approved retention: saved nonempty reports have no automatic age-based expiry and remain available until explicit report or account deletion. My Library is private; saved capability links stay public read-only until deletion. Individual removal and fresh-session same-account confirmation for account deletion ship with this flow. Future tools can reuse the same account and history entry point.
 
 ## Accessibility and localization
 

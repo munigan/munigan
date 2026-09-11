@@ -134,3 +134,7 @@ The first CLI website build failed because `.vercelignore` excluded fixtures whi
 Environment values are held by the providers and the ignored, mode-0600 `.env.production.local`. Do not print or commit them. Retain the production capability key; changing it requires a deliberate migration strategy for existing reports. `.vercelignore` excludes `.env*`, local cache, and worker artifacts from web uploads.
 
 The website and worker deploy separately. Automatic Trigger builds from GitHub are not configured for this first release; follow step 3 when changing worker code. Before introducing the planned paid tools, revisit Vercel Hobby's personal/non-commercial restrictions and the provider plans.
+
+## Discord accounts and retained reports
+
+Follow [authentication operations](authentication-operations.md) for direct migration configuration, retention-aware worker-first deployment, disabled-by-default enrollment/saving, exact Discord callbacks, rollback and the mandatory real-provider release gate. Saved nonempty reports have no automatic age-based expiry until explicit deletion. Preserve the existing `CAPABILITY_KEY` and all historic report capabilities. Production rollout remains blocked until real consent, cancellation, cross-device library access and deletion are verified on the configured origin.

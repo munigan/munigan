@@ -93,6 +93,14 @@ export function reportFixture(status: TopGearReport["status"] = "complete") {
   return {
     jobId: "report-fixture",
     canManage: true,
+    access: {
+      saved: false,
+      canManage: true,
+      canSave: true,
+      canDelete: false,
+      effectiveExpiresAt: "2030-01-01T00:00:00Z",
+      anonymousExpiresAt: "2030-01-01T00:00:00Z",
+    },
     error: status === "failed" ? "Worker unavailable." : null,
     pinnedRows: rows,
     totalRows: rows.length,

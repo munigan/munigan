@@ -37,6 +37,8 @@ export function AuthReturn() {
     // Strip OAuth/error parameters before any asynchronous work or completion POST.
     history.replaceState(history.state, "", "/auth/return");
     try {
+      // A rejected OAuth state must not resume even previously stored save context.
+      if (params.get("error") === "state_mismatch") throw new Error("lost");
       let next: Flow | null = null;
       if (params.has("intent") || params.has("flow")) {
         const kind = params.has("intent") ? "intent" : "flow";

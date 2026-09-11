@@ -60,6 +60,12 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
       .getByRole("list", { name: "Unsupported bag items" })
       .getByRole("listitem"),
   ).toHaveCount(2);
+  // This assertion checks imported gems; automatic preparation has separate coverage.
+  await page
+    .getByRole("button", { name: "Gems, enchants & sockets", exact: true })
+    .click();
+  await page.getByLabel("Automatically fill empty sockets").uncheck();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
   const helmetLink = page
     .locator(".inventory-row a[data-wowhead]")
     .filter({ hasText: "Valorous Dreadnaught Helmet" });
@@ -72,18 +78,18 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
     "ench=3817&gems=41285:39996",
   );
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
+    page.getByRole("button", { name: "Run Gear Lab" }),
   ).toBeEnabled();
   const bagHelmet = page.getByRole("checkbox", {
-    name: /Select Valorous Dreadnaught Helmet, bag/,
+    name: /Select Valorous Dreadnaught Helmet, Bags/,
   });
   await expect(bagHelmet).not.toBeChecked();
   await expect(
-    page.getByRole("checkbox", { name: /Select Obsidian Greathelm, equipped/ }),
+    page.getByRole("checkbox", { name: /Select Obsidian Greathelm, Equipped/ }),
   ).toBeChecked();
   const url = page.url();
   const tabs = page.context().pages().length;
-  await page.locator(".bag-item").first().click();
+  await bagHelmet.click();
   expect(page.url()).toBe(url);
   expect(page.context().pages()).toHaveLength(tabs);
   await bagHelmet.check();
@@ -107,13 +113,13 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
       }),
     }),
   );
-  await page.getByRole("button", { name: "Find Top Gear" }).click();
+  await page.getByRole("button", { name: "Run Gear Lab" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "The simulation queue is full" }),
   ).toContainText("Try again shortly");
   await expect(bagHelmet).toBeChecked();
   await expect(
-    page.getByRole("button", { name: "Find Top Gear" }),
+    page.getByRole("button", { name: "Run Gear Lab" }),
   ).toBeEnabled();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
