@@ -1,0 +1,17 @@
+{
+  "close": "Fechar",
+  "dismissNotification": "Dispensar notificação",
+  "noMatches": "Nenhum resultado encontrado.",
+  "choose": "Escolher {label}",
+  "search": "Buscar {label}",
+  "searchPlaceholder": "Buscar por nome ou atributos…",
+  "skipContent": "Pular para o conteúdo",
+  "language": "Idioma",
+  "languageFailed": "Não foi possível trocar o idioma. Tente novamente.",
+  "notFound": "Página não encontrada",
+  "notFoundDescription": "Esta página não existe. Volte para suas ferramentas.",
+  "backHome": "Voltar à visão geral",
+  "itemFallback": "Item {id}",
+  "increase": "Aumentar {label}",
+  "decrease": "Diminuir {label}"
+}

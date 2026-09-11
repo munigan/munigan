@@ -1,0 +1,17 @@
+{
+  "close": "Close",
+  "dismissNotification": "Dismiss notification",
+  "noMatches": "No matches found.",
+  "choose": "Choose {label}",
+  "search": "Search {label}",
+  "searchPlaceholder": "Search by name or stats…",
+  "skipContent": "Skip to content",
+  "language": "Language",
+  "languageFailed": "Could not change language. Please try again.",
+  "notFound": "Page not found",
+  "notFoundDescription": "This page does not exist. Return to your toolkit.",
+  "backHome": "Back to overview",
+  "itemFallback": "Item {id}",
+  "increase": "Increase {label}",
+  "decrease": "Decrease {label}"
+}

@@ -1,0 +1,95 @@
+@layer components {
+  .app-number-input {
+    --number-height: 44px;
+    display: flex;
+    align-items: center;
+    height: var(--number-height);
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: #101215;
+    color: var(--color-text);
+  }
+  .app-number-input[data-size="small"] {
+    --number-height: 32px;
+  }
+  .app-number-input > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--number-height);
+    height: 100%;
+    min-height: 0;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--color-surface);
+    color: var(--color-muted);
+    position: relative;
+  }
+  .app-number-input > button:first-child {
+    border-right: 1px solid var(--color-border);
+    border-radius: 4px 0 0 4px;
+  }
+  .app-number-input > button:last-child {
+    border-left: 1px solid var(--color-border);
+    border-radius: 0 4px 4px 0;
+  }
+  .app-number-input > button:disabled {
+    background: transparent;
+    color: #55585f;
+    cursor: default;
+  }
+  .app-number-input > button:hover:not(:disabled) {
+    background: var(--color-selected-surface);
+    color: var(--color-text);
+  }
+  .app-number-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 12px;
+    color: var(--color-muted);
+  }
+  .app-number-value input {
+    appearance: textfield;
+    min-width: 2ch;
+    width: 4ch;
+    max-width: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    min-height: 0;
+    height: 20px;
+    line-height: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+    outline: none;
+  }
+  .app-number-value input::-webkit-inner-spin-button,
+  .app-number-value input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+  .app-number-input:focus-within {
+    border-color: var(--color-control-border);
+  }
+  .app-number-input > button:focus-visible {
+    outline: 1px solid var(--color-control-border);
+    outline-offset: -2px;
+  }
+  @media (pointer: coarse) {
+    .app-number-input[data-size="small"] {
+      --number-height: 44px;
+    }
+  }
+}

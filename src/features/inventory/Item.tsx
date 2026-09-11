@@ -1,4 +1,6 @@
 "use client";
+import { useTranslations } from "next-intl";
+import { ItemType } from "@/generated/wotlk/common";
 import { extraSocketLabel } from "@/domain/equipment/sockets";
 import { useState, type ComponentProps } from "react";
 import Image from "next/image";
@@ -6,7 +8,13 @@ import type { ItemInstance } from "@/domain/top-gear/model";
 import { useItemVersion } from "./ItemVersionContext";
 import { OriginalItemLink } from "./OriginalItemLink";
 import { getCatalog } from "@/domain/equipment/catalog";
-function ItemImage({ itemId, size = 44 }: { itemId: number; size?: number }) {
+export function ItemImage({
+  itemId,
+  size = 44,
+}: {
+  itemId: number;
+  size?: number;
+}) {
   const [failed, setFailed] = useState(false);
   const catalog = getCatalog(useItemVersion());
   const item =
@@ -42,6 +50,7 @@ export function ItemIcon({
   size?: number;
   tooltipOnly?: boolean;
 } & ComponentProps<"a">) {
+  const t = useTranslations("common");
   const catalog = getCatalog(useItemVersion());
   const metadata =
     catalog.items.get(item.itemId) ??
@@ -50,8 +59,12 @@ export function ItemIcon({
   return (
     <ItemLink
       item={item}
+      data-item-icon
+      data-wh-icon-size={!metadata?.icon ? "medium" : undefined}
       aria-label={
-        children ? undefined : (metadata?.name ?? `Item ${item.itemId}`)
+        children
+          ? undefined
+          : (metadata?.name ?? t("itemFallback", { id: item.itemId }))
       }
       {...props}
     >
@@ -63,6 +76,7 @@ export function ItemIcon({
 export function ItemLink({
   item,
   tooltipOnly = false,
+  className,
   ...props
 }: { item: ItemInstance; tooltipOnly?: boolean } & ComponentProps<"a">) {
   const version = useItemVersion();
@@ -75,12 +89,18 @@ export function ItemLink({
       catalog.unsupportedItemIds?.has(item.itemId))
   )
     return (
-      <OriginalItemLink item={item} tooltipOnly={tooltipOnly} {...props} />
+      <OriginalItemLink
+        item={item}
+        tooltipOnly={tooltipOnly}
+        {...props}
+        className={["item-link", className].filter(Boolean).join(" ")}
+      />
     );
   const options = `ench=${item.enchantId}&gems=${item.gemIds.join(":")}`;
   return (
     <a
       {...props}
+      className={["item-link", className].filter(Boolean).join(" ")}
       href={`https://www.wowhead.com/wotlk/item=${item.itemId}`}
       data-wowhead={options}
       data-item-version={version}
@@ -102,54 +122,69 @@ export function ItemLink({
   );
 }
 export function ItemName({ item }: { item: ItemInstance }) {
+  const t = useTranslations("inventory");
   const catalog = getCatalog(useItemVersion());
   return (
     <span className="item-name">
       {catalog.items.get(item.itemId)?.name ??
         catalog.gems.get(item.itemId)?.name ??
         catalog.icons?.get(item.itemId)?.name ??
-        `Unknown item ${item.itemId}`}
+        t("item.unknown", { id: item.itemId })}
     </span>
   );
 }
 export function ItemDetails({ item }: { item: ItemInstance }) {
+  const t = useTranslations("inventory");
   const version = useItemVersion();
   const catalog = getCatalog(version),
     meta = catalog.items.get(item.itemId);
   return (
     <details className="item-details">
-      <summary aria-label={`Details for ${meta?.name ?? item.itemId}`}>
-        Details
+      <summary
+        aria-label={t("item.detailsFor", { name: meta?.name ?? item.itemId })}
+      >
+        {t("item.details")}
       </summary>
       <div>
-        <strong>{meta?.name ?? `Item ${item.itemId}`}</strong>
+        <strong>{meta?.name ?? t("item.id", { id: item.itemId })}</strong>
         <p>
-          Item {item.itemId} ·{" "}
-          {item.source === "bag" ? "Carried in bags" : "Equipped"}
+          {t("item.id", { id: item.itemId })} ·{" "}
+          {item.source === "bag"
+            ? t("item.carried")
+            : item.source === "custom"
+              ? t("item.custom")
+              : t("sources.equipped")}
         </p>
         <p>
-          Enchant:{" "}
+          {t("item.enchantLabel")}{" "}
           {item.enchantId
             ? (catalog.enchants.get(item.enchantId)?.[0]?.name ??
               item.enchantId)
-            : "None"}
+            : t("item.none")}
         </p>
         <p>
-          Gems:{" "}
+          {t("item.gemsLabel")}{" "}
           {item.gemIds.length
             ? item.gemIds
                 .map((id) =>
                   id
                     ? (catalog.gems.get(id)?.name ?? String(id))
-                    : "Empty socket",
+                    : t("item.emptySocket"),
                 )
                 .join(" · ")
-            : "None"}
+            : t("item.none")}
         </p>
         {extraSocketLabel(meta, item.gemIds.length) && (
-          <p>Extra socket: {extraSocketLabel(meta, item.gemIds.length)}</p>
+          <p>
+            {t("item.extraSocket", {
+              name:
+                meta?.type !== ItemType.ItemTypeWaist
+                  ? t("item.blacksmithSocket")
+                  : extraSocketLabel(meta, item.gemIds.length)!,
+            })}
+          </p>
         )}
-        <ItemLink item={item}>View full item details ↗</ItemLink>
+        <ItemLink item={item}>{t("item.fullDetails")}</ItemLink>
       </div>
     </details>
   );

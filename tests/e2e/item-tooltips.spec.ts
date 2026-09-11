@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
@@ -24,7 +25,9 @@ test("keeps provider and Original tooltips inside short and narrow viewports", a
     }),
   );
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Warrior · Fury",
+  });
   await page.getByRole("button", { name: "Select gear", exact: true }).click();
   await page.locator(".expand-slots").click();
   // Switching provider tooltips can reset their inline width to auto. A long

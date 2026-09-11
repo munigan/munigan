@@ -1,0 +1,283 @@
+(
+    <div style={{ backgroundColor: '#090A0C', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', height: 'fit-content', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', position: 'relative', WebkitFontSmoothing: 'antialiased', width: '1440px' }}>
+      <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/01M23B5YNW5YK5E2QXE18EM2P1.png)', backgroundPosition: '50%', backgroundSize: 'cover', boxSizing: 'border-box', height: '1660px', left: 0, objectFit: 'cover', opacity: '0.4', position: 'absolute', top: 100, width: '1440px' }} />
+      <div style={{ backgroundImage: 'linear-gradient(in oklab 90deg, oklab(14.5% -.0005 -0.005 / 76%) 0%, oklab(14.5% -.0005 -0.005 / 28%) 50%, oklab(14.5% -.0005 -0.005 / 10%) 100%), linear-gradient(in oklab 0deg, oklab(14.5% -.0005 -0.005) 0%, oklab(14.5% -.0005 -0.005 / 75%) 20%, oklab(0% 0 0 / 0%) 64%)', boxSizing: 'border-box', height: '1660px', left: '0px', position: 'absolute', top: '100px', width: '1440px' }} />
+      <div style={{ alignItems: 'center', borderBottomColor: '#303238', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '100px', justifyContent: 'space-between', paddingInline: '56px', position: 'relative' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '13px' }}>
+          <svg width="37" height="42" viewBox="0 0 37 42" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+            <path d="M3 8L18.5 1L34 8V28L18.5 41L3 28Z" fill="#78E34D" />
+            <path d="M10 27V14L18.5 22L27 14V27" fill="none" stroke="#080B09" strokeWidth="3" strokeLinejoin="round" />
+          </svg>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '0.17em', lineHeight: '13px' }}>
+              munigan
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '26px', fontWeight: 700, letterSpacing: '-0.045em', lineHeight: '28px' }}>
+              droptimizer
+            </div>
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '34px' }}>
+          <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+            01 / TOP GEAR
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+            02 / HOW IT WORKS
+          </div>
+          <div style={{ backgroundColor: '#78E34D', borderRadius: '5px', boxSizing: 'border-box', display: 'flex', paddingBlock: '14px', paddingInline: '24px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#090909', display: 'flex', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '14px', fontWeight: 700, lineHeight: '18px' }}>
+              LET’S SIM ↗
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', height: '736px', overflow: 'clip', position: 'relative', width: '1440px' }}>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '24px', paddingLeft: '56px', paddingTop: '58px', width: '720px' }}>
+          <div style={{ boxSizing: 'border-box', color: '#78E34D', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', letterSpacing: '0.08em', lineHeight: '16px' }}>
+            [ WRATH OF THE LICH KING / TOP GEAR ]
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '116px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: '104px', whiteSpace: 'pre-wrap' }}>
+            LESS GUESS.<br />MORE DAMAGE.
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '19px', lineHeight: '29px', whiteSpace: 'pre-wrap', width: '420px' }}>
+            Your bags are stacked. Find the loadout<br />that hits hardest.
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '24px', paddingLeft: '56px', paddingTop: '34px' }}>
+          <div style={{ alignItems: 'center', backgroundColor: '#78E34D', borderRadius: '5px', boxSizing: 'border-box', display: 'flex', gap: '48px', paddingBlock: '22px', paddingInline: '30px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#090909', display: 'inline-block', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '18px', fontWeight: 700, lineHeight: '22px' }}>
+              SIM MY GEAR
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#090909', display: 'inline-block', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '18px', fontWeight: 700, lineHeight: '22px' }}>
+              ↗
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+            See it in action →
+          </div>
+        </div>
+        <div style={{ bottom: '40px', boxSizing: 'border-box', display: 'flex', gap: '22px', left: '56px', position: 'absolute' }}>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', letterSpacing: '0.08em', lineHeight: '16px' }}>
+            ORIGINAL 3.3.5a
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', letterSpacing: '0.08em', lineHeight: '16px' }}>
+            +
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', letterSpacing: '0.08em', lineHeight: '16px' }}>
+            WRATH CLASSIC
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', bottom: '87px', boxSizing: 'border-box', display: 'flex', gap: '18px', left: '56px', position: 'absolute' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', gap: '7px' }}>
+            <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1ZKAMKS0RE5Q8CF8NHMK5SCDFR.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', flexShrink: '0', height: '43px', width: '43px' }} />
+            <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/4NMVFP1JCA8F2CVFKQB0GJ46TW.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', flexShrink: '0', height: '43px', width: '43px' }} />
+            <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1XSJ3WC0D0SCNFAS2ZBVCSGGS2.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', flexShrink: '0', height: '43px', width: '43px' }} />
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#A8B5AA', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '11px', letterSpacing: '0.06em', lineHeight: '18px', whiteSpace: 'pre-wrap' }}>
+            THE GEAR YOU OWN.<br />THE POWER YOU’RE MISSING.
+          </div>
+        </div>
+      </div>
+      <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '26px', paddingInline: '56px', position: 'relative' }}>
+        <div style={{ boxSizing: 'border-box', color: '#C1D3C4', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '29px', fontWeight: 700, letterSpacing: '0.01em', lineHeight: '36px' }}>
+          120 POSSIBLE SETS.
+        </div>
+        <svg width="22" height="28" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+          <path d="M14 0L2 17H10L7 30L22 11H14Z" fill="#78E34D" />
+        </svg>
+        <div style={{ boxSizing: 'border-box', color: '#C1D3C4', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '29px', fontWeight: 700, letterSpacing: '0.01em', lineHeight: '36px' }}>
+          ONE CLEAR WINNER.
+        </div>
+        <svg width="22" height="28" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+          <path d="M14 0L2 17H10L7 30L22 11H14Z" fill="#78E34D" />
+        </svg>
+        <div style={{ boxSizing: 'border-box', color: '#C1D3C4', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '29px', fontWeight: 700, letterSpacing: '0.01em', lineHeight: '36px' }}>
+          MAKE EVERY ITEM COUNT.
+        </div>
+      </div>
+      <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '32px', paddingBlock: '76px', paddingInline: '56px', position: 'relative' }}>
+        <div style={{ alignItems: 'end', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: 'system-ui, sans-serif', fontSize: '12px', letterSpacing: '0.08em', lineHeight: '16px' }}>
+              THE NUMBERS DON’T GUESS.
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '66px', fontWeight: 700, lineHeight: '66px' }}>
+              YOUR BAGS. RANKED.
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: 'system-ui, sans-serif', fontSize: '15px', lineHeight: '18px' }}>
+              Complete combinations. Clear gains. Every swap explained.
+            </div>
+          </div>
+          <div style={{ alignItems: 'end', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#78E34D', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '68px', fontWeight: 700, letterSpacing: '-0.06em', lineHeight: '72px' }}>
+              ↗ 4.2%
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '11px', letterSpacing: '0.08em', lineHeight: '14px' }}>
+              SAMPLE DPS GAIN
+            </div>
+          </div>
+        </div>
+        <div style={{ borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'clip' }}>
+          <div style={{ alignItems: 'center', backgroundColor: '#1B1D22CC', borderBottomColor: '#303238', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', gap: '26px', paddingBlock: '24px', paddingInline: '26px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', flexShrink: '0', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '38px', fontWeight: 600, lineHeight: '46px', width: '54px' }}>
+              01
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', gap: '7px', width: '260px' }}>
+              <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '18px', fontWeight: 700, lineHeight: '22px' }}>
+                THE WINNER
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                Best combination
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', gap: '10px' }}>
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1ZKAMKS0RE5Q8CF8NHMK5SCDFR.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/4NMVFP1JCA8F2CVFKQB0GJ46TW.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/28X7DB790NYR7N1WB2QFP7VFQQ.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '38px', fontWeight: 700, justifyContent: 'end', letterSpacing: '-0.04em', lineHeight: '46px', textAlign: 'right', width: '160px' }}>
+              12,846
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#78E34D', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', justifyContent: 'end', lineHeight: '16px', textAlign: 'right', width: '106px' }}>
+              ↑ +518 DPS
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderBottomColor: '#303238', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '26px', paddingBlock: '24px', paddingInline: '26px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', flexShrink: '0', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '38px', fontWeight: 600, lineHeight: '46px', width: '54px' }}>
+              02
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', gap: '7px', width: '260px' }}>
+              <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '18px', fontWeight: 700, lineHeight: '22px' }}>
+                THE CONTENDER
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                Alternative set
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', gap: '10px' }}>
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1ZKAMKS0RE5Q8CF8NHMK5SCDFR.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/4NMVFP1JCA8F2CVFKQB0GJ46TW.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1XSJ3WC0D0SCNFAS2ZBVCSGGS2.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '38px', fontWeight: 700, justifyContent: 'end', letterSpacing: '-0.04em', lineHeight: '46px', textAlign: 'right', width: '160px' }}>
+              12,703
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#78E34D', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', justifyContent: 'end', lineHeight: '16px', textAlign: 'right', width: '106px' }}>
+              ↑ +375 DPS
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '26px', paddingBlock: '24px', paddingInline: '26px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', flexShrink: '0', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '38px', fontWeight: 600, lineHeight: '46px', width: '54px' }}>
+              03
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', gap: '7px', width: '260px' }}>
+              <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '18px', fontWeight: 700, lineHeight: '22px' }}>
+                YOUR CURRENT SET
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                Equipped baseline
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', gap: '10px' }}>
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1ZKAMKS0RE5Q8CF8NHMK5SCDFR.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/28X7DB790NYR7N1WB2QFP7VFQQ.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+              <div style={{ backgroundImage: 'url(https://app.paper.design/file-assets/01M20P4F8A377J1GT1GGCM3K1Z/1XSJ3WC0D0SCNFAS2ZBVCSGGS2.jpg)', backgroundOrigin: 'border-box', backgroundPosition: '50%', backgroundRepeat: 'no-repeat', backgroundSize: '100% 100%', borderColor: '#303238', borderImageOutset: '0', borderImageRepeat: 'stretch', borderImageSlice: '100%', borderImageSource: 'none', borderImageWidth: '1', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', flexShrink: '0', height: '52px', width: '52px' }} />
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#F4F7F3', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '38px', fontWeight: 700, justifyContent: 'end', letterSpacing: '-0.04em', lineHeight: '46px', textAlign: 'right', width: '160px' }}>
+              12,328
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#A5A8AF', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', justifyContent: 'end', lineHeight: '16px', textAlign: 'right', width: '106px' }}>
+              —
+            </div>
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            Illustrative results · Death Knight / Frost · Actual gains vary with your gear.
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            EXPLORE THE FULL REPORT ↗
+          </div>
+        </div>
+      </div>
+      <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '80px', paddingInline: '56px', paddingTop: '70px', position: 'relative' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '58px', fontWeight: 700, lineHeight: '64px' }}>
+            GEAR UP. IN THREE MOVES.
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#ABABAB', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            [ YOUR PRE-RAID CHECKLIST ]
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', gap: '44px' }}>
+          <div style={{ borderTopColor: '#303238', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '20px', paddingTop: '24px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#78E34D', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+              / 01
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '48px', fontWeight: 700, lineHeight: '48px' }}>
+              IMPORT.
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#ABABAB', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '15px', lineHeight: '26px', whiteSpace: 'pre-wrap' }}>
+              Paste your character export.<br />Your bags come with you.
+            </div>
+          </div>
+          <div style={{ borderTopColor: '#303238', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '20px', paddingTop: '24px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#78E34D', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+              / 02
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '48px', fontWeight: 700, lineHeight: '48px' }}>
+              PICK.
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#ABABAB', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '15px', lineHeight: '26px', whiteSpace: 'pre-wrap' }}>
+              Choose your contenders.<br />Dial in your raid settings.
+            </div>
+          </div>
+          <div style={{ borderTopColor: '#303238', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '20px', paddingTop: '24px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#78E34D', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+              / 03
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '48px', fontWeight: 700, lineHeight: '48px' }}>
+              SEND IT.
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#ABABAB', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '15px', lineHeight: '26px', whiteSpace: 'pre-wrap' }}>
+              Run the sim. Compare the sets.<br />Equip the winning combination.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '48px', paddingInline: '56px', position: 'relative' }}>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+            YOUR NEXT PULL STARTS HERE.
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Barlow Condensed", system-ui, sans-serif', fontSize: '90px', fontWeight: 800, lineHeight: '94px' }}>
+            READY TO HIT HARDER?
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', backgroundColor: '#78E34D', borderRadius: '5px', boxSizing: 'border-box', display: 'flex', gap: '24px', paddingBlock: '22px', paddingInline: '24px' }}>
+          <div style={{ boxSizing: 'border-box', color: '#080B09', display: 'inline-block', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '15px', fontWeight: 700, lineHeight: '18px' }}>
+            FIND TOP GEAR
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#080B09', display: 'inline-block', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '15px', fontWeight: 700, lineHeight: '18px' }}>
+            ↗
+          </div>
+        </div>
+      </div>
+      <div style={{ alignItems: 'center', backgroundColor: '#090A0C', borderTopColor: '#303238', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '28px', paddingInline: '56px', position: 'relative' }}>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <div style={{ boxSizing: 'border-box', color: '#A5A8AF', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '10px', letterSpacing: '0.16em', lineHeight: '12px' }}>
+            munigan
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#F4F7F3', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '19px', fontWeight: 700, letterSpacing: '-0.04em', lineHeight: '23px' }}>
+            droptimizer
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', color: '#ABABAB', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '10px', letterSpacing: '0.12em', lineHeight: '12px' }}>
+          BUILT FOR THE NEXT PULL.
+        </div>
+        <div style={{ boxSizing: 'border-box', color: '#ABABAB', fontFamily: '"Space Grotesk", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+          Wrath of the Lich King · 3.3.5a
+        </div>
+      </div>
+    </div>
+  )

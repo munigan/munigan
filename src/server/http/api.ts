@@ -3,6 +3,7 @@ import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { AdmissionError } from "@/server/jobs/admit";
+import { diagnosticIdentity } from "@/i18n/diagnostics";
 export const ownerCookie = "tg_owner";
 export function owner(request: NextRequest) {
   return request.cookies.get(ownerCookie)?.value;
@@ -47,13 +48,14 @@ export async function body(request: NextRequest) {
 export function failure(error: unknown) {
   if (error instanceof AdmissionError)
     return NextResponse.json(
-      { error: error.message },
+      { error: error.message, ...diagnosticIdentity(error) },
       { status: error.status },
     );
   if (error instanceof ZodError)
     return NextResponse.json(
       {
         error: "Invalid Top Gear input",
+        code: "invalidInput",
         details: error.issues
           .map((i) => i.path.join(".") + ": " + i.message)
           .slice(0, 3),
@@ -70,6 +72,7 @@ export function failure(error: unknown) {
       {
         error:
           "Simulation service is unavailable. Your selection has been kept.",
+        code: "serviceUnavailable",
       },
       { status: 503 },
     );
@@ -77,6 +80,9 @@ export function failure(error: unknown) {
     {
       error:
         error instanceof Error ? error.message : "Unable to process request",
+      ...diagnosticIdentity(
+        error instanceof Error ? error : "Unable to process request",
+      ),
     },
     { status: 422 },
   );

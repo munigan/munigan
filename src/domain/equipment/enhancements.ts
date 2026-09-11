@@ -35,13 +35,22 @@ export function prepareEnchants(
   snapshot: Snapshot,
   loadout: Loadout,
   catalog: Catalog = getCatalog(snapshot.itemVersion),
+  forceCandidate = false,
 ): { overrides: EnchantOverrides; warnings: string[] } {
   const overrides: EnchantOverrides = {},
     warnings: string[] = [];
+  const selected = new Set(Object.values(loadout));
+  const manual = Object.entries(snapshot.itemEnhancements ?? {}).filter(
+    ([id]) => selected.has(id),
+  );
+  for (const [id, override] of manual)
+    if (override.enchantId !== undefined) overrides[id] = override.enchantId;
   if (
     !snapshot.autoEnchant ||
-    gearIdentity(snapshot, loadout) ===
-      gearIdentity(snapshot, snapshot.equipped)
+    (!forceCandidate &&
+      !manual.length &&
+      gearIdentity(snapshot, loadout) ===
+        gearIdentity(snapshot, snapshot.equipped))
   )
     return { overrides, warnings };
   const inventory = new Map(snapshot.inventory.map((i) => [i.instanceId, i]));
@@ -69,7 +78,8 @@ export function prepareEnchants(
   ];
   for (const slot of slots) {
     const item = inventory.get(loadout[slot] ?? "");
-    if (!item || item.enchantId) continue;
+    if (!item || item.enchantId || Object.hasOwn(overrides, item.instanceId))
+      continue;
     const metadata = catalog.items.get(item.itemId);
     if (!metadata) continue;
     const applicable = (id: number) =>

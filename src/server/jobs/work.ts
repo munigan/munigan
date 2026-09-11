@@ -14,6 +14,7 @@ import type {
 } from "@/domain/top-gear/model";
 import { planRun, loadoutKey } from "@/domain/equipment/enumerate";
 import { rankResults } from "@/domain/top-gear/report";
+import { recommendedBuild } from "@/domain/top-gear/recommendation";
 import { evaluate } from "@/server/simulator/evaluate";
 import { digest } from "./capabilities";
 import { limits } from "./policy";
@@ -262,6 +263,7 @@ export async function executeTopGear(
             work.iterations,
             work.seed,
             controller.signal,
+            work.isReference ?? index === 0,
           );
           if (leaseLost) throw new Error("Worker lease lost");
           await pool.query(
@@ -347,14 +349,18 @@ export async function readReport(token: string, ownerKey?: string) {
   let report = job.report ?? encodeReport(await projection(job));
   const snapshot = decodeSnapshot(report.snapshot);
   if (
-    new Set(report.rows.map((row) => loadoutKey(snapshot, row.loadout))).size <
-    report.rows.length
+    new Set(
+      report.rows.map((row) =>
+        loadoutKey(snapshot, row.loadout, row.isEquipped),
+      ),
+    ).size < report.rows.length
   ) {
     // Normalize the read projection of historical reports before pagination.
     // Preserve the frozen stored report and each chosen simulation's metrics.
     const ranked = rankResults(
       snapshot,
       report.rows.map((row) => ({
+        isReference: row.isEquipped,
         loadout: row.loadout,
         gemOverrides: row.gemOverrides,
         enchantOverrides: row.enchantOverrides,
@@ -378,7 +384,11 @@ export async function readReport(token: string, ownerKey?: string) {
   }
   return {
     jobId: job.id,
-    report: { ...report, token },
+    report: {
+      ...report,
+      token,
+      recommendedId: recommendedBuild(snapshot, report.rows),
+    },
     canManage: !!ownerKey && digest(ownerKey) === job.owner_hash,
     error: job.error,
   };

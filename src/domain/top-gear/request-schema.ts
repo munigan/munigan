@@ -11,7 +11,12 @@ import type { TopGearRequest, Snapshot } from "./model";
 import { validateItem, validateLoadout } from "@/domain/equipment/validate";
 import versions from "../../../data/wotlk/versions.json";
 import { itemVersions, itemVersionOf } from "./item-version";
+import { validateItemEnhancements } from "@/domain/equipment/item-enhancements";
 import { validateGemming } from "@/domain/equipment/gemming";
+import {
+  maxCustomItems,
+  maxInventoryItems,
+} from "@/domain/equipment/custom-eligibility";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -45,6 +50,17 @@ const shape = z
         .strict()
         .optional(),
       autoEnchant: z.boolean().optional(),
+      itemEnhancements: z
+        .record(
+          id,
+          z
+            .object({
+              gemIds: z.array(numericId.nullable()).max(4).optional(),
+              enchantId: numericId.optional(),
+            })
+            .strict(),
+        )
+        .optional(),
       inventory: z
         .array(
           z
@@ -53,13 +69,13 @@ const shape = z
               itemId: numericId,
               enchantId: numericId,
               gemIds: z.array(numericId).max(4),
-              source: z.enum(["equipped", "bag"]),
+              source: z.enum(["equipped", "bag", "custom"]),
               equippedSlot: slot.optional(),
             })
             .strict(),
         )
         .min(1)
-        .max(217),
+        .max(maxInventoryItems),
       equipped: z.record(slot, id.nullable()),
       provenance: z.record(
         z.string().max(200),
@@ -68,7 +84,7 @@ const shape = z
     }),
     selection: z
       .object({
-        selectedInstanceIds: z.array(id).max(217),
+        selectedInstanceIds: z.array(id).max(maxInventoryItems),
         acknowledgedExclusions: z.array(id).max(200),
         lockedSlots: z.partialRecord(slot, id.nullable()),
       })
@@ -211,6 +227,23 @@ export function validateRequest(input: unknown): TopGearRequest {
       );
   }
   const ids = new Set(snapshot.inventory.map((i) => i.instanceId));
+  const custom = snapshot.inventory.filter((i) => i.source === "custom");
+  if (
+    custom.length > maxCustomItems ||
+    snapshot.inventory.length - custom.length > 217
+  )
+    throw new Error(
+      `Use at most ${maxCustomItems} custom items and 217 imported items`,
+    );
+  for (const item of custom) {
+    if (
+      item.equippedSlot ||
+      snapshot.inventory.some(
+        (other) => other !== item && other.itemId === item.itemId,
+      )
+    )
+      throw new Error("Custom items must be distinct additional candidates");
+  }
   if (ids.size !== snapshot.inventory.length)
     throw new Error("Duplicate item instance IDs");
   for (const collection of [
@@ -228,6 +261,17 @@ export function validateRequest(input: unknown): TopGearRequest {
       (!ids.has(value) || !parsed.selection.selectedInstanceIds.includes(value))
     )
       throw new Error(`Locked ${key} must be selected and owned`);
+  for (const [instanceId, override] of Object.entries(
+    snapshot.itemEnhancements ?? {},
+  )) {
+    const item = snapshot.inventory.find(
+      (item) => item.instanceId === instanceId,
+    );
+    if (!item)
+      throw new Error("Enhancements must reference an owned item instance");
+    const errors = validateItemEnhancements(snapshot, item, override);
+    if (errors.length) throw new Error(errors[0].message);
+  }
   const equippedErrors = validateLoadout(snapshot, snapshot.equipped);
   if (equippedErrors.length)
     throw new Error(`Equipped gear: ${equippedErrors[0].message}`);
@@ -247,6 +291,8 @@ export function validateRequest(input: unknown): TopGearRequest {
     throw new Error("Equipped item mapping is inconsistent");
   for (const item of snapshot.inventory) {
     const errors = validateItem(snapshot, item);
+    if (errors.length && item.source === "custom")
+      throw new Error(`Custom item: ${errors[0].message}`);
     if (
       errors.length &&
       item.source === "bag" &&

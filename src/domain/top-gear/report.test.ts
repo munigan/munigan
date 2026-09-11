@@ -40,7 +40,7 @@ it("retains interacting combinations and negative gains against the equipped ref
   expect(r.rows[3].gain).toBe(-20);
   expect(r.highestId).toBe(r.rows[0].id);
 });
-it("recommends fewer swaps within uncertainty without changing numeric ordering", () => {
+it("does not recommend unverified caps or change numeric ordering for fewer swaps", () => {
   const values = [
     row(equipped, 10000),
     row({ ...equipped, head: "x", chest: "y" }, 10200, 200),
@@ -52,7 +52,7 @@ it("recommends fewer swaps within uncertainty without changing numeric ordering"
     values.map((v) => v.loadout),
   );
   expect(r.highestId).toBe(r.rows[0].id);
-  expect(r.recommendedId).toBe(r.rows[1].id);
+  expect(r.recommendedId).toBeNull();
   expect(r.rows[0].swaps).toBe(2);
 });
 it("does not invent uncertainty or percentages for a zero baseline", () => {

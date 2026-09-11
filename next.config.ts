@@ -1,7 +1,29 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 const config: NextConfig = {
   serverExternalPackages: ["pg"],
   poweredByHeader: false,
   devIndicators: false,
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "wow-droptmizer.munigan.app" }],
+        destination: "https://munigan.app/:path*",
+        permanent: true,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/reports/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+    ];
+  },
 };
-export default config;
+export default createNextIntlPlugin()(config);

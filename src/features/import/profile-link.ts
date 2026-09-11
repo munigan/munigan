@@ -1,3 +1,4 @@
+import { AppError } from "@/i18n/error";
 import { Unzlib } from "fflate";
 import type { JsonObject } from "@protobuf-ts/runtime";
 import { IndividualSimSettings } from "@/generated/wotlk/ui";
@@ -10,16 +11,21 @@ export function decodeProfileLink(text: string) {
     url.username ||
     url.password
   )
-    throw new Error("Use a Poli93 WotLK profile link");
+    throw new AppError("profileLink", "Use a Poli93 WotLK profile link");
   const bytes = Uint8Array.from(atob(url.hash.slice(1)), (c) =>
     c.charCodeAt(0),
   );
-  if (bytes.length > 262144) throw new Error("Profile too large");
+  if (bytes.length > 262144)
+    throw new AppError("profileSize", "Profile too large");
   let length = 0;
   const chunks: Uint8Array[] = [];
   const inflater = new Unzlib((chunk) => {
     length += chunk.length;
-    if (length > 1048576) throw new Error("Decompressed profile too large");
+    if (length > 1048576)
+      throw new AppError(
+        "profileDecompressedSize",
+        "Decompressed profile too large",
+      );
     chunks.push(chunk);
   });
   inflater.push(bytes, true);
@@ -31,13 +37,17 @@ export function decodeProfileLink(text: string) {
   }
   const settings = IndividualSimSettings.fromBinary(joined);
   if (url.searchParams.has("i") && !url.searchParams.get("i")!.includes("g"))
-    throw new Error("This profile link does not include equipment");
+    throw new AppError(
+      "profileEquipment",
+      "This profile link does not include equipment",
+    );
   const categories = url.searchParams.get("i") ?? "gtrcmxe";
   const json = IndividualSimSettings.toJson(settings, {
       emitDefaultValues: true,
     }) as JsonObject,
     player = json.player as JsonObject;
-  if (!player) throw new Error("Profile is missing a player");
+  if (!player)
+    throw new AppError("missingPlayer", "Profile is missing a player");
   const selected: JsonObject = { class: player.class };
   const groups: Record<string, string[]> = {
     g: ["equipment", "bonusStats", "enableItemSwap", "itemSwap"],

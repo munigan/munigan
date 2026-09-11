@@ -23,8 +23,12 @@ export type ItemInstance = {
   itemId: number;
   enchantId: number;
   gemIds: number[];
-  source: "equipped" | "bag";
+  source: "equipped" | "bag" | "custom";
   equippedSlot?: Slot;
+};
+export type ItemEnhancementOverride = {
+  gemIds?: (number | null)[];
+  enchantId?: number;
 };
 export type Loadout = Record<Slot, string | null>; // instance IDs; explicit empty slots
 export type GemmingSettings = {
@@ -53,6 +57,7 @@ export type Snapshot = {
   professionLevels?: Record<string, number>;
   gemming?: GemmingSettings;
   autoEnchant?: boolean;
+  itemEnhancements?: Record<string, ItemEnhancementOverride>;
   settings: IndividualSimSettings;
   inventory: ItemInstance[];
   equipped: Loadout;
@@ -77,6 +82,7 @@ export type Diagnostic = {
 };
 export type Metric = { mean: number; stdev: number | null; iterations: number };
 export type SimulationResult = {
+  isReference?: boolean;
   loadout: Loadout;
   gemOverrides?: GemOverrides;
   enchantOverrides?: EnchantOverrides;
@@ -107,6 +113,7 @@ export type RunPlan = {
   reference: Loadout;
   simulations: Array<{
     key: string;
+    isReference?: boolean;
     loadout: Loadout;
     seed: string;
     iterations: number;

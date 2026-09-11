@@ -1,4 +1,20 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
+import type { ReactNode } from "react";
+import inventory from "../../../messages/en-US/inventory.json";
+import settings from "../../../messages/en-US/settings.json";
+import common from "../../../messages/en-US/common.json";
+function EnglishProvider({ children }: { children: ReactNode }) {
+  return (
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ inventory, settings, common }}
+    >
+      {children}
+    </NextIntlClientProvider>
+  );
+}
+const render = (ui: ReactNode) => rtlRender(ui, { wrapper: EnglishProvider });
+import { render as rtlRender, screen, cleanup } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { ItemLink, ItemIcon } from "./Item";
 import { ItemVersionContext } from "./ItemVersionContext";
@@ -80,3 +96,22 @@ it.each([45931, 46312])(
     );
   },
 );
+
+it("requests a provider icon for bag items absent from the local icon catalog", () => {
+  render(
+    <ItemIcon
+      tooltipOnly
+      item={{
+        instanceId: "bandage",
+        itemId: 1251,
+        enchantId: 0,
+        gemIds: [],
+        source: "bag",
+      }}
+    />,
+  );
+  expect(screen.getByRole("img", { name: "Item 1251" })).toHaveAttribute(
+    "data-wh-icon-size",
+    "medium",
+  );
+});

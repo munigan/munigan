@@ -124,6 +124,7 @@ export function defaultGemming(snapshot: Snapshot): GemmingSettings {
 export function validateGemming(
   snapshot: Snapshot,
   catalog = getCatalog(snapshot.itemVersion),
+  checkProfessionRank = true,
 ) {
   const config = snapshot.gemming;
   if (!config?.enabled) return;
@@ -139,6 +140,7 @@ export function validateGemming(
   const rank = snapshot.professionLevels?.[Profession.Jewelcrafting];
   const requiredRank = catalog.restrictions?.items[jc.id]?.requiredSkillRank;
   if (
+    checkProfessionRank &&
     hasJewelcrafting(snapshot) &&
     rank !== undefined &&
     requiredRank &&
@@ -186,16 +188,36 @@ export function prepareGems(
   snapshot: Snapshot,
   loadout: Loadout,
   catalog = getCatalog(snapshot.itemVersion),
+  forceCandidate = false,
 ): { overrides: GemOverrides; warnings: string[] } {
   const config = snapshot.gemming;
+  const selected = new Set(Object.values(loadout));
+  const manual = Object.entries(snapshot.itemEnhancements ?? {}).filter(
+    ([id]) => selected.has(id),
+  );
+  const fixedArrays: GemOverrides = {};
+  for (const [id, override] of manual) {
+    if (!override.gemIds) continue;
+    const raw = snapshot.inventory.find((item) => item.instanceId === id);
+    if (!raw) continue;
+    const gems = [...raw.gemIds];
+    override.gemIds.forEach((gem, index) => {
+      if (gem != null) gems[index] = gem;
+    });
+    fixedArrays[id] = gems;
+  }
+  if (!config?.enabled) return { overrides: fixedArrays, warnings: [] };
   if (
-    !config?.enabled ||
+    !forceCandidate &&
+    !manual.length &&
     gearIdentity(snapshot, loadout) ===
       gearIdentity(snapshot, snapshot.equipped)
   )
     return { overrides: {}, warnings: [] };
-  validateGemming(snapshot, catalog);
-  const selected = new Set(Object.values(loadout));
+  // A profession change must leave fixed choices visible for correction.
+  // Admission still validates the configured rank; preview prepares ordinary
+  // automatic sockets without crashing or erasing the now-invalid override.
+  validateGemming(snapshot, catalog, false);
   const equipped = new Set(Object.values(snapshot.equipped));
   // Order by item content before instance ID so swapping paired slots or
   // selecting an identical physical copy cannot change where gems are placed.
@@ -211,19 +233,28 @@ export function prepareGems(
         a.instanceId.localeCompare(b.instanceId),
     );
   const arrays: GemOverrides = {};
-  type Socket = { item: ItemInstance; index: number; color: GemColor };
+  type Socket = {
+    item: ItemInstance;
+    index: number;
+    color: GemColor;
+    fixed: boolean;
+  };
   const sockets: Socket[] = [];
   for (const item of items) {
     const metadata = catalog.items.get(item.itemId);
-    arrays[item.instanceId] = [...item.gemIds];
+    arrays[item.instanceId] = [
+      ...(fixedArrays[item.instanceId] ?? item.gemIds),
+    ];
     if (!metadata) continue;
     itemSockets(snapshot, metadata).forEach((color, index) => {
-      if (!arrays[item.instanceId][index])
+      const fixed =
+        snapshot.itemEnhancements?.[item.instanceId]?.gemIds?.[index] != null;
+      if (!fixed && !arrays[item.instanceId][index])
         arrays[item.instanceId][index] =
           color === GemColor.GemColorMeta
             ? config.metaGemId
             : config.defaultGemId;
-      sockets.push({ item, index, color });
+      sockets.push({ item, index, color, fixed });
     });
   }
   const gemId = (s: Socket) => arrays[s.item.instanceId][s.index];
@@ -232,17 +263,24 @@ export function prepareGems(
   const allGems = () => items.flatMap((i) => arrays[i.instanceId]);
   const isJc = (id: number) =>
     catalog.gems.get(id)?.requiredProfession === Profession.Jewelcrafting;
-  const jcTarget = hasJewelcrafting(snapshot) ? 3 : 0;
+  const jcRank =
+    catalog.restrictions?.items[config.jcGemId]?.requiredSkillRank ?? 0;
+  const jcTarget =
+    hasJewelcrafting(snapshot) &&
+    (snapshot.professionLevels?.[Profession.Jewelcrafting] ?? 450) >= jcRank
+      ? 3
+      : 0;
   const jcSockets = sockets.filter((s) => isJc(gemId(s)));
   // Prefer retaining JC gems already on equipped pieces. Excess gems become
   // their ordinary stat equivalent, rather than invalidating an entire set.
-  for (const s of [...jcSockets]
+  for (const s of jcSockets
+    .filter((s) => !s.fixed)
     .sort(
       (a, b) =>
         Number(equipped.has(b.item.instanceId)) -
         Number(equipped.has(a.item.instanceId)),
     )
-    .slice(jcTarget)) {
+    .slice(Math.max(0, jcTarget - jcSockets.filter((s) => s.fixed).length))) {
     const current = catalog.gems.get(gemId(s))!;
     const replacement = strongest(
       [...catalog.gems.values()].filter(
@@ -255,6 +293,7 @@ export function prepareGems(
   // removes JC gems, so both constraints are satisfied together when possible.
   const candidates = sockets.filter(
     (s) =>
+      !s.fixed &&
       s.color !== GemColor.GemColorMeta &&
       !isJc(gemId(s)) &&
       !catalog.gems.get(gemId(s))?.unique,
@@ -284,7 +323,8 @@ export function prepareGems(
 
   const metas = sockets
     .filter((s) => s.color === GemColor.GemColorMeta)
-    .map(gemId);
+    .map(gemId)
+    .filter(Boolean);
   const deficit = () =>
     metas.reduce((sum, id) => sum + metaDeficit(id, allGems(), catalog), 0);
   // Preserve existing colored/unique gems whenever possible. If a supporting
@@ -322,6 +362,7 @@ export function prepareGems(
     for (const socket of sockets) {
       const before = gemId(socket);
       if (
+        socket.fixed ||
         socket.color === GemColor.GemColorMeta ||
         isJc(before) ||
         catalog.gems.get(before)?.unique

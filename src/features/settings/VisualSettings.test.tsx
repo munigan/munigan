@@ -1,7 +1,41 @@
+import ptInventory from "../../../messages/pt-BR/inventory.json";
+import ptSettings from "../../../messages/pt-BR/settings.json";
+import ptCommon from "../../../messages/pt-BR/common.json";
+import { NextIntlClientProvider } from "next-intl";
+import type { ReactNode } from "react";
+import inventory from "../../../messages/en-US/inventory.json";
+import settings from "../../../messages/en-US/settings.json";
+import common from "../../../messages/en-US/common.json";
+function EnglishProvider({ children }: { children: ReactNode }) {
+  return (
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ inventory, settings, common }}
+    >
+      {children}
+    </NextIntlClientProvider>
+  );
+}
+const render = (ui: ReactNode) => rtlRender(ui, { wrapper: EnglishProvider });
 import { useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import {
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, it } from "vitest";
+import { expect, it, beforeAll, vi } from "vitest";
+beforeAll(() => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
+});
 import { BuffControls, ConsumeControls, GlyphControls } from "./VisualSettings";
 import { defaultSettings, listSpecs } from "./registry";
 import { applySettingsPatch } from "@/features/import/parse-export";
@@ -64,6 +98,17 @@ function Harness({ kind }: { kind: "buffs" | "consumes" | "glyphs" }) {
     </>
   );
 }
+async function chooseOption(trigger: HTMLElement, value: string) {
+  await userEvent.click(trigger);
+  const list = await screen.findByRole("listbox");
+  await userEvent.click(
+    list.querySelector(`[role="option"][data-select-value="${value}"]`)!,
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument(),
+  );
+  await waitFor(() => expect(trigger).toHaveFocus());
+}
 const current = () => JSON.parse(screen.getByTestId("snapshot").textContent!);
 it("turns off one buff while retaining numeric imported buffs", async () => {
   render(<Harness kind="buffs" />);
@@ -73,7 +118,8 @@ it("turns off one buff while retaining numeric imported buffs", async () => {
 });
 it("clears elixirs when selecting a flask and preserves food", async () => {
   render(<Harness kind="consumes" />);
-  await userEvent.selectOptions(
+  await userEvent.click(screen.getByRole("tab", { name: "Flask" }));
+  await chooseOption(
     screen.getByRole("combobox", { name: "Flask" }),
     String(Flask.FlaskOfEndlessRage),
   );
@@ -81,7 +127,10 @@ it("clears elixirs when selecting a flask and preserves food", async () => {
   expect(current().player.consumes.battleElixir).toBe(0);
   expect(current().player.consumes.guardianElixir).toBe(0);
   expect(current().player.consumes.food).toBe(Food.FoodDragonfinFilet);
-  await userEvent.selectOptions(
+  await userEvent.click(
+    screen.getByRole("tab", { name: "Battle + guardian elixirs" }),
+  );
+  await chooseOption(
     screen.getByRole("combobox", { name: "Battle elixir" }),
     String(BattleElixir.ElixirOfMightyStrength),
   );
@@ -90,14 +139,18 @@ it("clears elixirs when selecting a flask and preserves food", async () => {
 it("edits one glyph without changing the other slots and prevents duplicate picks", async () => {
   render(<Harness kind="glyphs" />);
   const first = screen.getByRole("combobox", { name: "Major glyph 1" });
-  await userEvent.selectOptions(first, "43547");
+  await chooseOption(first, "43547");
   expect(current().player.glyphs).toMatchObject({
     major1: 43547,
     major2: 43543,
     minor1: 43671,
   });
   const second = screen.getByRole("combobox", { name: "Major glyph 2" });
-  expect(second.querySelector('option[value="43547"]')).toBeDisabled();
+  await userEvent.click(second);
+  const options = await screen.findByRole("listbox");
+  expect(
+    options.querySelector('[role="option"][data-select-value="43547"]'),
+  ).toHaveAttribute("aria-disabled", "true");
 });
 
 it("limits Revitalize edits to whole uptime percentages", async () => {
@@ -113,9 +166,49 @@ it("limits Revitalize edits to whole uptime percentages", async () => {
     expect(current().player.buffs.revitalizeRejuvination).toBe(50);
   }
 });
-it("does not offer rogue-only Thistle Tea to a death knight", () => {
+it("does not offer rogue-only Thistle Tea to a death knight", async () => {
   render(<Harness kind="consumes" />);
+  await userEvent.click(
+    screen.getByRole("combobox", { name: /Conjured item/ }),
+  );
   expect(
     screen.queryByRole("option", { name: "Thistle Tea" }),
   ).not.toBeInTheDocument();
+});
+
+it("preserves buff filters and numeric settings while switching language", async () => {
+  const englishMessages = { inventory, settings, common };
+  const portugueseMessages = {
+    inventory: ptInventory,
+    settings: ptSettings,
+    common: ptCommon,
+  };
+  const { rerender } = rtlRender(
+    <NextIntlClientProvider locale="en-US" messages={englishMessages}>
+      <Harness kind="buffs" />
+    </NextIntlClientProvider>,
+  );
+  await userEvent.type(screen.getByRole("searchbox"), "Revitalize");
+  fireEvent.change(
+    screen.getByRole("spinbutton", {
+      name: "Revitalize: Rejuvenation uptime (%)",
+    }),
+    { target: { value: "50" } },
+  );
+  const before = screen.getByTestId("snapshot").textContent;
+  rerender(
+    <NextIntlClientProvider locale="pt-BR" messages={portugueseMessages}>
+      <Harness kind="buffs" />
+    </NextIntlClientProvider>,
+  );
+  expect(screen.getByRole("searchbox", { name: "Buscar buff" })).toHaveValue(
+    "Revitalize",
+  );
+  const input = screen.getByRole("spinbutton", {
+    name: "Revitalize: tempo ativo de Rejuvenation (%)",
+  });
+  expect(input).toHaveValue(50);
+  expect(screen.getByTestId("snapshot").textContent).toBe(before);
+  fireEvent.change(input, { target: { value: "60" } });
+  expect(current().player.buffs.revitalizeRejuvination).toBe(60);
 });
