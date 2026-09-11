@@ -9,6 +9,7 @@ import type {
 } from "./model";
 import { withEnhancements } from "@/domain/equipment/enhancements";
 import { slots } from "./slots";
+import { recommendedBuild } from "./recommendation";
 import {
   loadoutKey,
   itemKey,
@@ -69,33 +70,28 @@ export function rankResults(
         itemKey(snapshot, r.loadout[slot]) !==
         itemKey(snapshot, snapshot.equipped[slot]),
     ).length;
+  const resultKey = (r: SimulationResult) =>
+    loadoutKey(snapshot, r.loadout, r.isReference === true);
   const unique = new Map<string, SimulationResult>();
   for (const r of [...results].sort(
     (a, b) =>
       placementChanges(a) - placementChanges(b) ||
       a.inputHash.localeCompare(b.inputHash),
   )) {
-    const key = loadoutKey(snapshot, r.loadout);
+    const key = resultKey(r);
     if (!unique.has(key)) unique.set(key, r);
   }
   results = [...unique.values()];
   const eligible = new Set(candidates.map((c) => loadoutKey(snapshot, c))),
-    equippedKey = loadoutKey(snapshot, snapshot.equipped),
-    baseline = results.find(
-      (r) => loadoutKey(snapshot, r.loadout) === equippedKey,
-    );
+    equippedKey = loadoutKey(snapshot, snapshot.equipped, true),
+    baseline = results.find((r) => resultKey(r) === equippedKey);
   const ordered = [...results].sort(
     (a, b) =>
-      b.metric.mean - a.metric.mean ||
-      loadoutKey(snapshot, a.loadout).localeCompare(
-        loadoutKey(snapshot, b.loadout),
-      ),
+      b.metric.mean - a.metric.mean || resultKey(a).localeCompare(resultKey(b)),
   );
-  const highest = ordered.find((r) =>
-    eligible.has(loadoutKey(snapshot, r.loadout)),
-  );
+  const highest = ordered.find((r) => eligible.has(resultKey(r)));
   const rows: SetRow[] = ordered.map((r) => {
-    const key = loadoutKey(snapshot, r.loadout),
+    const key = resultKey(r),
       isEquipped = key === equippedKey;
     const delta = baseline ? compareMetrics(r.metric, baseline.metric) : null;
     return {
@@ -128,15 +124,10 @@ export function rankResults(
       stdev: r.metric.stdev,
     };
   });
-  const recommended = rows
-    .filter((r) => r.eligible && r.tiedToHighest === true)
-    .sort(
-      (a, b) => a.swaps - b.swaps || b.dps - a.dps || a.id.localeCompare(b.id),
-    )[0];
   return {
     rows,
     equippedId: baseline?.inputHash ?? "",
     highestId: highest?.inputHash ?? null,
-    recommendedId: recommended?.id ?? highest?.inputHash ?? null,
+    recommendedId: recommendedBuild(snapshot, rows),
   };
 }

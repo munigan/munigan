@@ -1,8 +1,10 @@
+import { importFormDraftKey } from "./import-form-draft";
 import { encodeRequest, decodeDraft } from "@/domain/top-gear/request-schema";
 import type { TopGearRequest } from "@/domain/top-gear/model";
 export const draftKey = "wow-droptimizer.top-gear.v1";
 export function saveDraft(request: TopGearRequest) {
   localStorage.setItem(draftKey, JSON.stringify(encodeRequest(request)));
+  localStorage.removeItem(importFormDraftKey);
 }
 export function loadDraft() {
   const raw = localStorage.getItem(draftKey);
@@ -11,4 +13,5 @@ export function loadDraft() {
 }
 export function clearDraft() {
   localStorage.removeItem(draftKey);
+  localStorage.removeItem(importFormDraftKey);
 }

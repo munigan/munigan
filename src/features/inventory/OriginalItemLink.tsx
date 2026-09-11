@@ -1,9 +1,10 @@
 "use client";
+import { useTranslations, useLocale } from "next-intl";
 import { useEffect, useId, useRef, type ComponentProps } from "react";
 import Image from "next/image";
 import type { ItemInstance } from "@/domain/top-gear/model";
 import { getCatalog } from "@/domain/equipment/catalog";
-import { Stat } from "@/generated/wotlk/common";
+import { statLines } from "./stat-labels";
 import original from "../../../data/wotlk/original-items.json";
 import { fitItemTooltip } from "./tooltip-viewport";
 
@@ -22,25 +23,6 @@ function TooltipIcon({ icon, size = 18 }: { icon?: string; size?: number }) {
   );
 }
 
-// The simulator stores shared ratings twice, for melee and spell calculations.
-function statLines(stats: number[]) {
-  const duplicateOf: Record<number, number> = {
-    [Stat.StatSpellCrit]: Stat.StatMeleeCrit,
-    [Stat.StatSpellHit]: Stat.StatMeleeHit,
-    [Stat.StatSpellHaste]: Stat.StatMeleeHaste,
-    [Stat.StatRangedAttackPower]: Stat.StatAttackPower,
-  };
-  return stats.flatMap((value, index) => {
-    if (!value || (index in duplicateOf && stats[duplicateOf[index]] === value))
-      return [];
-    const name = (Stat[index] ?? `Stat ${index}`)
-      .replace(/^Stat/, "")
-      .replace(/^Melee/, "")
-      .replace(/([a-z])([A-Z])/g, "$1 $2");
-    return [`+${value.toLocaleString()} ${name}`];
-  });
-}
-
 export function OriginalItemLink({
   item,
   tooltipOnly = false,
@@ -50,6 +32,8 @@ export function OriginalItemLink({
   item: ItemInstance;
   tooltipOnly?: boolean;
 } & ComponentProps<"a">) {
+  const t = useTranslations("inventory");
+  const locale = useLocale();
   const id = useId();
   const tooltip = useRef<HTMLSpanElement>(null);
   const anchor = useRef<HTMLAnchorElement>(null);
@@ -80,6 +64,17 @@ export function OriginalItemLink({
     catalog.items.get(item.itemId) ?? catalog.gems.get(item.itemId);
   const meta = statsItem ?? catalog.icons?.get(item.itemId);
   const gear = catalog.items.get(item.itemId);
+  // Exports may pad gem positions with zeros. Only item sockets establish
+  // empty rows; actual extra gems (such as a belt buckle) stay in position.
+  const socketGems = Array.from(
+    {
+      length: Math.max(
+        gear?.gemSockets.length ?? 0,
+        item.gemIds.findLastIndex((gem) => gem !== 0) + 1,
+      ),
+    },
+    (_, index) => item.gemIds[index] ?? 0,
+  );
   const enchants = catalog.enchants.get(item.enchantId);
   const enchant =
     enchants?.find(
@@ -154,23 +149,31 @@ export function OriginalItemLink({
         className="original-item-tooltip"
       >
         <strong className="item-name" data-quality={statsItem?.quality}>
-          {meta?.name ?? `Item ${item.itemId}`}
+          {meta?.name ?? t("item.id", { id: item.itemId })}
         </strong>
         {gear && !unsupported && (
-          <span className="original-item-level">Item Level {gear.ilvl}</span>
+          <span className="original-item-level">
+            {t("item.level", { level: gear.ilvl })}
+          </span>
         )}
         {unsupported ? (
-          <span>Not supported for simulation with this item version.</span>
+          <span>{t("item.unsupported")}</span>
         ) : (
           <>
             {!!gear?.weaponSpeed && (
               <span>
-                {gear.weaponDamageMin}–{gear.weaponDamageMax} damage ·{" "}
-                {gear.weaponSpeed.toFixed(2)} speed
+                {t("item.weaponStats", {
+                  min: gear.weaponDamageMin.toLocaleString(locale),
+                  max: gear.weaponDamageMax.toLocaleString(locale),
+                  speed: gear.weaponSpeed.toLocaleString(locale, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
+                })}
               </span>
             )}
             {statsItem &&
-              statLines(statsItem.stats).map((line) => (
+              statLines(statsItem.stats, t, locale).map((line) => (
                 <span key={line}>{line}</span>
               ))}
             {effects.map((effect) => (
@@ -184,14 +187,14 @@ export function OriginalItemLink({
           <span className="original-item-enchant original-tooltip-attachment">
             <TooltipIcon icon={enchant?.icon} />
             <span>
-              {enchant?.name ?? `Enchant ${item.enchantId}`}
+              {enchant?.name ?? t("item.enchantId", { id: item.enchantId })}
               {!!enchant?.stats.some(Boolean) && (
-                <small>{statLines(enchant.stats).join(", ")}</small>
+                <small>{statLines(enchant.stats, t, locale).join(", ")}</small>
               )}
             </span>
           </span>
         )}
-        {item.gemIds.map((gem, index) => (
+        {socketGems.map((gem, index) => (
           <span
             className="original-item-enhancement original-tooltip-attachment"
             key={index}
@@ -199,24 +202,24 @@ export function OriginalItemLink({
             <TooltipIcon icon={catalog.gems.get(gem)?.icon} />
             <span>
               {gem
-                ? (catalog.gems.get(gem)?.name ?? `Gem ${gem}`)
-                : "Empty socket"}
+                ? (catalog.gems.get(gem)?.name ?? t("item.gemId", { id: gem }))
+                : t("item.emptySocket")}
             </span>
           </span>
         ))}
         {!!gear?.socketBonus.some(Boolean) && (
           <span className="original-item-socket-bonus">
-            Socket bonus: {statLines(gear.socketBonus).join(", ")}
+            {t("item.socketBonus", {
+              stats: statLines(gear.socketBonus, t, locale).join(", "),
+            })}
           </span>
         )}
         <small className="original-item-profile">
-          Original WotLK 3.3.5a · Stats preview
+          {t("item.statsPreview")}
         </small>
         <small>
-          Item {item.itemId} ·{" "}
-          {tooltipOnly
-            ? "Excluded from simulation"
-            : "Click for full item details"}
+          {t("item.id", { id: item.itemId })} ·{" "}
+          {tooltipOnly ? t("item.excluded") : t("item.clickDetails")}
         </small>
       </span>
     </span>

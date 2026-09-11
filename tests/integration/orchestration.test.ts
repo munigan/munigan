@@ -6,6 +6,7 @@ import { executeTopGear, readReport } from "@/server/jobs/work";
 import { fixtureRequest } from "../support/fixtures";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 import { randomUUID } from "node:crypto";
+import { Stat } from "@/generated/wotlk/common";
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(async () => {
   await pool.query(`CREATE SCHEMA ${testSchema}`);
@@ -14,6 +15,54 @@ beforeAll(async () => {
 afterAll(async () => {
   await pool.query(`DROP SCHEMA ${testSchema} CASCADE`);
   await pool.end();
+});
+it("refreshes legacy recommendations from all stored results without rewriting the report", async () => {
+  const request = fixtureRequest();
+  request.snapshot.inventory.push({
+    instanceId: "bag-head",
+    itemId: 40528,
+    enchantId: 3817,
+    gemIds: [41285, 39996],
+    source: "bag",
+  });
+  request.selection.selectedInstanceIds.push("bag-head");
+  const ownerKey = randomUUID();
+  const job = await admitJob({
+    request: encodeRequest(request),
+    ownerKey,
+    idempotencyKey: randomUUID(),
+  });
+  await executeTopGear(
+    job.jobId,
+    new AbortController().signal,
+    async (_snapshot, loadout, iterations) => {
+      const capped = loadout.head !== "bag-head";
+      const stats = Array(40).fill(0);
+      stats[Stat.StatMeleeHit] = 1000;
+      stats[Stat.StatExpertise] = capped ? 1000 : 0;
+      return {
+        loadout,
+        inputHash: capped ? "capped" : "highest",
+        stats,
+        metric: { mean: capped ? 10000 : 10001, stdev: 100, iterations },
+      };
+    },
+  );
+  const { report } = await readReport(job.reportToken, ownerKey);
+  expect(report.highestId).toBe("highest");
+  expect(report.recommendedId).toBe("capped");
+  const stored = { ...report, recommendedId: "highest" };
+  await pool.query("UPDATE tg_jobs SET report=$2 WHERE id=$1", [
+    job.jobId,
+    JSON.stringify(stored),
+  ]);
+  expect(
+    (await readReport(job.reportToken, ownerKey)).report.recommendedId,
+  ).toBe("capped");
+  expect(
+    (await pool.query("SELECT report FROM tg_jobs WHERE id=$1", [job.jobId]))
+      .rows[0].report,
+  ).toEqual(stored);
 });
 it("persists every set and duplicate delivery does not rerun completed work", async () => {
   const owner = randomUUID();
@@ -212,6 +261,71 @@ it("retries a transient native infrastructure failure within the work attempt ca
   );
   expect(attempts.rows[0].count).toBe(2);
 });
+it("keeps enhancement-only reference and candidate rows distinct through worker persistence and report reads", async () => {
+  const request = fixtureRequest();
+  const legs = request.snapshot.inventory.find(
+    (item) => item.equippedSlot === "legs",
+  )!;
+  request.snapshot.gemming = undefined;
+  request.snapshot.autoEnchant = false;
+  request.snapshot.itemEnhancements = {
+    [legs.instanceId]: { gemIds: [40112, 0], enchantId: 0 },
+  };
+  const ownerKey = randomUUID();
+  const job = await admitJob({
+    request: encodeRequest(request),
+    ownerKey,
+    idempotencyKey: randomUUID(),
+  });
+  const { simulationInput } = await import("@/server/simulator/evaluate");
+  const { prepareGems } = await import("@/domain/equipment/gemming");
+  const { prepareEnchants } = await import("@/domain/equipment/enhancements");
+  const seen: number[][] = [];
+  await executeTopGear(
+    job.jobId,
+    new AbortController().signal,
+    async (snapshot, loadout, iterations, seed, _signal, reference) => {
+      const input = simulationInput(
+        snapshot,
+        loadout,
+        iterations,
+        seed,
+        reference,
+      );
+      seen.push(input.raid!.parties[0].players[0].equipment!.items[8].gems);
+      return {
+        isReference: reference,
+        loadout,
+        gemOverrides: reference ? {} : prepareGems(snapshot, loadout).overrides,
+        enchantOverrides: reference
+          ? {}
+          : prepareEnchants(snapshot, loadout).overrides,
+        inputHash: reference
+          ? "enhancement-reference"
+          : "enhancement-candidate",
+        metric: { mean: reference ? 1000 : 1100, stdev: 1, iterations },
+        stats: [],
+      };
+    },
+  );
+  expect(seen).toEqual([
+    [39996, 40022],
+    [40112, 0],
+  ]);
+  const { report } = await readReport(job.reportToken, ownerKey);
+  expect(report.status).toBe("complete");
+  expect(report.rows).toHaveLength(2);
+  expect(report.equippedId).toBe("enhancement-reference");
+  expect(report.highestId).toBe("enhancement-candidate");
+  expect(
+    report.rows.find((row) => row.id === "enhancement-candidate"),
+  ).toMatchObject({
+    isEquipped: false,
+    gain: 100,
+    gemOverrides: { [legs.instanceId]: [40112, 0] },
+  });
+});
+
 it("does not acknowledge a targeted job refused by active database leases", async () => {
   const { executeTargetedJob, rescheduleQueuedJob } =
     await import("@/server/jobs/work");

@@ -1,0 +1,63 @@
+import type { UIGem } from "@/generated/wotlk/ui";
+import { statLines } from "./stat-labels";
+import type { InventoryTranslation } from "./item-labels";
+export const gemEffectKeys: Record<number, string> = {
+  "41285": "criticalDamage",
+  "41398": "criticalDamage",
+  "34220": "criticalDamage",
+  "32409": "criticalDamage",
+  "41307": "reflect",
+  "25890": "reflect",
+  "41333": "intellect",
+  "35503": "intellect",
+  "41335": "snare",
+  "44081": "snare",
+  "25895": "snare",
+  "41377": "spellDamage",
+  "41339": "speed",
+  "41375": "speed",
+  "44076": "speed",
+  "44078": "speed",
+  "25894": "speed",
+  "28557": "speed",
+  "28556": "speed",
+  "41376": "healing",
+  "41378": "silence",
+  "44084": "silence",
+  "41379": "fear",
+  "44082": "fear",
+  "41380": "armor",
+  "41381": "stun10",
+  "41382": "stun10",
+  "41397": "stun10",
+  "44087": "stun10",
+  "44088": "stun10",
+  "44089": "stun10",
+  "41385": "healCrit",
+  "41389": "mana",
+  "41395": "threat",
+  "25897": "threat",
+  "41396": "block",
+  "35501": "block",
+  "41400": "attackSpeed",
+  "32410": "attackSpeed",
+  "41401": "restoreMana",
+  "25901": "restoreMana",
+  "25899": "stunTarget",
+  "32641": "stunResistance",
+  "32640": "stunResistance",
+  "25896": "stun15",
+  "25898": "healHit",
+  "25893": "castSpeed",
+};
+export function gemDescription(
+  gem: UIGem,
+  t: InventoryTranslation,
+  locale: string,
+) {
+  const effect = gemEffectKeys[gem.id];
+  return [
+    ...statLines(gem.stats, t, locale),
+    ...(effect ? [t(`gemEffects.${effect}`)] : []),
+  ].join(" · ");
+}

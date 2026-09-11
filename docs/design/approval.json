@@ -14,5 +14,13 @@
     "approvedAt": "2026-09-08T16:50:31.911664+00:00",
     "approvalMessage": "You can start the implementation.",
     "scope": "Top Gear plan, including scoped navigation and uniform sampling; unrelated tool designs remain pending"
+  },
+  "munigan": {
+    "status": "approved",
+    "revision": 1,
+    "approvedAt": "2026-09-09",
+    "approvalMessage": "Great! Now I want you to implement this new design into our application. Use base-ui for component primitives and TailwindCSS 4.0.",
+    "scope": "Approved neutral Munigan redesign of homepage and existing Top Gear import, settings, inventory and report flows.",
+    "paperFileUrl": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/7-0"
   }
 }

@@ -1,0 +1,99 @@
+import type { createTranslator } from "next-intl";
+import type messages from "../../../messages/en-US/reports.json";
+import { Stat } from "@/generated/wotlk/common";
+import type { CombinationStat, StatCap } from "./character-stats";
+
+type Translation = (
+  key: Parameters<ReturnType<typeof createTranslator<typeof messages>>>[0],
+  values?: Record<string, string | number>,
+) => string;
+const percentage = (value: number, locale: string, digits = 2) =>
+  new Intl.NumberFormat(locale, {
+    style: "percent",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value / 100);
+const decimal = (value: number, locale: string, digits = 2) =>
+  new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value);
+
+export function localizedCapDifference(
+  cap: StatCap,
+  t: Translation,
+  locale: string,
+) {
+  if (Math.abs(cap.difference) < 0.000001) return t("cap.at");
+  const amount =
+    cap.difference < 0
+      ? Math.ceil(Math.abs(cap.difference) - 0.000001)
+      : Math.floor(cap.difference + 0.000001);
+  return t(cap.capped ? "cap.above" : "cap.below", {
+    rating: amount ? decimal(amount, locale, 0) : "<1",
+  });
+}
+export function capContext(cap: StatCap, t: Translation, locale: string) {
+  return t(`context.${cap.presentation.context}`, {
+    cap: percentage(cap.presentation.autoAttackCap ?? 0, locale, 0),
+  });
+}
+export function capBonuses(cap: StatCap, t: Translation, locale: string) {
+  return cap.presentation.bonuses.map(({ kind, amount }) =>
+    t(`bonus.${kind}`, {
+      amount: ["racial", "vengeance"].includes(kind)
+        ? decimal(amount, locale, 0)
+        : percentage(amount, locale, 0),
+    }),
+  );
+}
+export function capLabel(cap: StatCap, t: Translation, compact = false) {
+  return t(`${compact ? "compact" : "labels"}.${cap.presentation.label}`);
+}
+export function presentCombinationStat(
+  stat: CombinationStat,
+  t: Translation,
+  locale: string,
+) {
+  const data = stat.presentation;
+  if (data.kind === "cap") {
+    const { cap } = data;
+    return {
+      label: capLabel(cap, t, true),
+      description: [
+        cap.stat === Stat.StatExpertise
+          ? t("cap.expertiseDescription", {
+              value: decimal(cap.effective, locale),
+            })
+          : capLabel(cap, t),
+        localizedCapDifference(cap, t, locale),
+        capContext(cap, t, locale),
+        ...capBonuses(cap, t, locale),
+      ].join(" · "),
+    };
+  }
+  if (data.kind === "armorPenetration")
+    return {
+      label: t("labels.armorPenetration"),
+      description: t("armorDescription"),
+    };
+  const key =
+    data.stat === Stat.StatSpellHaste
+      ? "spellHaste"
+      : data.stat === Stat.StatSpellCrit
+        ? "spellCrit"
+        : data.ranged
+          ? "rangedCrit"
+          : "meleeCrit";
+  const label = t(`labels.${key}`);
+  return {
+    label,
+    description: t(
+      data.stat === Stat.StatSpellHaste
+        ? "hasteDescription"
+        : "ratingDescription",
+      { stat: label },
+    ),
+  };
+}
+export { percentage as reportPercentage };

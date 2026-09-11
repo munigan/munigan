@@ -12,6 +12,68 @@ const character = {
   professions: [],
   gear: { items: [{ id: 50080, enchant: 0, gems: [0, 0] }] },
 };
+it.each(["Glyph of Enslave Demon", "Glyph of Subjugate Demon"])(
+  "preserves the warlock minor glyph exported as %s",
+  (name) => {
+    const draft = parseExport(
+      JSON.stringify({
+        ...character,
+        class: "warlock",
+        glyphs: { major: [], minor: [name] },
+      }),
+      "character",
+    );
+    const settings = IndividualSimSettings.fromJson(draft.settingsJson);
+    expect(settings.player?.glyphs?.minor1).toBe(43393);
+    expect(settings.player?.glyphs?.minor2).toBe(0);
+  },
+);
+it.each([
+  { class: "warrior", name: "Glyph of Enslave Demon" },
+  { class: "warlock", name: "Glyph of Not A Real Spell" },
+])("rejects unknown or wrong-class glyphs: $name / $class", (input) => {
+  expect(() =>
+    parseExport(
+      JSON.stringify({
+        ...character,
+        class: input.class,
+        glyphs: { major: [], minor: [input.name] },
+      }),
+      "character",
+    ),
+  ).toThrow(/Unknown glyph/);
+});
+it("accepts the addon ammo slot without shifting or importing it as gear", () => {
+  const ids = [
+    48398, 47988, 48395, 47546, 48396, 47442, 47492, 47429, 48394, 47457, 47993,
+    48007, 42987, 45931, 47446, 47446, 45296,
+  ];
+  for (const ammo of [{ id: 41584 }, null, { id: 0 }]) {
+    const draft = parseExport(
+      JSON.stringify({
+        ...character,
+        gear: { items: [...ids.map((id) => ({ id })), ammo] },
+      }),
+      "character",
+    );
+    expect(draft.inventory.map((item) => item.itemId)).toEqual(ids);
+    expect(draft.inventory.at(-1)?.equippedSlot).toBe("ranged");
+    expect(draft.inventory[14].instanceId).not.toBe(
+      draft.inventory[15].instanceId,
+    );
+  }
+});
+it("still rejects addon exports beyond the equipment and ammo slots", () => {
+  expect(() =>
+    parseExport(
+      JSON.stringify({
+        ...character,
+        gear: { items: Array.from({ length: 19 }, () => ({ id: 50080 })) },
+      }),
+      "character",
+    ),
+  ).toThrow(/Too many exported items/);
+});
 it("keeps two enhanced copies and replaces repeated bag snapshots", () => {
   const parsed = parseExport(
     JSON.stringify({

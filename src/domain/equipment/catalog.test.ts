@@ -9,4 +9,6 @@ it("resolves icons for item enchants, engineering tinkers, and weapon runes", ()
   expect(catalog.enchants.get(3368)?.[0].icon).toBe(
     "spell_holy_retributionaura",
   );
+  expect(catalog.enchants.get(3855)?.[0].icon).toBe("spell_holy_greaterheal");
+  expect(catalog.enchants.get(3823)?.[0].icon).toBe("trade_leatherworking");
 });

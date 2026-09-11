@@ -1,11 +1,18 @@
 "use client";
-import { useState } from "react";
-import Image from "next/image";
+import { describeError, type ErrorDescriptor } from "@/i18n/error";
+import { localizeDiagnostic } from "@/i18n/diagnostics";
+import { useTranslations } from "next-intl";
+import { AlertMessage } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+  type Ref,
+} from "react";
 import type { Snapshot } from "@/domain/top-gear/model";
 import { validateItem } from "@/domain/equipment/validate";
-import { Class, Profession } from "@/generated/wotlk/common";
-import { ItemIcon } from "@/features/inventory/Item";
-import { ItemVersionContext } from "@/features/inventory/ItemVersionContext";
 import { listSpecs } from "@/features/settings/registry";
 import {
   parseExport,
@@ -14,53 +21,39 @@ import {
   type ImportDraft,
 } from "./parse-export";
 import "./import-refinements.css";
+import { ImportReview, type Review } from "./ImportReview";
+import { ImportInstructions } from "./ImportInstructions";
+import { ExportPreview } from "./ExportPreview";
+import { WarmaneFields } from "./WarmaneFields";
+import { validateWarmaneLookup } from "./warmane";
 
-const professionIcons: Record<number, string> = {
-  1: "trade_alchemy",
-  2: "trade_blacksmithing",
-  3: "trade_engraving",
-  4: "trade_engineering",
-  5: "trade_herbalism",
-  6: "inv_inscription_tradeskill01",
-  7: "inv_misc_gem_01",
-  8: "trade_leatherworking",
-  9: "trade_mining",
-  10: "inv_misc_pelt_wolf_01",
-  11: "trade_tailoring",
+import {
+  importFormDraftKey,
+  loadImportFormDraft,
+  type ImportFormDraft,
+} from "./import-form-draft";
+
+export type ImportPanelHandle = {
+  saveForLater: () => void;
+  restoreDraft: () => boolean;
 };
-function ReviewIcon({ icon, size = 28 }: { icon: string; size?: number }) {
-  return (
-    <Image
-      unoptimized
-      src={`https://wow.zamimg.com/images/wow/icons/large/${icon}.jpg`}
-      width={size}
-      height={size}
-      alt=""
-    />
-  );
-}
-function imported(draft: ImportDraft, path: string) {
-  let value: unknown = draft.settingsJson;
-  for (const part of path.split(".")) {
-    if (!value || typeof value !== "object" || !Object.hasOwn(value, part))
-      return false;
-    value = (value as Record<string, unknown>)[part];
-  }
-  return true;
-}
-function sourceLabel(draft: ImportDraft, paths: string[], ready: boolean) {
-  const count = paths.filter((path) => imported(draft, path)).length;
-  if (count === paths.length) return "Imported";
-  if (count) return ready ? "Imported + preset" : "Imported + pending";
-  return ready ? "Preset default" : "Choose a preset";
-}
-type Review = { snapshot: Snapshot; supported: number; unsupported: number };
+
 export function ImportPanel({
+  ref,
   onResolved,
 }: {
+  ref?: Ref<ImportPanelHandle>;
   onResolved: (snapshot: Snapshot) => void;
 }) {
-  const [kind, setKind] = useState<"character" | "profile">("character");
+  const t = useTranslations("import");
+  const td = useTranslations("diagnostics");
+  const [kind, setKind] = useState<"character" | "profile" | "warmane">(
+    "character",
+  );
+  const [armory, setArmory] = useState({ name: "", realm: "Icecrown" });
+  const [pending, setPending] = useState(false);
+  const armoryRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => armoryRequest.current?.abort(), []);
   const [character, setCharacter] = useState("");
   const [bags, setBags] = useState("");
   const [draft, setDraft] = useState<ImportDraft | null>(null);
@@ -68,13 +61,10 @@ export function ImportPanel({
   const [preset, setPreset] = useState("");
   const [resolved, setResolved] = useState<Review | null>(null);
   const [errors, setErrors] = useState<{
-    character?: string;
-    bags?: string;
-    preset?: string;
+    character?: ErrorDescriptor;
+    bags?: ErrorDescriptor;
+    preset?: ErrorDescriptor;
   }>({});
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
-    "idle",
-  );
   function resolve(next: ImportDraft, bag: ImportDraft | null, id: string) {
     setResolved(null);
     if (!id) return;
@@ -96,24 +86,98 @@ export function ImportPanel({
     } catch (error) {
       setErrors((current) => ({
         ...current,
-        preset: (error as Error).message,
+        preset: describeError(error),
       }));
     }
   }
-  function review() {
+  useImperativeHandle(ref, () => ({
+    saveForLater() {
+      if (!character.trim() && !bags.trim() && !armory.name.trim()) return;
+      const saved: ImportFormDraft = {
+        kind,
+        character,
+        bags,
+        armory,
+        preset,
+        reviewing: !!draft,
+      };
+      localStorage.setItem(importFormDraftKey, JSON.stringify(saved));
+    },
+    restoreDraft() {
+      const saved = loadImportFormDraft();
+      if (!saved) return false;
+      // Re-parse the saved source through the same validation as a new import.
+      const next = saved.reviewing
+        ? parseExport(
+            saved.character,
+            saved.kind === "profile" ? "profile" : "character",
+          )
+        : null;
+      const bag =
+        next && saved.bags.trim() ? parseExport(saved.bags, "bags") : null;
+      setKind(saved.kind);
+      setCharacter(saved.character);
+      setBags(saved.bags);
+      setArmory(saved.armory);
+      setPreset(saved.preset);
+      setDraft(next);
+      setBagDraft(bag);
+      setErrors({});
+      if (next) resolve(next, bag, saved.preset);
+      return true;
+    },
+  }));
+  async function review() {
+    if (pending) return;
     const nextErrors: typeof errors = {};
     let next: ImportDraft | null = null,
       bag: ImportDraft | null = null;
-    try {
-      next = parseExport(character, kind);
-    } catch (error) {
-      nextErrors.character = (error as Error).message;
-    }
     if (bags.trim()) {
       try {
         bag = parseExport(bags, "bags");
       } catch (error) {
-        nextErrors.bags = (error as Error).message;
+        nextErrors.bags = describeError(error);
+      }
+    }
+    if (kind === "warmane") {
+      if (nextErrors.bags) {
+        setErrors(nextErrors);
+        return;
+      }
+      try {
+        const lookup = validateWarmaneLookup(armory);
+        armoryRequest.current?.abort();
+        const controller = new AbortController();
+        armoryRequest.current = controller;
+        setPending(true);
+        setErrors({});
+        const response = await fetch(
+          `/api/import/warmane?${new URLSearchParams(lookup)}`,
+          { signal: controller.signal },
+        );
+        const result = await response.json();
+        if (!response.ok) throw result;
+        const exported = JSON.stringify(result.character);
+        next = parseExport(exported, "character");
+        setCharacter(exported);
+      } catch (error) {
+        if (armoryRequest.current?.signal.aborted) return;
+        const described = describeError(error);
+        nextErrors.character = described.code
+          ? described
+          : {
+              code: "warmaneUnavailable",
+              message:
+                "Warmane Armory is unavailable or limiting requests. Try again shortly, or use an addon export.",
+            };
+      } finally {
+        setPending(false);
+      }
+    } else {
+      try {
+        next = parseExport(character, kind);
+      } catch (error) {
+        nextErrors.character = describeError(error);
       }
     }
     setErrors(nextErrors);
@@ -131,102 +195,151 @@ export function ImportPanel({
     setPreset(id);
     resolve(next, bag, id);
   }
-  async function copyCommand() {
-    try {
-      await navigator.clipboard.writeText("/wse");
-      setCopyState("copied");
-    } catch {
-      setCopyState("failed");
-    }
-  }
-  const className = draft
-    ? Class[draft.classId ?? 0]
-        .replace(/^Class/, "")
-        .replace("Deathknight", "Death Knight")
-    : "";
-  const player = resolved?.snapshot.settings.player;
-  const importedPlayer = draft?.settingsJson.player as
-    Record<string, unknown> | undefined;
-  const professions = [
-    player?.profession1 ?? importedPlayer?.profession1,
-    player?.profession2 ?? importedPlayer?.profession2,
-  ]
-    .map((value) =>
-      typeof value === "string"
-        ? Profession[value as keyof typeof Profession]
-        : value,
-    )
-    .filter((value): value is number => typeof value === "number" && value > 0);
   return (
     <div className="import-refinement">
       <div className="panel import-card">
         {!draft ? (
           <>
             <div className="section-top">
-              <h2>Import your character</h2>
-              <span className="badge">Level 80</span>
+              <h2>{t("title")}</h2>
+              <span className="badge">{t("level")}</span>
             </div>
             <div className="segmented">
-              <button
+              <Button
+                variant="secondary"
+                disabled={pending}
+                className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
                 aria-pressed={kind === "character"}
                 onClick={() => {
                   setKind("character");
                   setErrors({});
                 }}
               >
-                Addon export
-              </button>
-              <button
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                  aria-hidden="true"
+                >
+                  <path d="M9 3h6v4a3 3 0 1 1 4 4h2v10h-7v-2a3 3 0 1 0-6 0v2H3v-7h2a3 3 0 1 0 0-6H3V3h6Z" />
+                </svg>
+                {t("addonExport")}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={pending}
+                className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
                 aria-pressed={kind === "profile"}
                 onClick={() => {
                   setKind("profile");
                   setErrors({});
                 }}
               >
-                Simulator profile
-              </button>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                  aria-hidden="true"
+                >
+                  <path d="M14 2H5v20h14V7l-5-5Zm0 0v5h5M9 12l-2 3 2 3m5-6 2 3-2 3" />
+                </svg>
+                {t("simulatorProfile")}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={pending}
+                className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
+                aria-pressed={kind === "warmane"}
+                onClick={() => {
+                  setKind("warmane");
+                  setErrors({});
+                }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                  aria-hidden="true"
+                >
+                  <path d="M4 21V7h4V3h8v4h4v14M2 21h20M9 21v-6h6v6M8 7h8M8 11h1m6 0h1" />
+                </svg>
+                {t("warmaneArmory")}
+              </Button>
             </div>
             <div className="import-input-section">
-              <div className="import-field-title">
-                <span className="import-step" aria-hidden="true">
-                  1
-                </span>
-                <label htmlFor="character">
-                  {kind === "character"
-                    ? "Character export"
-                    : "Simulator profile"}
-                </label>
-                <span className="small muted">Required</span>
-              </div>
-              <textarea
-                id="character"
-                rows={5}
-                value={character}
-                aria-invalid={!!errors.character}
-                aria-describedby={
-                  errors.character ? "character-error" : undefined
-                }
-                onChange={(event) => {
-                  setCharacter(event.target.value);
-                  setErrors((current) => ({
-                    ...current,
-                    character: undefined,
-                  }));
-                }}
-                placeholder={
-                  kind === "character"
-                    ? "Paste your /wse character export"
-                    : "Paste a full Poli93 simulator JSON export or profile link"
-                }
-              />
+              {kind === "warmane" ? (
+                <WarmaneFields
+                  value={armory}
+                  pending={pending}
+                  invalid={!!errors.character}
+                  onReview={review}
+                  onChange={(value) => {
+                    setArmory(value);
+                    setErrors((current) => ({
+                      ...current,
+                      character: undefined,
+                    }));
+                  }}
+                />
+              ) : (
+                <>
+                  <div className="import-field-title">
+                    <span className="import-step" aria-hidden="true">
+                      1
+                    </span>
+                    <label htmlFor="character">
+                      {kind === "character"
+                        ? t("characterExport")
+                        : t("simulatorProfile")}
+                    </label>
+                    <span className="small muted">{t("required")}</span>
+                  </div>
+                  <textarea
+                    id="character"
+                    rows={5}
+                    value={character}
+                    aria-invalid={!!errors.character}
+                    aria-describedby={
+                      errors.character ? "character-error" : undefined
+                    }
+                    onChange={(event) => {
+                      setCharacter(event.target.value);
+                      setErrors((current) => ({
+                        ...current,
+                        character: undefined,
+                      }));
+                    }}
+                    placeholder={
+                      kind === "character"
+                        ? t("characterPlaceholder")
+                        : t("profilePlaceholder")
+                    }
+                  />
+                  <ExportPreview text={character} kind={kind} />
+                </>
+              )}
               {errors.character && (
-                <p
-                  id="character-error"
-                  role="alert"
-                  className="import-field-error"
-                >
-                  {errors.character}
-                </p>
+                <AlertMessage id="character-error" tone="error">
+                  {localizeDiagnostic(errors.character, td)}
+                </AlertMessage>
               )}
             </div>
             <div className="import-input-section">
@@ -234,14 +347,15 @@ export function ImportPanel({
                 <span className="import-step" aria-hidden="true">
                   2
                 </span>
-                <label htmlFor="bags">Bag export</label>
-                <span className="small muted">Optional</span>
+                <label htmlFor="bags">{t("bagExport")}</label>
+                <span className="small muted">{t("optional")}</span>
               </div>
               <p id="bags-help" className="small muted">
-                Leave empty to compare your equipped gear only.
+                {t("bagsHelp")}
               </p>
               <textarea
                 id="bags"
+                disabled={pending}
                 rows={3}
                 value={bags}
                 aria-invalid={!!errors.bags}
@@ -252,209 +366,55 @@ export function ImportPanel({
                   setBags(event.target.value);
                   setErrors((current) => ({ ...current, bags: undefined }));
                 }}
-                placeholder="Paste your /wse bag export"
+                placeholder={t("bagsPlaceholder")}
               />
+              <ExportPreview text={bags} kind="bags" />
               {errors.bags && (
-                <p id="bags-error" role="alert" className="import-field-error">
-                  {errors.bags}
-                </p>
+                <AlertMessage id="bags-error" tone="error">
+                  {localizeDiagnostic(errors.bags, td)}
+                </AlertMessage>
               )}
             </div>
-            <button
+            <Button
+              variant="primary"
               className="primary"
-              onClick={review}
-              disabled={!character.trim()}
+              onClick={kind === "warmane" ? undefined : review}
+              type={kind === "warmane" ? "submit" : "button"}
+              form={kind === "warmane" ? "warmane-import" : undefined}
+              disabled={
+                pending ||
+                !(kind === "warmane" ? armory.name.trim() : character.trim())
+              }
+              aria-busy={pending}
             >
-              Review import <span aria-hidden="true">→</span>
-            </button>
+              <span role={pending ? "status" : undefined}>
+                {t(pending ? "armoryFetching" : "reviewImport")}
+              </span>{" "}
+              <span aria-hidden="true">→</span>
+            </Button>
           </>
         ) : (
-          <>
-            <p className="eyebrow">IMPORT REVIEW</p>
-            <div className="import-identity">
-              <ReviewIcon
-                icon={`classicon_${className.toLowerCase().replaceAll(" ", "")}`}
-                size={44}
-              />
-              <div>
-                <h2>{String(importedPlayer?.name ?? "Your character")}</h2>
-                <p className="muted">Level 80 · {className}</p>
-              </div>
-              <span className="badge">Character imported</span>
-            </div>
-            <div className="import-equipment">
-              <div className="import-review-heading">
-                <h3>Equipped gear</h3>
-                <span className="muted small">
-                  {draft.inventory.length} items · Gems & enchants preserved
-                </span>
-              </div>
-              <ItemVersionContext value="original">
-                <div
-                  className="import-equipped-icons"
-                  aria-label="Imported equipped gear"
-                >
-                  {draft.inventory.map((item) => (
-                    <ItemIcon key={item.instanceId} item={item} size={38} />
-                  ))}
-                </div>
-              </ItemVersionContext>
-            </div>
-            <div className="import-preset">
-              <label htmlFor="preset">DPS preset</label>
-              <select
-                id="preset"
-                value={preset}
-                aria-invalid={!!errors.preset}
-                aria-describedby="preset-help"
-                onChange={(event) => {
-                  const id = event.target.value;
-                  setPreset(id);
-                  setErrors({});
-                  resolve(draft, bagDraft, id);
-                }}
-              >
-                <option value="">Choose your specialization</option>
-                {listSpecs()
-                  .filter((spec) => spec.classId === draft.classId)
-                  .map((spec) => (
-                    <option key={spec.id} value={spec.id}>
-                      {spec.className} · {spec.name}
-                    </option>
-                  ))}
-              </select>
-              <p id="preset-help" className="small muted">
-                Imported values are kept. The preset fills settings absent from
-                your export.
-              </p>
-            </div>
-            {errors.preset && (
-              <p role="alert" className="import-field-error">
-                {errors.preset}
-              </p>
-            )}
-            <div className="import-bag-status" aria-label="Bag compatibility">
-              <div>
-                <strong>{bagDraft?.inventory.length ?? 0}</strong> bag items
-              </div>
-              {resolved ? (
-                <p>
-                  <span className="accent">{resolved.supported} supported</span>
-                  <span aria-hidden="true"> · </span>
-                  <span>{resolved.unsupported} unsupported</span>
-                </p>
-              ) : (
-                <p className="small muted">
-                  Choose a preset to check bag compatibility.
-                </p>
-              )}
-              {!!resolved?.unsupported && (
-                <p className="small muted">
-                  Unsupported items stay visible in your bags and cannot be
-                  selected.
-                </p>
-              )}
-            </div>
-            <div className="import-review-heading">
-              <h3>Settings</h3>
-              <span className="small muted">Editable after import</span>
-            </div>
-            <dl className="import-setting-sources">
-              {[
-                ["Talents", ["player.talentsString"]],
-                ["Glyphs", ["player.glyphs"]],
-                [
-                  "Buffs",
-                  ["raidBuffs", "partyBuffs", "debuffs", "player.buffs"],
-                ],
-                ["Consumables", ["player.consumes"]],
-                ["Encounter", ["encounter"]],
-                ["Professions", ["player.profession1", "player.profession2"]],
-              ].map(([label, paths]) => (
-                <div key={label as string}>
-                  <dt>{label}</dt>
-                  <dd>{sourceLabel(draft, paths as string[], !!resolved)}</dd>
-                </div>
-              ))}
-            </dl>
-            {professions.length > 0 && (
-              <div className="import-professions">
-                {professions.map((profession, index) => (
-                  <div key={`${profession}-${index}`}>
-                    <ReviewIcon
-                      icon={
-                        professionIcons[profession] ?? "inv_misc_questionmark"
-                      }
-                    />
-                    <span>
-                      {Profession[profession]}
-                      <small>
-                        {draft.professionLevels?.[profession]
-                          ? `${draft.professionLevels[profession]} / 450`
-                          : "Rank not exported · assumes 450"}
-                      </small>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="actions">
-              <button
-                onClick={() => {
-                  setDraft(null);
-                  setResolved(null);
-                  setErrors({});
-                }}
-              >
-                Back to import
-              </button>
-              <button
-                className="primary"
-                disabled={!resolved}
-                onClick={() => resolved && onResolved(resolved.snapshot)}
-              >
-                Select gear <span aria-hidden="true">→</span>
-              </button>
-            </div>
-          </>
+          <ImportReview
+            draft={draft}
+            bagDraft={bagDraft}
+            resolved={resolved}
+            preset={preset}
+            errors={errors}
+            onPreset={(id) => {
+              setPreset(id);
+              setErrors({});
+              resolve(draft, bagDraft, id);
+            }}
+            onBack={() => {
+              setDraft(null);
+              setResolved(null);
+              setErrors({});
+            }}
+            onResolved={onResolved}
+          />
         )}
       </div>
-      <details className="import-addon-help">
-        <summary>How to get your exports</summary>
-        <div>
-          <p>
-            Install{" "}
-            <a
-              href="https://github.com/Poli93/wowsimsexporter-wotlk-335"
-              target="_blank"
-              rel="noreferrer"
-            >
-              WowSims Exporter for Wrath ↗
-            </a>
-            , then open it in game:
-          </p>
-          <div className="import-command">
-            <code>/wse</code>
-            <button onClick={copyCommand}>
-              {copyState === "copied" ? "Copied!" : "Copy /wse"}
-            </button>
-          </div>
-          {copyState === "failed" && (
-            <p role="alert" className="import-field-error">
-              Clipboard unavailable. Copy /wse manually.
-            </p>
-          )}
-          {copyState === "copied" && (
-            <span role="status" className="small muted">
-              Command copied.
-            </span>
-          )}
-          <p>
-            Copy the character export first, then the bag export. Paste each
-            into its matching field above.
-          </p>
-        </div>
-      </details>
+      <ImportInstructions armory={kind === "warmane"} />
     </div>
   );
 }

@@ -1,0 +1,22 @@
+{
+  "measuredAt": "2026-09-11T12:59:01.532Z",
+  "version": "20260911.1",
+  "runId": "run_06g9130m67obqkbhvf62j4hq01",
+  "reportUrl": "https://munigan.app/reports/fCp9MhybzeWKQG79NNKi3S9DPVcMOINlOdF6EsV4YH4",
+  "status": "COMPLETED",
+  "durationMs": 36676,
+  "createdAt": "2026-09-11T12:58:15.128Z",
+  "startedAt": "2026-09-11T12:58:15.373Z",
+  "finishedAt": "2026-09-11T12:58:54.314Z",
+  "costInCents": 0.623492,
+  "baseCostInCents": 0.0025,
+  "planned": 96,
+  "succeeded": 96,
+  "identicalPersistedResults": true,
+  "baseline": {
+    "runId": "run_06g8rvffca83v76tvuq2o2gn01",
+    "durationMs": 150560,
+    "costInCents": 0.50814,
+    "baseCostInCents": 0.0025
+  }
+}

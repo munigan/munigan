@@ -1,0 +1,30 @@
+@layer components {
+  .dps-preset-select .app-select-value {
+    white-space: normal;
+    text-overflow: clip;
+  }
+  .preset-select-label {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 6px;
+    min-width: 0;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  .preset-select-points {
+    flex-shrink: 0;
+    color: var(--color-muted);
+    font-size: 12px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .preset-select-help {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-muted);
+    font-size: 12px;
+    line-height: 18px;
+  }
+}

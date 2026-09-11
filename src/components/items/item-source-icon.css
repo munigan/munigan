@@ -1,0 +1,22 @@
+@layer components {
+  .item-source-icon {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    border-radius: 4px;
+    color: var(--color-muted);
+    cursor: help;
+  }
+  .item-source-icon:hover,
+  .item-source-icon[data-popup-open] {
+    color: var(--color-text);
+  }
+  .item-source-icon:focus-visible {
+    outline: 2px solid var(--color-action);
+    outline-offset: 2px;
+  }
+}

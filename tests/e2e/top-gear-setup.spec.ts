@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const fixture = JSON.parse(
@@ -33,11 +34,14 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
     }),
   );
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Fury (19/52/0)",
+  });
   await page.getByRole("button", { name: "Select gear" }).click();
-  await page
-    .getByLabel("Item version", { exact: true })
-    .selectOption("classic");
+  await selectOption(
+    page.getByLabel("Item version", { exact: true }),
+    "classic",
+  );
   await expect(page.locator(".unsupported-bag .bag-grid")).toBeHidden();
   await page.locator(".unsupported-bag > summary").click();
   await expect(
@@ -85,7 +89,7 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await bagHelmet.check();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await page.getByRole("button", { name: "Done" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Restore draft" }),

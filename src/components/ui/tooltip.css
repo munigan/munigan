@@ -1,0 +1,20 @@
+@layer components {
+  .app-tooltip-positioner {
+    z-index: 110;
+    max-width: min(260px, calc(100vw - 16px));
+  }
+  .app-tooltip-popup {
+    padding: 6px 9px;
+    border: 1px solid var(--color-control-border);
+    border-radius: 5px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    box-shadow: 0 4px 16px #0005;
+  }
+}

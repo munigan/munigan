@@ -1,25 +1,42 @@
 "use client";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { CharacterBackground } from "@/features/shell/CharacterBackground";
+import { describeError, type ErrorDescriptor } from "@/i18n/error";
+import { localizeDiagnostic } from "@/i18n/diagnostics";
+import { useTranslations } from "next-intl";
+import {
+  Alert,
+  AlertContent,
+  AlertActions,
+  AlertAction,
+  AlertMessage,
+} from "@/components/ui/Alert";
+import { PageHeading } from "@/components/ui/layout";
+import { Button } from "@/components/ui/Button";
+import { useEffect, useEffectEvent, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type {
   Snapshot,
   TopGearRequest,
   WorkPolicy,
 } from "@/domain/top-gear/model";
-import { ImportPanel } from "@/features/import/ImportPanel";
+import {
+  ImportPanel,
+  type ImportPanelHandle,
+} from "@/features/import/ImportPanel";
+import { SavedDraftNotice } from "@/features/import/SavedDraftNotice";
 import { InventorySelector } from "./InventorySelector";
 import { PresetPanel } from "@/features/settings/PresetPanel";
 import { ItemVersionContext } from "./ItemVersionContext";
-import { GemmingPanel, EnhancementSummary } from "./GemmingPanel";
+import { GemmingPanel } from "./GemmingPanel";
 import { defaultGemming } from "@/domain/equipment/gemming";
-import {
-  itemVersions,
-  itemVersionOf,
-  type ItemVersion,
-} from "@/domain/top-gear/item-version";
-import { getSpec } from "@/features/settings/registry";
+import { itemVersionOf } from "@/domain/top-gear/item-version";
+import { RunSetup } from "./RunSetup";
+import "./inventory-design.css";
 import { validateItem } from "@/domain/equipment/validate";
-import { estimateAllowance } from "@/domain/equipment/enumerate";
+import {
+  estimateAllowance,
+  analyzeItemEnhancementSets,
+} from "@/domain/equipment/enumerate";
 import {
   encodeRequest,
   validateRequest,
@@ -30,35 +47,95 @@ import {
   loadDraft,
   clearDraft,
 } from "@/features/import/draft-store";
-export function TopGearApp() {
+import { importFormDraftKey } from "@/features/import/import-form-draft";
+import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
+
+export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
+  const t = useTranslations("import");
+  const ti = useTranslations("inventory");
+  const td = useTranslations("diagnostics");
   const router = useRouter();
   const [request, setRequest] = useState<TopGearRequest | null>(null),
     [policy, setPolicy] = useState<WorkPolicy | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
     [enhancementsOpen, setEnhancementsOpen] = useState(false),
-    [error, setError] = useState(""),
+    [error, setError] = useState<ErrorDescriptor | null>(null),
     [pending, setPending] = useState(false),
     [hasDraft, setHasDraft] = useState(false),
     [replace, setReplace] = useState(false),
-    [storageError, setStorageError] = useState("");
+    [storageError, setStorageError] = useState<ErrorDescriptor | null>(null);
+  const importPanel = useRef<ImportPanelHandle>(null);
+  const [importRevision, setImportRevision] = useState(0);
+  const returnToStart = useEffectEvent((event: Event) => {
+    try {
+      if (request) saveDraft(request);
+      importPanel.current?.saveForLater();
+      const saved = !!(
+        localStorage.getItem(importFormDraftKey) ||
+        localStorage.getItem(draftKey)
+      );
+      setRequest(null);
+      setReplace(false);
+      setSettingsOpen(false);
+      setEnhancementsOpen(false);
+      setRestoring(false);
+      setError(null);
+      setHasDraft(saved);
+      setImportRevision((revision) => revision + 1);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    } catch (error) {
+      event.preventDefault();
+      setStorageError(describeError(error));
+    }
+  });
+  useEffect(() => {
+    const start = (event: Event) => returnToStart(event);
+    window.addEventListener(topGearStartEvent, start);
+    return () => window.removeEventListener(topGearStartEvent, start);
+  }, []);
   const intent = useRef<string>("");
+  const [restoring, setRestoring] = useState(autoRestore);
+  const restoreFromReport = useEffectEvent(() => {
+    try {
+      const draft = loadDraft();
+      if (draft) change(draft);
+    } catch (e) {
+      setError(describeError(e));
+    } finally {
+      setRestoring(false);
+    }
+  });
+  useEffect(() => {
+    if (!autoRestore) return;
+    const frame = requestAnimationFrame(() => restoreFromReport());
+    return () => cancelAnimationFrame(frame);
+  }, [autoRestore]);
   useEffect(() => {
     fetch("/api/top-gear/config")
       .then((r) => r.json())
       .then((d) => {
         if (d.policy) setPolicy(d.policy);
-        else setError(d.error);
+        else setError(describeError(d));
         try {
-          setHasDraft(!!localStorage.getItem(draftKey));
+          setHasDraft(
+            !!(
+              localStorage.getItem(draftKey) ||
+              localStorage.getItem(importFormDraftKey)
+            ),
+          );
         } catch {
           setStorageError(
-            "Local draft storage is unavailable in this browser.",
+            describeError(
+              "Local draft storage is unavailable in this browser.",
+            ),
           );
         }
       })
       .catch(() =>
         setError(
-          "Could not connect to the simulation service. Reload to try again.",
+          describeError(
+            "Could not connect to the simulation service. Reload to try again.",
+          ),
         ),
       );
   }, []);
@@ -81,22 +158,21 @@ export function TopGearApp() {
           (id) => !excluded.includes(id),
         ),
         acknowledgedExclusions: excluded,
-        lockedSlots: Object.fromEntries(
-          Object.entries(next.selection.lockedSlots).filter(
-            ([, id]) => !id || !excluded.includes(id),
-          ),
-        ),
+        // Retired slot locks must not constrain restored drafts.
+        lockedSlots: {},
       },
     };
     setRequest(next);
     intent.current = "";
-    setError("");
+    setError(null);
     try {
       saveDraft(next);
       setHasDraft(true);
     } catch {
       setStorageError(
-        "Your selection is kept on this page, but could not be saved in this browser.",
+        describeError(
+          "Your selection is kept on this page, but could not be saved in this browser.",
+        ),
       );
     }
   }
@@ -137,254 +213,150 @@ export function TopGearApp() {
         body: JSON.stringify(encodeRequest(request)),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) throw describeError(data);
       router.push(data.reportUrl);
     } catch (e) {
-      setError((e as Error).message);
+      setError(describeError(e));
       setPending(false);
     }
   }
-  const allowance =
-    request && policy
-      ? estimateAllowance(request.snapshot, request.selection, policy)
-      : null;
+  const enhancementAnalysis = useMemo(
+    () =>
+      request && Object.keys(request.snapshot.itemEnhancements ?? {}).length
+        ? analyzeItemEnhancementSets(request.snapshot, request.selection)
+        : null,
+    [request],
+  );
+  const allowance = useMemo(
+    () =>
+      request && policy
+        ? estimateAllowance(
+            request.snapshot,
+            request.selection,
+            policy,
+            undefined,
+            enhancementAnalysis ?? undefined,
+          )
+        : null,
+    [request, policy, enhancementAnalysis],
+  );
   const readinessError = useMemo(() => {
-    if (!request) return "";
+    if (!request) return null;
     try {
       validateRequest(encodeRequest(request));
-      return "";
+      return null;
     } catch (error) {
-      return error instanceof Error
-        ? error.message
-        : "Review your simulation settings.";
+      return describeError(error);
     }
   }, [request]);
-  const spec = request ? getSpec(request.snapshot.specId) : null;
+  // Avoid briefly showing the import form during an explicit report edit.
+  if (restoring) return null;
   return (
     <ItemVersionContext.Provider
       value={request ? itemVersionOf(request.snapshot) : "original"}
     >
       <section id="content">
-        <div className="page-heading">
+        {!replace && <CharacterBackground specId={request?.snapshot.specId} />}
+        <PageHeading className="page-heading">
           <h1>TOP GEAR</h1>
-          <p>
-            {request
-              ? "Select items. Compare sets."
-              : "Import your character. Find your best set."}
-          </p>
+          <p>{request ? t("selectIntro") : t("importIntro")}</p>
           {request && (
-            <button
+            <Button
+              variant="ghost"
               className="text-button heading-action"
               onClick={() => setReplace(true)}
             >
-              Import character ↗
-            </button>
+              {t("importCharacter")}
+            </Button>
           )}
-        </div>
+        </PageHeading>
         {!request ? (
           <>
             {hasDraft && (
-              <div className="notice resume-draft">
-                <span>You have a saved Top Gear selection.</span>
-                <button
-                  onClick={() => {
-                    try {
-                      const draft = loadDraft();
-                      if (draft) change(draft);
-                    } catch (e) {
-                      setError((e as Error).message);
-                    }
-                  }}
-                >
-                  Restore draft
-                </button>
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    try {
-                      clearDraft();
+              <SavedDraftNotice
+                key={`draft-${importRevision}`}
+                onRestore={() => {
+                  try {
+                    if (importPanel.current?.restoreDraft()) {
                       setHasDraft(false);
-                    } catch {
-                      setStorageError("Could not clear local storage");
+                      return;
                     }
-                  }}
-                >
-                  Discard
-                </button>
-              </div>
+                    const draft = loadDraft();
+                    if (draft) change(draft);
+                  } catch (e) {
+                    setError(describeError(e));
+                  }
+                }}
+                onDiscard={() => {
+                  try {
+                    clearDraft();
+                    setHasDraft(false);
+                  } catch {
+                    setStorageError(
+                      describeError("Could not clear local storage"),
+                    );
+                  }
+                }}
+              />
             )}
-            <ImportPanel onResolved={resolved} />
+            <ImportPanel
+              key={importRevision}
+              ref={importPanel}
+              onResolved={resolved}
+            />
           </>
         ) : replace ? (
           <>
-            <div className="notice">
-              Importing replaces this local selection. Previous reports stay
-              available.{" "}
-              <button onClick={() => setReplace(false)}>
-                Keep current character
-              </button>
-            </div>
-            <ImportPanel onResolved={resolved} />
+            <Alert className="mt-0 mb-8">
+              <AlertContent>{t("replaceHelp")}</AlertContent>
+              <AlertActions>
+                <AlertAction onClick={() => setReplace(false)}>
+                  {t("keepCharacter")}
+                </AlertAction>
+              </AlertActions>
+            </Alert>
+            <ImportPanel
+              key={importRevision}
+              ref={importPanel}
+              onResolved={resolved}
+            />
           </>
         ) : (
           <div className="gear-layout">
-            <InventorySelector request={request} onChange={change} />
-            <aside className="run-summary panel" aria-label="Simulation setup">
-              <div className="run-configuration">
-                <div className="run-character section-top">
-                  <div>
-                    <h2>
-                      {request.snapshot.settings.player!.name ||
-                        "Your character"}
-                    </h2>
-                    <p className="muted small">
-                      {spec!.name} {spec!.className} · 80
-                    </p>
-                  </div>
-                  <button
-                    className="text-button"
-                    onClick={() => setReplace(true)}
-                  >
-                    Edit
-                  </button>
-                </div>
-                <label className="item-version-select">
-                  Item version
-                  <select
-                    aria-label="Item version"
-                    value={itemVersionOf(request.snapshot)}
-                    onChange={(event) => {
-                      const itemVersion = event.target.value as ItemVersion;
-                      change({
-                        ...request,
-                        snapshot: {
-                          ...request.snapshot,
-                          itemVersion,
-                          itemDataRevision: itemVersions[itemVersion].revision,
-                          provenance: {
-                            ...request.snapshot.provenance,
-                            itemVersion: "edited",
-                          },
-                        },
-                      });
-                    }}
-                  >
-                    {Object.entries(itemVersions).map(([id, profile]) => (
-                      <option key={id} value={id}>
-                        {profile.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="simulation-settings-summary">
-                  <div className="section-top">
-                    <span className="run-section-label">Simulation</span>
-                    <button
-                      className="text-button"
-                      onClick={() => setSettingsOpen(true)}
-                      aria-haspopup="dialog"
-                    >
-                      Buffs & settings <span aria-hidden="true">→</span>
-                    </button>
-                  </div>
-                  <p className="simulation-description">
-                    {request.snapshot.settings.encounter!.targets.length === 1
-                      ? "Single target"
-                      : `${request.snapshot.settings.encounter!.targets.length} targets`}{" "}
-                    · {request.snapshot.settings.encounter!.duration}s
-                  </p>
-                </div>
-                <EnhancementSummary
-                  snapshot={request.snapshot}
-                  onOpen={() => setEnhancementsOpen(true)}
-                />
-                <details className="allowance-help">
-                  <summary>About the set limit</summary>
-                  <p>
-                    {allowance?.units.toLocaleString() ?? "—"} /{" "}
-                    {policy?.maxUnits.toLocaleString() ?? "—"} work units
-                  </p>
-                  <p>
-                    Upper bound, including equipped gear once. Illegal or
-                    identical combinations are removed by the worker. Each
-                    admitted set receives{" "}
-                    {policy?.iterationsPerSet.toLocaleString()} simulation
-                    iterations.
-                  </p>
-                </details>
-              </div>
-              <div
-                className="run-action"
-                data-over-limit={allowance ? !allowance.allowed : false}
-              >
-                <div
-                  className="run-budget"
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  <div className="section-top">
-                    <span className="set-count">
-                      {allowance ? (
-                        <>
-                          <strong>
-                            {Math.min(allowance.count, 999999).toLocaleString()}
-                          </strong>{" "}
-                          /{" "}
-                          {Math.floor(
-                            policy!.maxUnits / policy!.unitsPerSet,
-                          ).toLocaleString()}{" "}
-                          sets
-                        </>
-                      ) : (
-                        "Loading allowance…"
-                      )}
-                    </span>
-                    <span className="badge">Free</span>
-                  </div>
-                  <progress
-                    aria-label="Free work allowance"
-                    max={policy?.maxUnits ?? 1}
-                    value={Math.min(
-                      allowance?.units ?? 0,
-                      policy?.maxUnits ?? 1,
-                    )}
-                  />
-                </div>
-                {(error ||
-                  readinessError ||
-                  (allowance && !allowance.allowed)) && (
-                  <div className="run-feedback" role="alert">
-                    {error ||
-                      readinessError ||
-                      "Select fewer items to stay within the free set limit."}
-                  </div>
-                )}
-                <button
-                  className="primary run-button"
-                  disabled={pending || !allowance?.allowed || !!readinessError}
-                  onClick={run}
-                >
-                  {pending ? "Submitting…" : "Find Top Gear"}{" "}
-                  <span aria-hidden="true">→</span>
-                </button>
-                <p className="muted small run-caption">
-                  {request.snapshot.inventory.some((i) => i.source === "bag")
-                    ? "Equipped + carried bags"
-                    : "Equipped only · no bags imported"}
-                </p>
-              </div>
-            </aside>
+            <InventorySelector
+              request={request}
+              onChange={change}
+              enhancementAnalysis={enhancementAnalysis}
+            />
+            <RunSetup
+              request={request}
+              policy={policy}
+              allowance={allowance}
+              error={error ? localizeDiagnostic(error, td) : ""}
+              readinessError={
+                readinessError
+                  ? localizeDiagnostic(readinessError, td)
+                  : enhancementAnalysis?.complete &&
+                      enhancementAnalysis.validCount === 0
+                    ? ti("editor.noValidSets")
+                    : ""
+              }
+              pending={pending}
+              onChange={change}
+              onImport={() => setReplace(true)}
+              onSettings={() => setSettingsOpen(true)}
+              onEnhancements={() => setEnhancementsOpen(true)}
+              onRun={run}
+            />
           </div>
         )}
         {error && (!request || replace) && (
-          <p role="alert" className="notice error">
-            {error}
-          </p>
+          <AlertMessage tone="error">
+            {localizeDiagnostic(error, td)}
+          </AlertMessage>
         )}
         {storageError && (
-          <p role="status" className="notice">
-            {storageError}
-          </p>
+          <AlertMessage>{localizeDiagnostic(storageError, td)}</AlertMessage>
         )}
         {enhancementsOpen && request && (
           <GemmingPanel

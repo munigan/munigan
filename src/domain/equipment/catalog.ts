@@ -12,6 +12,8 @@ export type ItemRestriction = {
   maxOwned: number;
 };
 export type Catalog = {
+  zones?: Map<number, { id: number; name: string }>;
+  npcs?: Map<number, { id: number; name: string }>;
   icons?: Map<number, { id: number; name: string; icon: string }>;
   unsupportedItemIds?: Set<number>;
   adjustedItemIds?: Set<number>;
@@ -27,6 +29,8 @@ export type Catalog = {
   enchants: Map<number, UIEnchant[]>;
 };
 export function createCatalog(data: {
+  zones?: Array<{ id: number; name: string }>;
+  npcs?: Array<{ id: number; name: string }>;
   items: UIItem[];
   gems: UIGem[];
   enchants: UIEnchant[];
@@ -43,14 +47,14 @@ export function createCatalog(data: {
       ...(enchants.get(e.effectId) ?? []),
       {
         ...e,
-        icon:
-          e.icon ||
-          icons.get(e.itemId)?.icon ||
-          spells.get(e.spellId)?.icon ||
-          "",
+        // Enchant item IDs may identify recipes or consumables; use the
+        // spell artwork for the enchant's presentation.
+        icon: e.icon || spells.get(e.spellId)?.icon || "",
       },
     ]);
   return {
+    zones: new Map((data.zones ?? []).map((zone) => [zone.id, zone])),
+    npcs: new Map((data.npcs ?? []).map((npc) => [npc.id, npc])),
     icons,
     items: new Map(data.items.map((i) => [i.id, i])),
     gems: new Map(data.gems.map((g) => [g.id, g])),

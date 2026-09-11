@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
@@ -24,9 +25,11 @@ test("keeps provider and Original tooltips inside short and narrow viewports", a
     }),
   );
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Fury (19/52/0)",
+  });
   await page.getByRole("button", { name: "Select gear", exact: true }).click();
-  await page.locator(".expand-slots").click();
+  await expect(page.locator(".slot-group")).toHaveCount(14);
   // Switching provider tooltips can reset their inline width to auto. A long
   // weapon effect must not stretch the box after hovering a different item.
   for (const id of [44006, 47528, 47475, 47528]) {

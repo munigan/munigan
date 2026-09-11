@@ -1,0 +1,60 @@
+{
+  "measuredAt": "2026-09-11T12:33:22.121Z",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "cpu": "Apple M1 Max",
+  "availableParallelism": 10,
+  "spec": "deathknight:FrostTalents",
+  "itemVersion": "original",
+  "duration": 180,
+  "iterations": 500,
+  "source": "First 92 evaluations of stored local 96-set job from 2026-09-08; native evaluation only, excludes job database work and Trigger scheduling. Historical plan predates current deduplication: replanning the full 96-entry source now yields 24 evaluations. This benchmark intentionally keeps 92 entries to measure scheduling throughput; it is not the user's exact Production request.",
+  "results": [
+    {
+      "concurrency": 1,
+      "seconds": 27.437,
+      "sets": 92,
+      "identicalResults": true
+    },
+    {
+      "concurrency": 2,
+      "seconds": 14.303,
+      "sets": 92,
+      "identicalResults": true
+    },
+    {
+      "concurrency": 4,
+      "seconds": 7.724,
+      "sets": 92,
+      "identicalResults": true
+    },
+    {
+      "concurrency": 1,
+      "seconds": 28.007,
+      "sets": 92,
+      "identicalResults": true
+    }
+  ],
+  "singleSetProbes": {
+    "iterations500Ms": [
+      302,
+      300,
+      299
+    ],
+    "iterations1000Ms": [
+      543,
+      557,
+      550
+    ],
+    "statsOnlyProcessMs": [
+      54,
+      49,
+      48,
+      47,
+      49
+    ],
+    "currentPlanningMs": 84.753916,
+    "currentReplannedCount": 24,
+    "localDbSelectMedianMs": 0.12625000000002728
+  }
+}

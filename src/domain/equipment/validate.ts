@@ -21,6 +21,7 @@ import rules from "../../../data/wotlk/equipment-rules.json";
 import { getCatalog, type Catalog } from "./catalog";
 import { readTalents } from "@/features/settings/talents";
 import { itemSockets } from "./sockets";
+import { customEligibilityError } from "./custom-eligibility";
 export function eligibleSlots(item: UIItem): Slot[] {
   if (item.type === ItemType.ItemTypeFinger) return ["finger1", "finger2"];
   if (item.type === ItemType.ItemTypeTrinket) return ["trinket1", "trinket2"];
@@ -167,6 +168,10 @@ export function validateItem(
       "unsupported-item-version",
       `${item.name} is not yet supported with Original WotLK item data`,
     );
+  if (instance.source === "custom") {
+    const reason = customEligibilityError(snapshot, item, catalog);
+    if (reason) error("custom-ineligible", reason);
+  }
   if (catalog.restrictions && !catalog.restrictions.items[instance.itemId])
     error(
       "unverified-item",

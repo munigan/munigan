@@ -1,0 +1,399 @@
+{
+  "encounter": {
+    "shortcuts": "Atalhos de combate",
+    "single": "Alvo único · 3 min",
+    "cleave": "Cleave · 3 alvos",
+    "short": "Combate curto · 1 min",
+    "duration": "Duração do combate (segundos)",
+    "variation": "Variação da duração (segundos)",
+    "targets": "Alvos",
+    "preserved": "Os atributos dos alvos e as demais configurações de combate importadas são mantidos.",
+    "presetNames": {
+      "single": "Alvo único",
+      "cleave": "Cleave",
+      "short": "Combate curto"
+    },
+    "presetSummary": "{count, plural, one {# alvo} other {# alvos}} · {seconds}s",
+    "parameters": "Parâmetros do combate",
+    "seconds": "segundos",
+    "targetCount": "{count, plural, one {# alvo} other {# alvos}}",
+    "window": "INTERVALO DO COMBATE SIMULADO",
+    "windowValue": "{min}–{max} segundos",
+    "average": "{seconds}s em média",
+    "why": "Por que variar a duração?",
+    "whyHelp": "Um pequeno intervalo reduz o impacto de o combate terminar pouco antes de um cooldown ou proc.",
+    "importedDetails": "Detalhes do alvo importado"
+  },
+  "advanced": {
+    "title": "Configuração avançada do simulador",
+    "json": "JSON avançado",
+    "apply": "Aplicar configuração",
+    "object": "Use um objeto JSON",
+    "validate": "Validar configuração",
+    "valid": "Configuração validada",
+    "validateHelp": "Valide as alterações antes de aplicá-las.",
+    "help": "As edições JSON ficam no rascunho com as outras configurações. Corrija configurações inválidas antes de sair desta seção."
+  },
+  "categories": {
+    "encounter": "Combate",
+    "talents": "Talentos e glifos",
+    "rotation": "Rotação",
+    "buffs": "Buffs",
+    "consumes": "Consumíveis",
+    "professions": "Profissões",
+    "advanced": "Avançado"
+  },
+  "categoriesLabel": "Categorias de configurações",
+  "source": {
+    "edited": "Editado",
+    "imported": "Importado",
+    "default": "Padrão"
+  },
+  "simulation": "SIMULAÇÃO",
+  "title": "Buffs e configurações",
+  "reset": "Padrão do simulador",
+  "rotation": {
+    "preset": "Preset de rotação",
+    "auto": "Automática · recomendação do simulador",
+    "imported": "APL importada / selecionada",
+    "help": "A rotação automática segue a versão do simulador e seus talentos, alvos e equipamentos atuais.",
+    "mode": "Modo da rotação",
+    "automatic": "Automática",
+    "contextTitle": "Configurada para seu personagem",
+    "context": "O simulador avalia habilidades usando seus talentos, equipamentos e configurações do encontro.",
+    "priorityTitle": "Prioridade de ações",
+    "resolved": "As prioridades automáticas são definidas pelo simulador ao iniciar a execução.",
+    "actionCount": "{prepull} ações pré-combate · {combat} prioridades de combate",
+    "inspect": "Inspecionar rotação atual"
+  },
+  "profession": {
+    "label": "Profissão {number}",
+    "rank": "Nível importado: {rank} / 450",
+    "rankUnknown": "Nível não informado na importação",
+    "choose": "Escolha uma profissão para habilitar seus bônus.",
+    "benefitsTitle": "O que estas profissões habilitam",
+    "conflicts": "{count, plural, one {# item precisa de atenção} other {# itens precisam de atenção}}",
+    "conflictHelp": "Estes aprimoramentos manuais não atendem mais aos requisitos de profissão. Revise os itens afetados ou volte seus aprimoramentos para automático.",
+    "useAutomatic": "Usar aprimoramentos automáticos nos itens afetados",
+    "connection": "Os equipamentos continuam conectados. Escolha gemas e encantamentos na linha de cada item. As escolhas automáticas respeitam suas profissões.",
+    "benefits": {
+      "Engineering": "Modificações e explosivos elegíveis ficam disponíveis nos equipamentos e consumíveis.",
+      "Jewelcrafting": "Até 3 Dragon’s Eyes em cada combinação de equipamentos testada.",
+      "Blacksmithing": "Engastes adicionais em pulsos e luvas quando o nível exigido é verificado.",
+      "Enchanting": "Encantamentos de anéis disponíveis quando os requisitos são atendidos.",
+      "Alchemy": "Os benefícios de frascos e elixires da profissão são calculados pelo simulador.",
+      "Herbalism": "Lifeblood é calculado pelo simulador.",
+      "Inscription": "Aprimoramentos de ombros exclusivos da profissão.",
+      "Leatherworking": "Aprimoramentos de pulsos exclusivos da profissão.",
+      "Mining": "Toughness é calculado pelo simulador.",
+      "Skinning": "Master of Anatomy é calculado pelo simulador.",
+      "Tailoring": "Aprimoramentos de capas exclusivos da profissão."
+    }
+  },
+  "none": "Nenhum",
+  "buffs": {
+    "noExternal": "Sem buffs externos",
+    "find": "Buscar buff",
+    "placeholder": "Busque um buff ou debuff…",
+    "activeOnly": "Apenas ativos",
+    "activeCount": "{count, plural, one {# ativo} other {# ativos}}",
+    "off": "Desativado",
+    "normal": "Normal",
+    "improved": "Aprimorado",
+    "glyph": "Aprimorado + glifo",
+    "empty": "Nenhum buff corresponde a estes filtros.",
+    "reset": "Limpar filtros",
+    "groups": {
+      "raidBuffs": "Buffs da raid",
+      "buffs": "Buffs pessoais",
+      "debuffs": "Debuffs do alvo",
+      "partyBuffs": "Buffs do grupo"
+    },
+    "labels": {
+      "demonicPactSp": "Poder mágico de Demonic Pact",
+      "revitalizeRejuvination": "Revitalize: tempo ativo de Rejuvenation (%)",
+      "revitalizeWildGrowth": "Revitalize: tempo ativo de Wild Growth (%)"
+    },
+    "unknown": "Outro buff",
+    "clear": "Limpar buffs",
+    "clearConfirm": "Limpar todos os buffs de raid, pessoais, de grupo e debuffs do alvo neste rascunho?",
+    "categories": "Categorias de buffs",
+    "personalParty": "Pessoais e grupo",
+    "sources": "fontes",
+    "scope": {
+      "raidBuffs": "Efeito compartilhado com a raid",
+      "buffs": "Suporte aplicado ao personagem",
+      "partyBuffs": "Efeito compartilhado com o grupo",
+      "debuffs": "Efeito aplicado ao inimigo"
+    },
+    "effects": {
+      "attackPower": "Poder de ataque",
+      "attributes": "Atributos, armadura e resistências",
+      "meleeHaste": "Aceleração corpo a corpo",
+      "temporaryHaste": "Aceleração temporária",
+      "spellPower": "Poder mágico",
+      "armor": "Redução maior de armadura",
+      "armorHit": "Redução de armadura e acerto mágico",
+      "spellHit": "Suporte de acerto mágico",
+      "magicDamage": "Vulnerabilidade a dano mágico",
+      "priests": "Quantidade de Priests dando suporte",
+      "rogues": "Quantidade de Rogues dando suporte",
+      "druids": "Quantidade de Druids dando suporte",
+      "shamans": "Quantidade de Shamans dando suporte",
+      "partyHit": "Suporte Draenei no grupo"
+    },
+    "source": "fonte"
+  },
+  "talents": {
+    "preset": "Preset de talentos",
+    "imported": "Talentos importados",
+    "string": "Código de talentos",
+    "replaces": "Trocar o preset também substitui seus seis glifos."
+  },
+  "consumes": {
+    "help": "Escolha um frasco ou um elixir de batalha e um guardião. Comida e poções são independentes.",
+    "pet": "Consumíveis do ajudante",
+    "labels": {
+      "flask": "Frasco",
+      "battleElixir": "Elixir de batalha",
+      "guardianElixir": "Elixir guardião",
+      "food": "Comida",
+      "defaultPotion": "Poção de combate",
+      "prepopPotion": "Poção antes do combate",
+      "defaultConjured": "Item conjurado",
+      "petFood": "Comida do ajudante",
+      "petScrollOfAgility": "Nível do pergaminho de agilidade do ajudante",
+      "petScrollOfStrength": "Nível do pergaminho de força do ajudante",
+      "thermalSapper": "Global Thermal Sapper Charge",
+      "explosiveDecoy": "Explosive Decoy",
+      "fillerExplosive": "Explosivo"
+    },
+    "unknown": "Consumível desconhecido",
+    "longBuff": "Frasco ou elixires",
+    "elixirs": "Elixires de batalha + guardião",
+    "combat": "Poções e consumíveis de combate",
+    "engineering": "Engenharia",
+    "engineerRequired": "Estas escolhas importadas exigem Engenharia. Revise antes de simular.",
+    "rank": "nível",
+    "petHelp": "Os controles aparecem para classes compatíveis. O nível 0 desativa um pergaminho.",
+    "purpose": {
+      "flask": "Efeito duradouro de frasco",
+      "battleElixir": "Efeito ofensivo de elixir",
+      "guardianElixir": "Efeito defensivo de elixir",
+      "food": "Buff de comida",
+      "prepopPotion": "Usada antes de iniciar o combate",
+      "defaultPotion": "Usada durante o combate",
+      "defaultConjured": "Consumível adicional de combate",
+      "petFood": "Buff de comida para seu pet",
+      "fillerExplosive": "Explosivo de Engenharia"
+    },
+    "scrolls": {
+      "petScrollOfAgility": "Pergaminho de agilidade",
+      "petScrollOfStrength": "Pergaminho de força"
+    }
+  },
+  "glyphs": {
+    "major": "Glifos maiores",
+    "minor": "Glifos menores",
+    "empty": "Vazio",
+    "imported": "Glifo importado {id}",
+    "majorSlot": "Glifo maior {number}",
+    "minorSlot": "Glifo menor {number}",
+    "duplicate": "Já selecionado em outro espaço de glifo",
+    "choose": "Escolha um glifo para este espaço."
+  },
+  "subtitle": "Configure o encontro. Ajuste seu personagem.",
+  "simulationSettings": "CONFIGURAÇÕES DA SIMULAÇÃO",
+  "configurationSources": "Origem das configurações",
+  "apply": "Aplicar alterações",
+  "cancel": "Cancelar",
+  "footerHelp": "As alterações são aplicadas à simulação ao salvar.",
+  "discardTitle": "Descartar alterações não salvas?",
+  "discardHelp": "Suas alterações em todas as seções serão perdidas. A configuração salva continuará como estava.",
+  "keepEditing": "Continuar editando",
+  "discard": "Descartar alterações",
+  "navDescriptions": {
+    "encounter": "Duração e alvos",
+    "talents": "Build e glifos",
+    "rotation": "Prioridade de ações",
+    "buffs": "Efeitos da raid e do alvo",
+    "consumes": "Poções, comida e frascos",
+    "professions": "Bônus e requisitos",
+    "advanced": "Configuração do simulador"
+  },
+  "descriptions": {
+    "encounter": "Escolha o encontro para testar seus equipamentos.",
+    "talents": "Escolha um preset e ajuste como preferir.",
+    "rotation": "Escolha como seu personagem usa habilidades no combate.",
+    "buffs": "Configure o suporte que você terá durante o combate.",
+    "consumes": "Escolha os consumíveis usados na simulação.",
+    "professions": "Use as profissões do personagem que você está testando.",
+    "advanced": "Confira e valide a configuração do simulador."
+  },
+  "presets": {
+    "pointsOrder": "Pontos de talento: {trees}.",
+    "fallback": "Configuração do simulador.",
+    "options": {
+      "balancePhase1": {
+        "name": "Balance · Fase 1",
+        "description": "Moonglow e Gale Winds; variante da Fase 1."
+      },
+      "balancePhase2": {
+        "name": "Balance · Fase 2",
+        "description": "Improved Moonfire e Gale Winds; variante da Fase 2."
+      },
+      "balancePhase3": {
+        "name": "Balance · Fase 3",
+        "description": "Brambles e Genesis; variante da Fase 3."
+      },
+      "balancePhase4": {
+        "name": "Balance · Fase 4",
+        "description": "Brambles e Genesis; variante da Fase 4."
+      },
+      "feral": {
+        "name": "Feral · Felino",
+        "description": "Forma de felino com talentos de apoio em Restoration."
+      },
+      "elemental": {
+        "name": "Elemental",
+        "description": "Build de conjurador com talentos de apoio em Enhancement."
+      },
+      "enhancement": {
+        "name": "Enhancement",
+        "description": "Inclui Improved Windfury Totem."
+      },
+      "enhancementPhase3": {
+        "name": "Enhancement · Fase 3",
+        "description": "Inclui Improved Stormstrike; variante da Fase 3."
+      },
+      "beastMastery": {
+        "name": "Beast Mastery",
+        "description": "Build focada no pet com talentos de apoio em Marksmanship."
+      },
+      "marksmanship": {
+        "name": "Marksmanship",
+        "description": "Pontos de apoio em Beast Mastery e Survival."
+      },
+      "survival": {
+        "name": "Survival",
+        "description": "Explosive Shot com talentos de apoio em Marksmanship."
+      },
+      "arcane": {
+        "name": "Arcane",
+        "description": "Inclui Icy Veins da árvore Frost."
+      },
+      "fire": {
+        "name": "Fire/Arcane",
+        "description": "Build de Fireball com Torment the Weak."
+      },
+      "firePhase3": {
+        "name": "Fire/Arcane · Fase 3",
+        "description": "Fireball e Torment the Weak; variante da Fase 3."
+      },
+      "frostfire": {
+        "name": "Frostfire",
+        "description": "Build de Frostfire Bolt com Icy Veins."
+      },
+      "frostMage": {
+        "name": "Frost/Arcane",
+        "description": "Frostbolt e Water Elemental, com Torment the Weak."
+      },
+      "assassination137": {
+        "name": "Assassination",
+        "description": "Mutilate com 5 pontos em Relentless Strikes."
+      },
+      "assassination182": {
+        "name": "Assassination",
+        "description": "Mutilate com 3 pontos em Lightning Reflexes."
+      },
+      "assassinationBladeFlurry": {
+        "name": "Assassination · Blade Flurry",
+        "description": "Híbrido de Mutilate/Blade Flurry sem Hunger for Blood."
+      },
+      "combatFists": {
+        "name": "Combat · Punhos e adagas",
+        "description": "Especialização de armas Close Quarters Combat."
+      },
+      "combatSwords": {
+        "name": "Combat · Machados e espadas",
+        "description": "Especialização de armas Hack and Slash."
+      },
+      "subtlety": {
+        "name": "Subtlety · Shadow Dance",
+        "description": "Shadow Dance com Slaughter from the Shadows no máximo."
+      },
+      "hemorrhage": {
+        "name": "Subtlety · Hemorrhage",
+        "description": "Variante de Hemorrhage sem Shadow Dance."
+      },
+      "retributionAura": {
+        "name": "Retribution · Aura Mastery",
+        "description": "Inclui Aura Mastery da árvore Holy."
+      },
+      "retributionSacrifice": {
+        "name": "Retribution · Divine Sacrifice",
+        "description": "Inclui Divine Sacrifice e Divine Guardian."
+      },
+      "shadow": {
+        "name": "Shadow",
+        "description": "Build com investimento maior em Shadow e Dispersion."
+      },
+      "shadowDiscipline": {
+        "name": "Shadow/Discipline",
+        "description": "Build híbrida com Enlightenment."
+      },
+      "smite": {
+        "name": "Smite · Discipline/Holy",
+        "description": "Conjurador de dano sagrado focado em Smite."
+      },
+      "affliction": {
+        "name": "Affliction",
+        "description": "Affliction com talentos de apoio em Destruction."
+      },
+      "demonology": {
+        "name": "Demonology",
+        "description": "Demonology com talentos de apoio em Destruction."
+      },
+      "destruction": {
+        "name": "Destruction",
+        "description": "Destruction com talentos de apoio em Demonology."
+      },
+      "arms": {
+        "name": "Arms",
+        "description": "Pontos de apoio em Fury e Protection."
+      },
+      "fury": {
+        "name": "Fury",
+        "description": "Duas armas com Titan’s Grip e talentos de apoio em Arms."
+      },
+      "blood": {
+        "name": "Blood DPS",
+        "description": "Build de Blood com arma de duas mãos e apoio em Unholy."
+      },
+      "frostBlood": {
+        "name": "Frost/Blood",
+        "description": "Duas armas com talentos de apoio em Blood."
+      },
+      "frostUnholy": {
+        "name": "Frost/Unholy",
+        "description": "Duas armas com talentos de apoio em Unholy."
+      },
+      "unholyTwoHanded": {
+        "name": "Unholy · Duas mãos",
+        "description": "Scourge Strike com talentos de apoio em Frost."
+      },
+      "unholyArea": {
+        "name": "Unholy · Dano em área",
+        "description": "Arma de duas mãos com Morbidity para dano em área."
+      },
+      "unholyDualScourge": {
+        "name": "Unholy · Duas armas",
+        "description": "Usa Scourge Strike e Morbidity."
+      },
+      "unholyDual": {
+        "name": "Unholy · Duas armas",
+        "description": "Usa Morbidity sem Scourge Strike."
+      }
+    }
+  }
+}

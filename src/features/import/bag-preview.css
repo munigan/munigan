@@ -1,0 +1,91 @@
+@layer components {
+  .wow-bag {
+    width: 100%;
+    min-width: 0;
+    margin-top: 12px;
+  }
+  .wow-bag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(40px, 100%), 1fr));
+    gap: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-control-border) transparent;
+    margin: 0;
+    padding: 2px;
+    list-style: none;
+  }
+  .wow-bag-slot,
+  .wow-bag-empty {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    min-width: 0;
+    padding: 1px;
+    border: 1px solid var(--bag-rarity, var(--color-border));
+    border-radius: 4px;
+    background: #111216;
+  }
+  .wow-bag-slot:has(.bag-item:hover),
+  .wow-bag-slot:has(.bag-item:focus-visible) {
+    border-color: var(--color-action);
+    outline: 1px solid var(--color-action);
+  }
+  .wow-bag-slot .bag-item {
+    cursor: default;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 2px;
+    background: var(--color-canvas);
+    text-decoration: none;
+    overflow: hidden;
+  }
+  .wow-bag-slot .original-item-trigger {
+    display: block;
+    height: 100%;
+  }
+  .wow-bag-slot .item-icon {
+    width: 100% !important;
+    height: 100% !important;
+    border: 0;
+    border-radius: 2px;
+  }
+  .wow-bag-slot .item-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Wowhead injects unlayered fixed-size icon CSS. These scoped overrides
+     keep provider icons identical in size to locally resolved item images. */
+  .wow-bag-slot .iconmedium {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .wow-bag-slot .iconmedium ins {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-size: cover !important;
+  }
+  .wow-bag-slot .iconmedium del {
+    display: none !important;
+  }
+  .wow-bag-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--color-border);
+    background: transparent;
+  }
+  .wow-bag-empty svg {
+    width: 18px;
+    height: 18px;
+    color: #34373d;
+  }
+}

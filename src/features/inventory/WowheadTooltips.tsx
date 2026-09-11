@@ -38,7 +38,8 @@ export function WowheadTooltips() {
         // A body-level popover remains inert while a modal is open. Move it
         // into the active dialog so long tooltips can actually be scrolled.
         const host = activeLink?.isConnected
-          ? (activeLink.closest("dialog[open]") ?? document.body)
+          ? (activeLink.closest('dialog[open], [role="dialog"][data-open]') ??
+            document.body)
           : document.body;
         if ((visible || !tooltip.isConnected) && tooltip.parentElement !== host)
           host.appendChild(tooltip);

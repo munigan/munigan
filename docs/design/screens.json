@@ -694,5 +694,285 @@
     "state": "reviewed",
     "height": 842,
     "exportPath": "docs/design/exports/FLOW-MAP.png"
+  },
+  {
+    "key": "MUNIGAN.HOME.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "7-0",
+    "artboardId": "4AF-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/7-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.IMPORT.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "4E6-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.PROFILE-IMPORT.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "6ZW-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.IMPORT-REVIEW.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "4G7-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.TG-SELECT.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "4JG-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-ENCOUNTER.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "4P6-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-TALENTS.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "50F-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-ROTATION.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "582-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-BUFFS.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "5E6-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-CONSUMES.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "5LI-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-PROFESSIONS.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "5T6-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS-ADVANCED.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "5ZL-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.ENHANCEMENTS.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "65K-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.TG-RESULT.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "6BT-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.FULL-SET.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "6IW-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.JOB.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "6V6-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.REPORT-STATES.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "6WV-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.IMPORT-STATES.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "71I-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.ITEM-DETAILS.desktop",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "8-0",
+    "artboardId": "75F-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/8-0",
+    "width": 1440,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.HOME.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "78G-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.IMPORT.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "7BG-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.IMPORT-REVIEW.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "7DG-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.TG-SELECT.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "7GL-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.TG-RESULT.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "7JZ-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SETTINGS.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "7NT-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.JOB.mobile",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "9-0",
+    "artboardId": "7QA-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/9-0",
+    "width": 390,
+    "revision": 1,
+    "state": "approved"
+  },
+  {
+    "key": "MUNIGAN.SOCIAL",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "7-0",
+    "artboardId": "7UQ-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/7-0",
+    "width": 1200,
+    "revision": 1,
+    "state": "implemented"
+  },
+  {
+    "key": "MUNIGAN.ICON",
+    "fileId": "01M20P4F8A377J1GT1GGCM3K1Z",
+    "pageId": "7-0",
+    "artboardId": "7VC-0",
+    "url": "https://app.paper.design/file/01M20P4F8A377J1GT1GGCM3K1Z/7-0",
+    "width": 512,
+    "revision": 1,
+    "state": "implemented"
   }
 ]

@@ -1,3 +1,4 @@
+import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const fixture = JSON.parse(
@@ -27,7 +28,9 @@ test("runs real local DPS and compares complete owned sets", async ({
     }),
   );
   await page.getByRole("button", { name: "Review import" }).click();
-  await page.getByLabel("DPS preset").selectOption({ label: "Warrior · Fury" });
+  await selectOption(page.getByLabel("DPS preset"), {
+    label: "Fury (19/52/0)",
+  });
   await page.getByRole("button", { name: "Select gear" }).click();
   await page
     .getByRole("button", { name: "Gems, enchants & sockets", exact: true })
@@ -38,20 +41,22 @@ test("runs real local DPS and compares complete owned sets", async ({
   await expect(
     page.getByLabel("Automatically fill empty sockets"),
   ).toBeChecked();
-  await page.getByLabel("Default gem", { exact: true }).selectOption("40111");
-  await expect(page.getByLabel("Default gem", { exact: true })).toHaveValue(
+  await selectOption(page.getByLabel("Default gem", { exact: true }), "40111");
+  await expect(page.getByLabel("Default gem", { exact: true })).toHaveAttribute(
+    "data-select-value",
     "40111",
   );
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await page
-    .getByLabel("Item version", { exact: true })
-    .selectOption("classic");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await selectOption(
+    page.getByLabel("Item version", { exact: true }),
+    "classic",
+  );
   await page
     .getByRole("checkbox", { name: /Select Valorous Dreadnaught Helmet, bag/ })
     .check();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByLabel("Fight length (seconds)").fill("30");
-  await page.getByRole("button", { name: "Done" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
   await expect(
     page.getByRole("button", { name: "Find Top Gear" }),
   ).toBeEnabled();
@@ -78,23 +83,18 @@ test("runs real local DPS and compares complete owned sets", async ({
     page.locator(".changed-icons a[data-wowhead]").first(),
   ).toBeVisible();
   await expect(page.locator("button a[data-wowhead]")).toHaveCount(0);
-  await page.getByRole("button", { name: "Full gear details" }).click();
+  await page.getByRole("button", { name: "Stats details" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.locator(".full-gear-row")).toHaveCount(17);
+  await expect(page.getByRole("dialog").getByRole("table")).toBeVisible();
   await expect(
-    page.locator(".full-gear-row a[data-wowhead]").first(),
-  ).toBeVisible();
+    page.getByRole("dialog").locator("tbody td").first(),
+  ).not.toBeEmpty();
   await page.setViewportSize({ width: 320, height: 320 });
-  await page.locator(".full-gear-row a[data-wowhead]").first().focus();
-  const tooltip = page
-    .getByRole("dialog")
-    .locator(".wowhead-tooltip[data-visible=yes]");
-  await expect(tooltip).toBeVisible();
-  await tooltip.hover();
-  await page.mouse.wheel(0, 200);
-  await expect
-    .poll(() => tooltip.evaluate((node) => node.scrollTop))
-    .toBeGreaterThan(0);
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Close", exact: true }),
+  ).toBeInViewport();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await page.screenshot({
@@ -160,13 +160,13 @@ test("runs real local DPS and compares complete owned sets", async ({
     sharedPage.getByRole("heading", { name: /Gear combinations/ }),
   ).toBeVisible();
   await shared.close();
-  await page
-    .getByRole("button", {
-      name: "Use selected set as a new equipped reference",
-    })
-    .click();
-  await page.getByRole("button", { name: "Create new draft" }).click();
-  await expect(page).toHaveURL(/\/top-gear$/);
+  await expect(
+    page.getByRole("button", {
+      name: /Use selected set as a new equipped reference/,
+    }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Edit & run again" }).click();
+  await expect(page).toHaveURL(/\/gear-lab$/);
   await page.getByRole("button", { name: "Restore draft" }).click();
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
