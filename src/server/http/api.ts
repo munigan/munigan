@@ -41,7 +41,7 @@ export function mutation(request: NextRequest) {
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     throw new AdmissionError("Use application/json", 415);
 }
-export async function body(request: NextRequest) {
+export async function body(request: NextRequest, maximumBytes = 1500000) {
   const reader = request.body?.getReader();
   if (!reader) throw new AdmissionError("Request body required", 400);
   const chunks: Uint8Array[] = [];
@@ -50,9 +50,9 @@ export async function body(request: NextRequest) {
     const { value, done } = await reader.read();
     if (done) break;
     size += value.length;
-    if (size > 1500000) {
+    if (size > maximumBytes) {
       await reader.cancel();
-      throw new AdmissionError("Request exceeds 1.5 MB", 413);
+      throw new AdmissionError("Request body is too large", 413);
     }
     chunks.push(value);
   }
@@ -72,7 +72,7 @@ export function failure(error: unknown) {
             ? "Authentication is temporarily unavailable"
             : error.code === "REPORT_EXPIRED"
               ? "This report has expired"
-              : "Report not found",
+              : "Unable to process account request",
       },
       { status: error.status, headers: privateHeaders },
     );
