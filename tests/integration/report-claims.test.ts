@@ -13,6 +13,7 @@ import { seedAccount, seedTerminalReport } from "../support/accounts";
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(createTestDatabase);
 beforeEach(async () => {
+  vi.stubEnv("APP_ORIGIN", "http://localhost");
   vi.stubEnv("REPORT_SAVING_ENABLED", "true");
   await pool.query("TRUNCATE tg_jobs,auth_user,tg_budgets CASCADE");
 });

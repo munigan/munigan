@@ -1,6 +1,6 @@
 # Discord authentication operations
 
-Enrollment and report saving are disabled by default. Release is blocked until the real Discord checklist below is completed on the exact configured origin. Local automated tests use a controlled provider with the real Better Auth handler, signed state, cookies and PostgreSQL sessions; they do not verify real Discord consent or credentials.
+Enrollment and report saving are disabled by default in unconfigured environments. Both are enabled on production as of the 2026-09-11 release recorded below. Local automated tests use a controlled provider with the real Better Auth handler, signed state, cookies and PostgreSQL sessions; they do not verify real Discord consent or credentials.
 
 ## Configuration
 
@@ -24,7 +24,7 @@ The Trigger worker/recovery requires its existing job, DB and capability configu
 Register these exact Discord redirect URIs:
 
 - `https://munigan.app/api/auth/callback/discord`
-- `http://127.0.0.1:3000/api/auth/callback/discord`
+- `http://127.0.0.1:3100/api/auth/callback/discord`
 - For staging, the exact `/api/auth/callback/discord` URL on one fixed staging origin agreed before testing. No arbitrary preview wildcard.
 
 Discord permission scope is exactly `identify`. There is no email login, account linking, bot access or guild access. Phone-only accounts use a synthetic unverified email internally. OAuth tokens are encrypted and never exposed by application DTOs.
@@ -41,7 +41,7 @@ Saved nonempty reports have no automatic age-based expiry; they remain publicly 
 
 ## Real-provider release gate
 
-Record date, deployed commit, fixed test origin, tester and pass/fail for each action below. Do not attach profile/token screenshots, capability URLs or imported snapshots. **Current status: pending, real Discord credentials/consent not exercised by the local harness. No deployment performed.**
+Record date, deployed commit, fixed test origin, tester and pass/fail for each action below. Do not attach profile/token screenshots, capability URLs or imported snapshots. **Production status, 2026-09-11:** deployed from `main` (`a602147`) at `https://munigan.app`, Vercel `dpl_4QX4Ewi5xRsqf8pzMVtfKy6bCfsh`, Trigger `20260911.2`. Real Discord sign-in and return successfully claimed an anonymous report; a subsequent account-associated simulation completed and saved automatically. The Discord app is named `munigan.app`; production and local port-3100 callbacks were verified after saving. The existing Discord grant skipped a fresh consent screen. Consent denial/retry, account isolation, cross-device access, deletion and rollback passed in the controlled-provider browser suite; those paths were not all repeated with real production Discord accounts. No real account was deleted for release testing.
 
 - Real Discord consent and cancellation, including a successful retry.
 - Signed-in simulation and terminal report publication.
@@ -65,3 +65,11 @@ Run browser servers sequentially. Full release sequence: `pnpm typecheck`, `pnpm
 Validation limitation: `tests/integration/authentication.test.ts` — `reads safe account fields and rejects revoked and missing sessions` returned `AUTH_UNAVAILABLE` once on its first session read. The unchanged full rerun passed all 114 tests. The cause remains unknown; no retries or speculative production workaround were added. If it recurs, capture only a sanitized test-only failure category/cause, never provider tokens or raw database details. This observation is separate from the pending real Discord release gate above.
 
 Future auth schema generation must use a cryptographically random disposable secret. The historical generator warning does not justify rewriting applied migration SQL bytes.
+
+## 2026-09-11 release evidence
+
+- Production schema backed up to an ignored mode-0600 gzip before migration; 36 existing jobs retained. Applied `0000_top_gear.sql` through `0003_job_admission_identity.sql`. Capability key preserved.
+- Retention-aware worker `20260911.2` deployed before the web, retaining the main branch’s parallel simulator execution.
+- Web first verified with enrollment/saving disabled, then both flags enabled and redeployed. Anonymous `/api/library` returns 401; account/session and report APIs are not cached. A historic anonymous report remains public and read-only.
+- Validation passed: 380 unit/UI, 126 integration, 50 native simulator, 85 general browser checks (including corrected-selector reruns), 15 controlled-provider auth, one rollback and 11 production-mode account/library browser checks. Typecheck, lint, design/spec checks, frozen install and production builds passed. Build audit found no harness or credential canaries and confirmed both homepages are prerendered.
+- Two small release-verification reports were created: one anonymous run subsequently claimed through Discord, and one signed-in run automatically saved at terminal publication. Both completed through production Trigger and Neon.

@@ -41,6 +41,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 beforeEach(async () => {
+  vi.stubEnv("APP_ORIGIN", "http://localhost");
   await pool.query("TRUNCATE auth_user,tg_jobs,tg_budgets CASCADE");
 });
 afterAll(async () => {

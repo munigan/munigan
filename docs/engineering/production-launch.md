@@ -1,8 +1,20 @@
-# First production release
+# Production releases
+
+## Current production — navigation, Discord authentication and My Library (2026-09-11)
+
+- All application changes merged to GitHub `main`, preserving the newer parallel simulator, iteration controls, production budget and Wrath branding.
+- Application source: `a602147` (release integration `1694e12`, latest UI work `aa4d09f`). Vercel `dpl_4QX4Ewi5xRsqf8pzMVtfKy6bCfsh`, ready at https://munigan.app. Trigger production `20260911.2`.
+- New top navigation and Option 03 responsive drawer, Gear Lab naming, Discord-only accounts, My Library, Paper-designed save dialog, shared pagination, class/spec backgrounds and all accumulated gear/settings improvements are live.
+- Both production enrollment and report saving are enabled. Discord redirect: `https://munigan.app/api/auth/callback/discord`; local port-3100 callback retained.
+- Production database backed up before additive auth migrations; all 36 preexisting jobs and the report capability key preserved. Worker released before web saving.
+- Live verification: localized homepages, anonymous import and native simulation, real Discord sign-in with return/claim, My Library, signed-in simulation with automatic saving, historic public read-only report and private API cache headers.
+- Validation: 380 unit/UI, 126 integration, 50 native simulator and 112 browser checks passed across general, OAuth, rollback and production-mode control suites. Stale selectors/expectations were updated for the approved UI and rerun. Typecheck, lint, frozen install, design/spec checks, production builds and auth build audit passed.
+- CI initially exposed inherited-origin assumptions in three integration fixtures. The six failures were reproduced with the CI origin; fixture origins were isolated and all 126 integration checks passed with that same environment.
+- Real Discord reused the account’s existing consent grant. Denial/retry, cross-device isolation and account-deletion cases were verified by the controlled-provider suite rather than deleting or switching real production accounts. See [authentication operations](authentication-operations.md).
 
 Published 2026-09-09.
 
-## Current worker — parallel Top Gear execution
+## Previous worker — parallel Top Gear execution
 
 Released 2026-09-11. Trigger Production **20260911.1** ([deployment](https://cloud.trigger.dev/projects/v3/proj_tbzzdkaotlbspettqxxh/deployments/mshu2wqo)) uses Medium 2x (2 vCPU, 4 GB) and up to two native processes per job. Reference results persist before candidates start; cancellation, retries, lease fencing, and durable resumption remain enforced. Each run logs phase timings. The global queue/admission cap remains two jobs; sampling and the pinned simulator are unchanged.
 
@@ -145,4 +157,4 @@ The website and worker deploy separately. Automatic Trigger builds from GitHub a
 
 ## Discord accounts and retained reports
 
-Follow [authentication operations](authentication-operations.md) for direct migration configuration, retention-aware worker-first deployment, disabled-by-default enrollment/saving, exact Discord callbacks, rollback and the mandatory real-provider release gate. Saved nonempty reports have no automatic age-based expiry until explicit deletion. Preserve the existing `CAPABILITY_KEY` and all historic report capabilities. Production rollout remains blocked until real consent, cancellation, cross-device library access and deletion are verified on the configured origin.
+Follow [authentication operations](authentication-operations.md) for direct migration configuration, retention-aware worker-first deployment, disabled-by-default enrollment/saving, exact Discord callbacks, rollback and the mandatory real-provider release gate. Saved nonempty reports have no automatic age-based expiry until explicit deletion. Preserve the existing `CAPABILITY_KEY` and all historic report capabilities. Production was enabled on 2026-09-11; see the authentication operations release evidence for live checks and the distinction between real Discord verification and controlled-provider coverage.

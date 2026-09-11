@@ -16,11 +16,13 @@ import { readReport } from "@/server/reports/read";
 process.env.CAPABILITY_KEY = "a".repeat(64);
 beforeAll(createTestDatabase);
 beforeEach(async () => {
+  vi.stubEnv("APP_ORIGIN", "http://localhost");
   await pool.query(
     "TRUNCATE tg_jobs,auth_user,tg_budgets,auth_verification CASCADE",
   );
 });
 afterAll(async () => {
+  vi.unstubAllEnvs();
   await dropTestDatabase();
   await pool.end();
 });
