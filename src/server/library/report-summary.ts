@@ -27,11 +27,13 @@ export function summarizeReport(report: TopGearReport): LibrarySummary {
   const gainDps =
     equippedDps === null ? null : finite(dps - equippedDps, "DPS gain");
   const player = report.snapshot.settings.player;
-  // Admission and historical frozen reports permit empty names. This fallback
+  // Protobuf JSON omits default empty names in historical reports. This fallback
   // belongs only to library display metadata; never rewrite the report snapshot.
   const characterName =
     boundedText(
-      player?.name === "" ? "Unnamed character" : player?.name,
+      player && (player.name === undefined || player.name === "")
+        ? "Unnamed character"
+        : player?.name,
       80,
       "character name",
     ).trim() || "Unnamed character";

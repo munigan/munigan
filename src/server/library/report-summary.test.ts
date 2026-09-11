@@ -43,6 +43,30 @@ describe("summarizeReport", () => {
     });
   });
 
+  it.each([undefined, "", "   "])(
+    "uses display fallback for default name %j without mutation",
+    (name) => {
+      const data = reportFixture();
+      Object.assign(data.report.snapshot.settings.player!, { name });
+      const before = structuredClone(data.report);
+      expect(
+        summarizeReport(data.report as unknown as TopGearReport).characterName,
+      ).toBe("Unnamed character");
+      expect(data.report).toEqual(before);
+    },
+  );
+
+  it.each([null, 42, false, {}, [], "x".repeat(81)])(
+    "rejects malformed character name %j",
+    (name) => {
+      const data = reportFixture();
+      Object.assign(data.report.snapshot.settings.player!, { name });
+      expect(() =>
+        summarizeReport(data.report as unknown as TopGearReport),
+      ).toThrow("Invalid character name");
+    },
+  );
+
   it.each([
     [
       "empty results",

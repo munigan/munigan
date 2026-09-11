@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
+import { encodeSnapshot } from "@/domain/top-gear/request-schema";
+import { fixtureRequest } from "../support/fixtures";
 import { pool } from "@/server/db/client";
 import { digest } from "@/server/jobs/capabilities";
 import {
@@ -377,3 +379,39 @@ it.each(["", "   "])(
     ).toEqual([{ character_name: "Unnamed character" }]);
   },
 );
+
+it("claims a canonically encoded omitted-name historical report without changing frozen results", async () => {
+  const account = await seedAccount(),
+    job = await seedTerminalReport();
+  const snapshot = fixtureRequest().snapshot;
+  snapshot.settings.player!.name = "";
+  const encoded = encodeSnapshot(snapshot);
+  expect(encoded).toHaveProperty("settings.player");
+  expect(encoded).not.toHaveProperty("settings.player.name");
+  const frozen = (
+    await pool.query(
+      "UPDATE tg_jobs SET report=jsonb_set(report,'{snapshot}',$2::jsonb) WHERE id=$1 RETURNING report",
+      [job.jobId, JSON.stringify(encoded)],
+    )
+  ).rows[0].report;
+  expect(frozen.snapshot.settings.player).not.toHaveProperty("name");
+  const intent = await beginSaveIntent(job.token, anonymous(job.ownerKey));
+  const identity = { ...anonymous(job.ownerKey), account };
+  await completeSaveIntent(intent.token, identity);
+  await completeSaveIntent(intent.token, identity);
+  expect(
+    (
+      await pool.query("SELECT settled,report FROM tg_jobs WHERE id=$1", [
+        job.jobId,
+      ])
+    ).rows[0],
+  ).toEqual({ settled: true, report: frozen });
+  expect(
+    (
+      await pool.query(
+        "SELECT character_name FROM library_items WHERE job_id=$1",
+        [job.jobId],
+      )
+    ).rows,
+  ).toEqual([{ character_name: "Unnamed character" }]);
+});
