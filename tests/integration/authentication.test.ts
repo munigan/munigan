@@ -221,7 +221,11 @@ it("serializes session insertion against the lifecycle deletion lock", async () 
   }
 });
 
-async function discordSignIn(discordId: string, failProvider = false) {
+async function discordSignIn(
+  discordId: string,
+  failProvider = false,
+  beforeCallback?: () => Promise<void>,
+) {
   await pool.query("TRUNCATE auth_rate_limit");
   const mock = vi
     .spyOn(globalThis, "fetch")
@@ -274,6 +278,7 @@ async function discordSignIn(discordId: string, failProvider = false) {
       .getSetCookie()
       .map((c) => c.split(";")[0])
       .join("; ");
+    await beforeCallback?.();
     return await GET(
       new Request(
         `http://localhost:3000/api/auth/callback/discord?code=mock-code&state=${redirect.searchParams.get("state")}`,
@@ -423,5 +428,27 @@ it("returns unavailable when the provider callback cannot persist a new account"
   } finally {
     await pool.query("DROP TRIGGER reject_test_auth_user ON auth_user");
     await pool.query("DROP FUNCTION reject_test_auth_user()");
+  }
+});
+
+it("returns unavailable when OAuth account lookup fails after state creation", async () => {
+  let renamed = false;
+  try {
+    const response = await discordSignIn("123456789", false, async () => {
+      await pool.query(
+        "ALTER TABLE auth_account RENAME TO auth_account_unavailable",
+      );
+      renamed = true;
+    });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      code: "AUTH_UNAVAILABLE",
+      error: "Authentication is temporarily unavailable",
+    });
+  } finally {
+    if (renamed)
+      await pool.query(
+        "ALTER TABLE auth_account_unavailable RENAME TO auth_account",
+      );
   }
 });

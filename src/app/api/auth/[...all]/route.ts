@@ -67,6 +67,7 @@ async function handle(request: Request) {
       if (
         code &&
         [
+          "internal_server_error",
           "unable_to_create_user",
           "unable_to_create_session",
           "unable_to_update_account",
