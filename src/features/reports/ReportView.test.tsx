@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { fixtureRequest } from "../../../tests/support/fixtures";
 import { encodeSnapshot } from "@/domain/top-gear/request-schema";
 import type { SetRow } from "@/domain/top-gear/model";
+import commonEn from "../../../messages/en-US/common.json";
+import commonPt from "../../../messages/pt-BR/common.json";
 import authEn from "../../../messages/en-US/auth.json";
 import authPt from "../../../messages/pt-BR/auth.json";
 import { storeReturnState, loadReturnState } from "../auth/return-state";
@@ -87,6 +89,7 @@ function view(locale: "en-US" | "pt-BR") {
     <NextIntlClientProvider
       locale={locale}
       messages={{
+        common: locale === "en-US" ? commonEn : commonPt,
         auth: locale === "en-US" ? authEn : authPt,
         reports: locale === "en-US" ? en : pt,
         diagnostics: locale === "en-US" ? diagnosticsEn : diagnosticsPt,

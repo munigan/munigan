@@ -82,7 +82,7 @@ it("ships every account error translation in home and workbench catalogs", () =>
 it("ships the final bilingual account copy and one Gear Lab display name", () => {
   expect(en.auth).toMatchObject({
     continueDiscord: "Continue with Discord",
-    saveBenefit: "Save this report and find it on any device.",
+    saveBenefit: "This report, saved to My Library",
     saved: "Report saved",
     library: "My Library",
     saveFailedAfterLogin:
@@ -93,7 +93,7 @@ it("ships the final bilingual account copy and one Gear Lab display name", () =>
   });
   expect(pt.auth).toMatchObject({
     continueDiscord: "Continuar com Discord",
-    saveBenefit: "Salve este relatório e acesse de qualquer dispositivo.",
+    saveBenefit: "Este relatório, salvo na Minha biblioteca",
     saved: "Relatório salvo",
     library: "Minha biblioteca",
     saveFailedAfterLogin:

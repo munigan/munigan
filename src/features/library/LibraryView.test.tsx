@@ -268,8 +268,150 @@ it("keeps a route back when deleting the last item on a later page", async () =>
   expect(
     await screen.findByText("No reports left on this page."),
   ).toBeVisible();
-  expect(screen.getByRole("button", { name: "Back" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
   expect(
     screen.queryByText("Your next discovery belongs here."),
   ).not.toBeInTheDocument();
+});
+
+it("offers tool tabs and filters by a character from beyond the current report page", async () => {
+  const libraryPage = () =>
+    Response.json({
+      items: [item],
+      nextCursor: "next",
+      tools: ["top-gear"],
+      total: 25,
+      filteredTotal: 25,
+      pageSize: 20,
+      characters: [
+        {
+          name: "Munigan",
+          classKey: "warrior",
+          count: 5,
+          specKeys: ["warrior:FuryTalents"],
+          lastSavedAt: item.savedAt,
+        },
+      ],
+    });
+  const fetch = vi.fn().mockImplementation(async () => libraryPage());
+  vi.stubGlobal("fetch", fetch);
+  render(tree());
+  expect(await screen.findByRole("tab", { name: /Gear Lab/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(screen.getByRole("tab", { name: /Raid Trainer/ })).toBeDisabled();
+  await userEvent.click(
+    await screen.findByRole("button", { name: /Munigan.*5/ }),
+  );
+  await waitFor(() =>
+    expect(String(fetch.mock.calls.at(-1)?.[0])).toContain(
+      "character=Munigan&classKey=warrior",
+    ),
+  );
+  expect(String(fetch.mock.calls.at(-1)?.[0])).not.toContain("cursor=");
+  await userEvent.click(screen.getByRole("combobox", { name: "Sort reports" }));
+  await userEvent.click(
+    await screen.findByRole("option", { name: "Oldest first" }),
+  );
+  await waitFor(() =>
+    expect(String(fetch.mock.calls.at(-1)?.[0])).toContain("sort=oldest"),
+  );
+  await userEvent.click(
+    screen.getByRole("combobox", { name: "Specialization" }),
+  );
+  await userEvent.click(await screen.findByRole("option", { name: /Fury/ }));
+  await waitFor(() =>
+    expect(String(fetch.mock.calls.at(-1)?.[0])).toContain(
+      "spec=warrior%3AFuryTalents",
+    ),
+  );
+});
+
+it("shows the saved run context and computes the gain against that run's equipped set", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      Response.json({
+        items: [
+          {
+            ...item,
+            context: {
+              itemVersion: "original",
+              combinations: 40,
+              duration: 180,
+              targetCount: 1,
+            },
+          },
+        ],
+        nextCursor: null,
+        tools: ["top-gear"],
+        total: 1,
+        filteredTotal: 1,
+        pageSize: 20,
+        characters: [],
+      }),
+    ),
+  );
+  render(tree());
+  const report = await screen.findByRole("button", {
+    name: "Open Character A",
+  });
+  expect(report).toHaveTextContent("40 combinations");
+  expect(report).toHaveTextContent("Original WotLK · Single target · 180s");
+  expect(report).toHaveTextContent("DPS · +4.35%");
+});
+
+it("keeps a readable character filter when its last report is removed in another tab", async () => {
+  const response = () =>
+    Response.json({
+      items: [item],
+      nextCursor: null,
+      tools: ["top-gear"],
+      total: 1,
+      filteredTotal: 1,
+      pageSize: 20,
+      characters: [
+        {
+          name: "Character A",
+          classKey: "mage",
+          count: 1,
+          specKeys: [item.summary.specKey],
+          lastSavedAt: item.savedAt,
+        },
+      ],
+    });
+  const fetch = vi.fn().mockImplementation(async () => response());
+  vi.stubGlobal("fetch", fetch);
+  render(tree());
+  await userEvent.click(
+    await screen.findByRole("button", { name: /Character A.*Mage.*1/ }),
+  );
+  await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+  fetch.mockImplementation(async () =>
+    Response.json({
+      items: [],
+      nextCursor: null,
+      tools: ["top-gear"],
+      total: 0,
+      filteredTotal: 0,
+      pageSize: 20,
+      characters: [],
+    }),
+  );
+  act(() =>
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "munigan.data.invalidated",
+        newValue: "deleted",
+      }),
+    ),
+  );
+  await screen.findByText("No matching reports.");
+  expect(
+    screen.getByRole("combobox", { name: "Characters" }),
+  ).toHaveTextContent("Character A");
+  expect(
+    screen.getByRole("combobox", { name: "Characters" }),
+  ).not.toHaveTextContent('["');
 });

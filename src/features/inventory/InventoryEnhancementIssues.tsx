@@ -9,6 +9,7 @@ import {
   validateItemEnhancements,
 } from "@/domain/equipment/item-enhancements";
 import { Alert, AlertContent } from "@/components/ui/Alert";
+import { Pagination } from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/Button";
 import { enhancementDiagnosticText } from "./enhancements/enhancement-labels";
 import type { EnhancementField } from "./ItemEnhancementPreview";
@@ -134,24 +135,19 @@ export function InventoryEnhancementIssues({
             </div>
           ))}
           {(analysis?.conflicts.length ?? 0) > 1 && (
-            <div className="enhancement-conflict-pagination">
-              <Button
-                variant="ghost"
-                disabled={currentIndex === 0}
-                onClick={() => setIndex(currentIndex - 1)}
-              >
-                {t("editor.previousConflict")}
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={
-                  currentIndex === (analysis?.conflicts.length ?? 0) - 1
-                }
-                onClick={() => setIndex(currentIndex + 1)}
-              >
-                {t("editor.nextConflict")}
-              </Button>
-            </div>
+            <Pagination
+              label={t("editor.reviewConflicts")}
+              page={currentIndex + 1}
+              hasPrevious={currentIndex > 0}
+              hasNext={currentIndex < (analysis?.conflicts.length ?? 0) - 1}
+              onPrevious={() => setIndex(currentIndex - 1)}
+              onNext={() => setIndex(currentIndex + 1)}
+              range={{
+                start: currentIndex + 1,
+                end: currentIndex + 1,
+                total: analysis?.conflicts.length ?? 0,
+              }}
+            />
           )}
         </div>
       )}

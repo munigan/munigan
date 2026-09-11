@@ -10,38 +10,6 @@
   flex-direction: column;
   gap: 20px;
 }
-.home-artwork {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  right: calc(-1 * var(--shell-gutter));
-  width: calc(100% + 2 * var(--shell-gutter));
-  height: clamp(360px, 30vw, 560px);
-  pointer-events: none;
-  overflow: hidden;
-}
-.home-artwork::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: 100%;
-  background: url("/images/icecrown.webp") center 30% / cover;
-  opacity: 0.19;
-}
-.home-artwork::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      var(--color-canvas),
-      transparent 45%,
-      transparent 80%,
-      var(--color-canvas)
-    ),
-    linear-gradient(0deg, var(--color-canvas), transparent);
-}
 .home-eyebrow {
   font-size: 12px;
   line-height: 16px;

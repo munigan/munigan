@@ -68,6 +68,12 @@ it("escapes search metacharacters and excludes full report fields", async () => 
 
   const item = (await listLibrary(account.id, { search: "%_\\" })).items[0];
   expect(item.title).toBe("Literal 100%_\\ match");
+  expect(item.context).toMatchObject({
+    itemVersion: "original",
+    combinations: expect.any(Number),
+    duration: expect.any(Number),
+    targetCount: 1,
+  });
   expect(item).not.toHaveProperty("report");
   expect(item).not.toHaveProperty("request");
   expect(item).not.toHaveProperty("tokenCipher");
@@ -199,4 +205,76 @@ it("rejects publication after the locked job is deleted", async () => {
       });
     }),
   ).rejects.toMatchObject({ status: 404 });
+});
+
+it("counts and filters the whole library by character and spec, with oldest-first pagination", async () => {
+  const account = await seedAccount();
+  const other = await seedAccount();
+  for (let index = 0; index < 23; index++) {
+    const job = await seedTerminalReport({ accountId: account.id });
+    await publishSeededReport(job, account);
+    const name = index < 21 ? "Munigan" : "Barbarius";
+    await pool.query(
+      `UPDATE library_items SET character_name=$2,
+      summary=summary || jsonb_build_object('characterName',$2::text,'classKey','warrior','specKey',$3::text),
+      saved_at='2026-09-01T00:00:00Z'::timestamptz + $4 * interval '1 second'
+      WHERE job_id=$1`,
+      [
+        job.jobId,
+        name,
+        index < 21 ? "warrior:FuryTalents" : "warrior:ArmsTalents",
+        index,
+      ],
+    );
+  }
+  await publishSeededReport(
+    await seedTerminalReport({ accountId: other.id }),
+    other,
+  );
+  const query = {
+    character: "Munigan",
+    classKey: "warrior",
+    spec: "warrior:FuryTalents",
+    sort: "oldest" as const,
+  };
+  const first = await listLibrary(account.id, query);
+  expect(first.total).toBe(23);
+  expect(first.filteredTotal).toBe(21);
+  expect(first.characters).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        name: "Munigan",
+        classKey: "warrior",
+        count: 21,
+      }),
+      expect.objectContaining({ name: "Barbarius", count: 2 }),
+    ]),
+  );
+  expect(first.items).toHaveLength(20);
+  expect(first.items[0].savedAt).toBe("2026-09-01T00:00:00.000Z");
+  const second = await listLibrary(account.id, {
+    ...query,
+    cursor: first.nextCursor!,
+  });
+  expect(second.items).toHaveLength(1);
+  expect(second.filteredTotal).toBe(21);
+  expect(
+    new Set([...first.items, ...second.items].map((item) => item.id)).size,
+  ).toBe(21);
+  const noMatch = await listLibrary(account.id, {
+    ...query,
+    search: "no match",
+  });
+  expect(noMatch.filteredTotal).toBe(0);
+  expect(noMatch.total).toBe(23);
+  expect(
+    (await listLibrary(account.id, { ...query, spec: "warrior:ArmsTalents" }))
+      .items,
+  ).toEqual([]);
+  await expect(
+    listLibrary(account.id, { sort: "invalid" as "oldest" }),
+  ).rejects.toMatchObject({ status: 400 });
+  await expect(
+    listLibrary(account.id, { character: "x".repeat(81) }),
+  ).rejects.toMatchObject({ status: 400 });
 });

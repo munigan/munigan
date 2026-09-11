@@ -1,0 +1,43 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.summary {
+  min-width: 0;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.controls button {
+  min-height: 44px;
+  padding: 8px 12px;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 20px;
+}
+.controls svg {
+  flex-shrink: 0;
+}
+.page {
+  white-space: nowrap;
+}
+@media (max-width: 399px) {
+  .controls {
+    gap: 8px;
+  }
+  .controls button {
+    padding-inline: 10px;
+    gap: 6px;
+  }
+}

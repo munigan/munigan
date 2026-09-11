@@ -1,4 +1,5 @@
 "use client";
+import { CharacterBackground } from "@/features/shell/CharacterBackground";
 import { describeError, type ErrorDescriptor } from "@/i18n/error";
 import { localizeDiagnostic } from "@/i18n/diagnostics";
 import { useTranslations } from "next-intl";
@@ -45,6 +46,7 @@ import {
   saveDraft,
   loadDraft,
   clearDraft,
+  clearMatchingDraft,
 } from "@/features/import/draft-store";
 import { importFormDraftKey } from "@/features/import/import-form-draft";
 import { useAccount } from "../auth/AuthProvider";
@@ -69,6 +71,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const [signInOpen, setSignInOpen] = useState(false);
   const attempt = useRef<AdmissionAttempt | null>(null);
   const submitting = useRef(false);
+  const completedRequest = useRef<TopGearRequest | null>(null);
   const ti = useTranslations("inventory");
   const td = useTranslations("diagnostics");
   const router = useRouter();
@@ -83,9 +86,20 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     [storageError, setStorageError] = useState<ErrorDescriptor | null>(null);
   const importPanel = useRef<ImportPanelHandle>(null);
   const [importRevision, setImportRevision] = useState(0);
+  const [selectionVisit, setSelectionVisit] = useState({
+    revision: 0,
+    restored: false,
+  });
+  function restoreSelection(draft: TopGearRequest) {
+    setSelectionVisit((visit) => ({
+      revision: visit.revision + 1,
+      restored: true,
+    }));
+    change(draft);
+  }
   const returnToStart = useEffectEvent((event: Event) => {
     try {
-      if (request) saveDraft(request);
+      if (request && request !== completedRequest.current) saveDraft(request);
       importPanel.current?.saveForLater();
       const saved = !!(
         localStorage.getItem(importFormDraftKey) ||
@@ -115,7 +129,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const restoreFromReport = useEffectEvent(() => {
     try {
       const draft = loadDraft();
-      if (draft) change(draft);
+      if (draft) restoreSelection(draft);
     } catch (e) {
       setError(describeError(e));
     } finally {
@@ -224,6 +238,10 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     }
   }
   function resolved(snapshot: Snapshot) {
+    setSelectionVisit((visit) => ({
+      revision: visit.revision + 1,
+      restored: false,
+    }));
     change({
       tool: "top-gear",
       precision: "standard",
@@ -273,7 +291,17 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
             ? "anonymous"
             : "account",
         );
+      const submitted = JSON.parse(attempt.current.body);
+      delete submitted.authMode;
       const reportUrl = await submitAttempt(attempt.current);
+      completedRequest.current = request;
+      attempt.current = null;
+      try {
+        if (clearMatchingDraft(submitted)) setHasDraft(false);
+      } catch (e) {
+        // Admission already succeeded; local storage must not prevent opening its report.
+        setStorageError(describeError(e));
+      }
       setAdmissionIssue(null);
       router.push(reportUrl);
     } catch (e) {
@@ -332,7 +360,8 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     <ItemVersionContext.Provider
       value={request ? itemVersionOf(request.snapshot) : "original"}
     >
-      <section id="content">
+      <section id="content" className="gear-lab-page">
+        {!replace && <CharacterBackground specId={request?.snapshot.specId} />}
         <PageHeading className="page-heading">
           <h1>GEAR LAB</h1>
           <p>{request ? t("selectIntro") : t("importIntro")}</p>
@@ -358,7 +387,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                       return;
                     }
                     const draft = loadDraft();
-                    if (draft) change(draft);
+                    if (draft) restoreSelection(draft);
                   } catch (e) {
                     setError(describeError(e));
                   }
@@ -400,6 +429,8 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         ) : (
           <div className="gear-layout">
             <InventorySelector
+              key={selectionVisit.revision}
+              focusChanges={selectionVisit.restored}
               request={request}
               onChange={change}
               enhancementAnalysis={enhancementAnalysis}

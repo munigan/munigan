@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { fixtureRequest } from "../../../tests/support/fixtures";
@@ -8,6 +8,8 @@ import importMessages from "../../../messages/en-US/import.json";
 import diagnostics from "../../../messages/en-US/diagnostics.json";
 import type { TopGearRequest } from "@/domain/top-gear/model";
 import { TopGearApp } from "./TopGearApp";
+import { draftKey, saveDraft } from "../import/draft-store";
+import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
 const { auth, push } = vi.hoisted(() => ({
   auth: { status: "authenticated", account: { id: "a" }, savingEnabled: true },
   push: vi.fn(),
@@ -90,6 +92,7 @@ it("offers an explicit anonymous run after a known account rejection, with a new
   view();
   await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
   await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  expect(localStorage.getItem(draftKey)).not.toBeNull();
   await userEvent.click(
     await screen.findByRole("button", { name: "Run without saving" }),
   );
@@ -115,10 +118,11 @@ it("disables mode switching through network uncertainty and retries the same bod
   expect(
     await screen.findByRole("button", { name: "Run without saving" }),
   ).toBeDisabled();
+  expect(localStorage.getItem(draftKey)).not.toBeNull();
   await userEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(push).toHaveBeenCalled());
   expect(calls[0]).toEqual(calls[1]);
-  expect(localStorage.length).toBeGreaterThan(0);
+  expect(localStorage.getItem(draftKey)).toBeNull();
 });
 
 it("restores the sign-in draft through Strict Mode effect replay", async () => {
@@ -207,4 +211,49 @@ it("keeps the original attempt locked when allowance rejection follows network u
   expect(calls[1]).toEqual(calls[0]);
   expect(calls[2]).toEqual(calls[0]);
   expect(push).not.toHaveBeenCalled();
+});
+
+it("removes the submitted draft when admission succeeds and the report opens", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) =>
+      url.endsWith("config")
+        ? { json: async () => ({}) }
+        : { ok: true, json: async () => ({ reportUrl: "/reports/finished" }) },
+    ),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  expect(localStorage.getItem(draftKey)).not.toBeNull();
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/finished"));
+  expect(localStorage.getItem(draftKey)).toBeNull();
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  act(() => {
+    window.dispatchEvent(new Event(topGearStartEvent));
+  });
+  expect(localStorage.getItem(draftKey)).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Restore draft" }),
+  ).not.toBeInTheDocument();
+});
+
+it("preserves a newer draft saved while an older run is being admitted", async () => {
+  const newer = fixtureRequest();
+  newer.snapshot.settings.player!.name = "New draft";
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      saveDraft(newer);
+      return { ok: true, json: async () => ({ reportUrl: "/reports/older" }) };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/older"));
+  expect(JSON.parse(localStorage.getItem(draftKey)!).snapshot.id).toBe(
+    newer.snapshot.id,
+  );
 });

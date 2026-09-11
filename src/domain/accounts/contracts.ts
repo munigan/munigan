@@ -33,6 +33,12 @@ export type LibraryItem = {
   kind: "report";
   title: string;
   summary: LibrarySummary;
+  context?: {
+    itemVersion: "original" | "classic";
+    combinations: number | null;
+    duration: number | null;
+    targetCount: number | null;
+  } | null;
   createdAt: string;
   savedAt: string;
 };
@@ -40,8 +46,23 @@ export type LibraryQuery = {
   search?: string;
   cursor?: string;
   tool?: "top-gear";
+  character?: string;
+  classKey?: string;
+  spec?: string;
+  sort?: "newest" | "oldest";
+};
+export type LibraryCharacter = {
+  name: string;
+  classKey: string;
+  count: number;
+  specKeys: string[];
+  lastSavedAt: string;
 };
 export type LibraryPage = {
+  total: number;
+  filteredTotal: number;
+  pageSize: number;
+  characters: LibraryCharacter[];
   items: LibraryItem[];
   nextCursor: string | null;
   tools: Array<"top-gear">;

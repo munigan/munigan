@@ -1431,13 +1431,6 @@
     font-size: 12px;
     padding-left: calc(1rem + 5px);
   }
-  .report-controls {
-    margin-top: 20px;
-  }
-  .report-controls .actions {
-    margin: 0;
-    align-items: center;
-  }
   .uncertainty-note {
     margin: 16px 0;
   }
@@ -1561,14 +1554,6 @@
     .set-number {
       align-self: start;
       font-size: 12px;
-    }
-    .report-controls {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-    .report-controls > .actions {
-      width: 100%;
-      justify-content: space-between;
     }
     .difference-controls {
       font-size: 12px;

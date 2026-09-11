@@ -1,4 +1,5 @@
 "use client";
+import { CharacterBackground } from "@/features/shell/CharacterBackground";
 import type { ErrorDescriptor } from "@/i18n/error";
 import { localizeDiagnostic } from "@/i18n/diagnostics";
 import { useLocale, useTranslations } from "next-intl";
@@ -110,6 +111,7 @@ export function ImportReview({
     .filter((value): value is number => typeof value === "number" && value > 0);
   return (
     <>
+      <CharacterBackground specId={resolved?.snapshot.specId} />
       <p className="eyebrow">{t("reviewTitle")}</p>
       <div className="import-identity">
         <ReviewIcon

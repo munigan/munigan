@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import en from "../../../messages/en-US/auth.json";
@@ -186,4 +186,41 @@ it("does not carry personal save-success wording into another account", async ()
   expect(screen.getByRole("status")).toHaveTextContent(
     "Shared report · read only",
   );
+});
+
+it("keeps the Paper banner action inside the notice and shows a structured report preview", async () => {
+  view({
+    character: {
+      name: "Barbarius",
+      specialization: "Fury Warrior",
+      icon: "ability_warrior_innerrage",
+      dps: 10628.4,
+      percent: 0.21,
+    },
+  });
+  const banner = screen.getByRole("region", {
+    name: "Keep this report for your next upgrade.",
+  });
+  await userEvent.click(
+    within(banner).getByRole("button", { name: "Save report" }),
+  );
+  const modal = screen.getByRole("dialog", { name: "Keep this one." });
+  expect(within(modal).getByText("SAVE YOUR PROGRESS")).toBeInTheDocument();
+  expect(within(modal).getByText("Barbarius")).toBeInTheDocument();
+  expect(
+    within(modal).getByText("Fury Warrior · Gear Lab"),
+  ).toBeInTheDocument();
+  expect(within(modal).getByText("10,628.4")).toBeInTheDocument();
+  expect(within(modal).getByText("+0.21%")).toHaveTextContent("DPS · +0.21%");
+  expect(modal.querySelector("time")).toHaveAttribute(
+    "dateTime",
+    access.effectiveExpiresAt,
+  );
+  await userEvent.click(
+    within(modal).getByRole("button", { name: "Continue without saving" }),
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+  );
+  expect(social).not.toHaveBeenCalled();
 });

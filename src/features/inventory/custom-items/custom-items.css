@@ -325,12 +325,6 @@
   .custom-picker-mobile-stat-label {
     display: none;
   }
-  .custom-picker .custom-picker-load-more {
-    width: 100%;
-    border-radius: 0;
-    color: var(--color-muted);
-    margin-block: 8px;
-  }
   .custom-picker-empty {
     padding: 64px 24px;
     text-align: center;

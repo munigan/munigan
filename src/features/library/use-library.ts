@@ -56,6 +56,10 @@ export function useLibrary(query: LibraryQuery): {
   if (query.search) params.set("search", query.search.slice(0, 100));
   if (query.cursor) params.set("cursor", query.cursor);
   if (query.tool) params.set("tool", query.tool);
+  if (query.character) params.set("character", query.character);
+  if (query.classKey) params.set("classKey", query.classKey);
+  if (query.spec) params.set("spec", query.spec);
+  if (query.sort === "oldest") params.set("sort", query.sort);
   const url = `/api/library${params.size ? `?${params}` : ""}`;
   useEffect(
     () =>

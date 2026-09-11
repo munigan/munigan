@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({ useAccount: vi.fn() }));
 vi.mock("./AuthProvider", () => ({ useAccount: mocks.useAccount }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/top-gear" }));
 
-const messages = { auth: { loading: "Loading account", retry: "Retry account", signIn: "Sign in", accountMenu: "Account menu", discordAccount: "Signed in with Discord", library: "My Library", signOut: "Sign out", deleteAccount: "Delete account", signOutFailed: "Could not sign out.", retrySignOut: "Retry sign out", title: "Welcome", description: "Description", continueDiscord: "Continue with Discord", continueAnonymous: "Continue without signing in", returnNotice: "Return", invalidCallback: "Invalid", signInFailed: "Failed", errors: { AUTH_UNAVAILABLE: "We couldn't check your session. Try again." } }, common: { close: "Close" } };
+const messages = { auth: { loading: "Loading account", retry: "Retry account", signIn: "Sign in", accountMenu: "Account menu", discordAccount: "Signed in with Discord", library: "My Library", libraryHint: "Your saved work across munigan.app.", signOut: "Sign out", deleteAccount: "Delete account", signOutFailed: "Could not sign out.", retrySignOut: "Retry sign out", title: "Welcome", description: "Description", continueDiscord: "Continue with Discord", continueAnonymous: "Continue without signing in", returnNotice: "Return", invalidCallback: "Invalid", signInFailed: "Failed", errors: { AUTH_UNAVAILABLE: "We couldn't check your session. Try again." } }, common: { close: "Close" } };
 const base = { savingEnabled: true, enrollmentEnabled: false, refresh: vi.fn(), signOut: vi.fn() };
 function view(mobile = false) { return <NextIntlClientProvider locale="en-US" messages={messages}><AccountMenu mobile={mobile} /></NextIntlClientProvider>; }
 
@@ -62,7 +62,7 @@ describe("AccountMenu", () => {
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
     await userEvent.click(await screen.findByRole("menuitem", { name: "Sign out" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not sign out");
-    expect(screen.getByText("Munigan")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Account menu" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Retry sign out" }));
     await waitFor(() => expect(base.signOut).toHaveBeenCalledTimes(2));
   });

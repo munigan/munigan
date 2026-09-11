@@ -5,7 +5,11 @@ import { BagPreview } from "@/features/import/BagPreview";
 import { SectionHeading } from "@/components/ui/layout";
 import { Button } from "@/components/ui/Button";
 import { useMemo, useRef, useState } from "react";
-import type { TopGearRequest, Slot } from "@/domain/top-gear/model";
+import type {
+  TopGearRequest,
+  Slot,
+  ItemInstance,
+} from "@/domain/top-gear/model";
 import { slots } from "@/domain/top-gear/slots";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { canEquip, validateItem } from "@/domain/equipment/validate";
@@ -32,15 +36,16 @@ export function InventorySelector({
   request,
   onChange,
   enhancementAnalysis = null,
+  focusChanges = false,
 }: {
   request: TopGearRequest;
   onChange: (r: TopGearRequest) => void;
   enhancementAnalysis?: EnhancementSetAnalysis | null;
+  focusChanges?: boolean;
 }) {
   const d = useTranslations("diagnostics");
   const t = useTranslations("inventory");
-  const [filter, setFilter] = useState("All slots"),
-    [expanded, setExpanded] = useState(false);
+  const [filter, setFilter] = useState("All slots");
   const { snapshot, selection } = request,
     catalog = getCatalog(snapshot.itemVersion);
   const [editing, setEditing] = useState<{
@@ -94,8 +99,15 @@ export function InventorySelector({
       },
     });
   }
-  const needsChoice = (s: Slot) =>
-    items(s).some((i) => i.source !== "equipped");
+  const modified = (item: ItemInstance) =>
+    item.source === "custom" ||
+    !!snapshot.itemEnhancements?.[item.instanceId] ||
+    selection.selectedInstanceIds.includes(item.instanceId) !==
+      (item.source === "equipped");
+  const needsChoice = (s: Slot) => items(s).some(modified);
+  const hasChanges = groupSlots.some(needsChoice);
+  // Initial visibility belongs to this visit, so editing never hides tables mid-use.
+  const [expanded, setExpanded] = useState(() => !focusChanges || !hasChanges);
   const shown = groupSlots.filter((s) =>
     filter === "Armor"
       ? slots.indexOf(s) < 10
@@ -185,7 +197,7 @@ export function InventorySelector({
           </div>
         ))}
       {shown
-        .filter((s) => expanded || needsChoice(s))
+        .filter((s) => expanded || !hasChanges || needsChoice(s))
         .map((s) => {
           const all = items(s),
             values = all;
@@ -238,19 +250,21 @@ export function InventorySelector({
             </section>
           );
         })}
-      {filter === "All slots" && shown.some((s) => !needsChoice(s)) && (
-        <Button
-          variant="secondary"
-          className="expand-slots"
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded
-            ? t("collapse")
-            : t("expand", {
-                count: shown.filter((s) => !needsChoice(s)).length,
-              })}
-        </Button>
-      )}
+      {filter === "All slots" &&
+        hasChanges &&
+        shown.some((s) => !needsChoice(s)) && (
+          <Button
+            variant="secondary"
+            className="expand-slots"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded
+              ? t("collapse")
+              : t("expand", {
+                  count: shown.filter((s) => !needsChoice(s)).length,
+                })}
+          </Button>
+        )}
       {editing && editedItem && (
         <ItemEnhancementEditor
           key={editedItem.instanceId}

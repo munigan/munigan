@@ -2,7 +2,6 @@
   "toolkit": "YOUR TOOLKIT",
   "equipment": "Equipment",
   "playstyle": "Playstyle",
-  "overview": "Overview",
   "tools": "Tools",
   "gearLab": "Gear Lab",
   "future": "Future",
@@ -14,5 +13,15 @@
   "home": "munigan.app home",
   "reportTitle": "Gear Lab report",
   "moreTools": "More tools",
-  "help": "Help"
+  "homeLabel": "Home",
+  "beta": "Beta",
+  "drawer": {
+    "heading": "Where to next?",
+    "homeHint": "Your toolkit",
+    "libraryHint": "Your saved work",
+    "gearHint": "Compare your gear",
+    "trainerHint": "Practice the fight",
+    "futureCount": "{count} future tools",
+    "back": "Back"
+  }
 }

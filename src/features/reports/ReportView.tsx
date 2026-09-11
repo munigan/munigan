@@ -1,4 +1,5 @@
 "use client";
+import { CharacterBackground } from "@/features/shell/CharacterBackground";
 import {
   Alert,
   AlertContent,
@@ -7,6 +8,7 @@ import {
   AlertMessage,
 } from "@/components/ui/Alert";
 import { PageHeading } from "@/components/ui/layout";
+import { Pagination } from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/Button";
 import { useToastManager } from "@/components/ui/Toast";
 import { useState, useRef, useEffect } from "react";
@@ -29,6 +31,7 @@ import { CombinationTable } from "./CombinationTable";
 import type { ReportAccess } from "@/domain/accounts/contracts";
 import { useAccount } from "../auth/AuthProvider";
 import { loadReturnState, clearReturnState } from "../auth/return-state";
+import { characterSpecIcon } from "../inventory/CharacterPortrait";
 import { ReportSave } from "./ReportSave";
 import { useReport } from "./use-report";
 import "./report-refinements.css";
@@ -250,7 +253,8 @@ export function ReportView({ token }: { token: string }) {
     spec = getSpec(snapshot.specId);
   return (
     <ItemVersionContext.Provider value={itemVersionOf(snapshot)}>
-      <section id="content" className="report-view">
+      <section id="content" className="report-view gear-lab-page">
+        <CharacterBackground specId={snapshot.specId} />
         <PageHeading className="page-heading">
           <h1>GEAR LAB</h1>
           <p>
@@ -296,7 +300,18 @@ export function ReportView({ token }: { token: string }) {
               canManage: permissionsFresh && data.access.canManage,
             }}
             onSaved={refresh}
-            character={`${snapshot.settings.player!.name} · ${spec.name} ${spec.className}${selected ? ` · ${number(selected.dps, locale)} DPS` : ""}`}
+            character={{
+              name: snapshot.settings.player!.name,
+              specialization: `${spec.name} ${spec.className}`,
+              icon:
+                characterSpecIcon(
+                  spec.className,
+                  snapshot.settings.player!.talentsString,
+                ) ??
+                `classicon_${spec.className.toLowerCase().replaceAll(" ", "")}`,
+              dps: selected?.dps,
+              percent: selected?.percent,
+            }}
             getViewState={() => ({
               version: 1,
               reportPath: `/reports/${token}`,
@@ -467,31 +482,19 @@ export function ReportView({ token }: { token: string }) {
               cursor={cursor}
               setSelectedId={setSelectedId}
             />
-            <div className="section-top report-controls" aria-busy={isPending}>
-              <div className="actions">
-                <Button
-                  variant="secondary"
-                  disabled={isPending || cursor === 0}
-                  onClick={() => setCursor(Math.max(0, cursor - 20))}
-                >
-                  {t("previous")}
-                </Button>
-                <span className="muted">
-                  {t("pagination", {
-                    start: cursor + 1,
-                    end: cursor + report.rows.length,
-                    total: data.totalRows,
-                  })}
-                </span>
-                <Button
-                  variant="secondary"
-                  disabled={isPending || data.nextCursor === null}
-                  onClick={() => setCursor(data.nextCursor!)}
-                >
-                  {t("next")}
-                </Button>
-              </div>
-            </div>
+            <Pagination
+              page={Math.floor(cursor / 20) + 1}
+              pending={isPending}
+              hasPrevious={cursor > 0}
+              hasNext={data.nextCursor !== null}
+              onPrevious={() => setCursor(Math.max(0, cursor - 20))}
+              onNext={() => setCursor(data.nextCursor!)}
+              range={{
+                start: report.rows.length ? cursor + 1 : 0,
+                end: report.rows.length ? cursor + report.rows.length : 0,
+                total: data.totalRows,
+              }}
+            />
             <p
               id="report-tie-explanation"
               className="muted small uncertainty-note"

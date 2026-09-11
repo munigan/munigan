@@ -7,6 +7,7 @@ import type { Catalog } from "@/domain/equipment/catalog";
 import type { ItemInstance } from "@/domain/top-gear/model";
 import { customInstance } from "@/domain/equipment/custom-items";
 import { ItemIcon } from "../Item";
+import { Pagination } from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/Button";
 
 export function pickerStats(
@@ -217,16 +218,16 @@ export function PickerResults({
             />
           ))}
           {items.length > limit && (
-            <Button
-              variant="ghost"
-              className="custom-picker-load-more"
-              onClick={onMore}
-            >
-              {t("picker.showMore", {
-                shown: Math.min(limit, items.length),
+            <Pagination
+              variant="load-more"
+              hasNext
+              onLoadMore={onMore}
+              range={{
+                start: 1,
+                end: Math.min(limit, items.length),
                 total: items.length,
-              })}
-            </Button>
+              }}
+            />
           )}
         </>
       ) : (

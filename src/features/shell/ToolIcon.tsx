@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import type { ComponentProps } from "react";
 import type { ToolIconName } from "./tools";
 const paths: Record<ToolIconName, string> = {
+  library: "M4 4h5v17H4ZM12 4h4v17h-4Zm7 1 3 15",
   overview: "m3 10 9-7 9 7v11h-7v-7h-4v7H3Z",
   gear: "m8 3-5 4 3 4 2-1v11h8V10l2 1 3-4-5-4-4 3Z",
   raid: "M3 21V9h5V4h8v5h5v12M6 9V6m12 3V6M10 21v-6h4v6M10 8h4",

@@ -11,6 +11,11 @@ export async function GET(request: NextRequest) {
     const cursor = request.nextUrl.searchParams.get("cursor") ?? undefined;
     const tool = request.nextUrl.searchParams.get("tool") ?? undefined;
     const query: LibraryQuery = {
+      character: request.nextUrl.searchParams.get("character") ?? undefined,
+      classKey: request.nextUrl.searchParams.get("classKey") ?? undefined,
+      spec: request.nextUrl.searchParams.get("spec") ?? undefined,
+      sort: (request.nextUrl.searchParams.get("sort") ??
+        undefined) as LibraryQuery["sort"],
       search,
       cursor,
       tool: tool as LibraryQuery["tool"],
