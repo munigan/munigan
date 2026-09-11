@@ -42,7 +42,7 @@ export function ReportSave({
   const [open, setOpen] = useState(false),
     [pending, setPending] = useState(false),
     [error, setError] = useState(""),
-    [saved, setSaved] = useState(false);
+    [saved, setSaved] = useState<{ accountId: string | null } | null>(null);
   const [dismissed, setDismissed] = useState(() => {
     try {
       return sessionStorage.getItem(`munigan.report.notice.${token}`) === "1";
@@ -72,7 +72,7 @@ export function ReportSave({
           setError(accountErrorKey(result.code));
           return;
         }
-        setSaved(true);
+        setSaved({ accountId: auth.account?.id ?? null });
         setOpen(false);
         onSaved();
       } else {
@@ -120,7 +120,13 @@ export function ReportSave({
   if (access.saved || saved)
     return (
       <p className="muted small" role="status">
-        {t("saved")}
+        {t(
+          auth.status === "authenticated" &&
+            (access.canManage ||
+              (saved && saved.accountId === auth.account?.id))
+            ? "saved"
+            : "savedReadOnly",
+        )}
       </p>
     );
   if (

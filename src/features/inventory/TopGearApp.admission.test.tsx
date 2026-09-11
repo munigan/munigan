@@ -6,6 +6,7 @@ import { fixtureRequest } from "../../../tests/support/fixtures";
 import authMessages from "../../../messages/en-US/auth.json";
 import importMessages from "../../../messages/en-US/import.json";
 import diagnostics from "../../../messages/en-US/diagnostics.json";
+import type { TopGearRequest } from "@/domain/top-gear/model";
 import { TopGearApp } from "./TopGearApp";
 const { auth, push } = vi.hoisted(() => ({
   auth: { status: "authenticated", account: { id: "a" }, savingEnabled: true },
@@ -20,7 +21,32 @@ vi.mock("../import/ImportPanel", () => ({
     </button>
   ),
 }));
-vi.mock("./InventorySelector", () => ({ InventorySelector: () => null }));
+vi.mock("./InventorySelector", () => ({
+  InventorySelector: ({
+    request,
+    onChange,
+  }: {
+    request: TopGearRequest;
+    onChange: (request: TopGearRequest) => void;
+  }) => (
+    <button
+      onClick={() =>
+        onChange({
+          ...request,
+          selection: {
+            ...request.selection,
+            selectedInstanceIds: request.selection.selectedInstanceIds.slice(
+              0,
+              -1,
+            ),
+          },
+        })
+      }
+    >
+      Reduce selection
+    </button>
+  ),
+}));
 vi.mock("./RunSetup", () => ({
   RunSetup: ({ onRun, pending }: { onRun: () => void; pending: boolean }) => (
     <button onClick={onRun} disabled={pending}>
@@ -114,4 +140,71 @@ it("restores the sign-in draft through Strict Mode effect replay", async () => {
   expect(
     await screen.findByRole("button", { name: "Run fixture" }),
   ).toBeInTheDocument();
+});
+
+it("submits a corrected smaller selection with a new key after a definitive first allowance rejection", async () => {
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      calls.push(init);
+      return calls.length === 1
+        ? {
+            ok: false,
+            status: 422,
+            json: async () => ({
+              code: "allowance",
+              error: "Reduce your item selections to fit the free allowance",
+            }),
+          }
+        : { ok: true, json: async () => ({ reportUrl: "/reports/corrected" }) };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  await userEvent.click(
+    screen.getByRole("button", { name: "Reduce selection" }),
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/corrected"));
+  const first = JSON.parse(calls[0].body as string),
+    corrected = JSON.parse(calls[1].body as string);
+  expect(corrected.selection.selectedInstanceIds).toEqual(
+    first.selection.selectedInstanceIds.slice(0, -1),
+  );
+  expect(corrected.authMode).toBe("account");
+  expect(calls[1].headers).not.toEqual(calls[0].headers);
+});
+it("keeps the original attempt locked when allowance rejection follows network uncertainty", async () => {
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      calls.push(init);
+      if (calls.length === 1) throw new Error("network");
+      return {
+        ok: false,
+        status: 422,
+        json: async () => ({ code: "allowance" }),
+      };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(
+    screen.getByRole("button", { name: "Run without saving" }),
+  ).toBeDisabled();
+  await userEvent.click(
+    screen.getByRole("button", { name: "Reduce selection" }),
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+  expect(calls).toHaveLength(3);
+  expect(calls[1]).toEqual(calls[0]);
+  expect(calls[2]).toEqual(calls[0]);
+  expect(push).not.toHaveBeenCalled();
 });

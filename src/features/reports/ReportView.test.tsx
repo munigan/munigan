@@ -213,7 +213,9 @@ it("uses effective retained expiry even when the frozen report expired yesterday
     vi.fn().mockResolvedValue({ ok: true, json: async () => payload }),
   );
   render(view("en-US"));
-  expect(await screen.findByText("Saved to My Library")).toBeInTheDocument();
+  expect(
+    await screen.findByText("Saved report · Read-only"),
+  ).toBeInTheDocument();
   expect(screen.getByText(/No automatic expiry/)).toBeInTheDocument();
   expect(screen.queryByText(/2000/)).not.toBeInTheDocument();
 });

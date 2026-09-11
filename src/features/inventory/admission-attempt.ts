@@ -66,7 +66,9 @@ export async function submitAttempt(
     // A later rejected retry cannot prove an earlier ambiguous request was not admitted.
     if (
       !wasUncertain &&
-      ((response.status === 401 && data.code === "SIGN_IN_REQUIRED") ||
+      ((response.status === 422 &&
+        ["allowance", "invalidInput"].includes(data.code)) ||
+        (response.status === 401 && data.code === "SIGN_IN_REQUIRED") ||
         (response.status === 503 &&
           ["AUTH_UNAVAILABLE", "SAVING_UNAVAILABLE"].includes(data.code)) ||
         [400, 413, 415, 429].includes(response.status))

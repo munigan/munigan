@@ -12,13 +12,11 @@ beforeEach(() => {
 });
 it("sends account admission explicitly and permits anonymous continuation only after a known rejection", async () => {
   const attempt = createAttempt({ tool: "top-gear" }, "account");
-  const fetch = vi
-    .fn()
-    .mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: async () => ({ code: "SIGN_IN_REQUIRED" }),
-    });
+  const fetch = vi.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    json: async () => ({ code: "SIGN_IN_REQUIRED" }),
+  });
   vi.stubGlobal("fetch", fetch);
   await expect(submitAttempt(attempt)).rejects.toThrow();
   expect(canSwitchMode(attempt)).toBe(true);
@@ -54,13 +52,11 @@ it("retains mode, immutable payload and key through network uncertainty, reload 
 });
 it("treats generic 503 responses as uncertain and never sends if session storage cannot preserve the intent", async () => {
   const attempt = createAttempt({ tool: "top-gear" }, "account");
-  const fetch = vi
-    .fn()
-    .mockResolvedValue({
-      ok: false,
-      status: 503,
-      json: async () => ({ code: "serviceUnavailable" }),
-    });
+  const fetch = vi.fn().mockResolvedValue({
+    ok: false,
+    status: 503,
+    json: async () => ({ code: "serviceUnavailable" }),
+  });
   vi.stubGlobal("fetch", fetch);
   await expect(submitAttempt(attempt)).rejects.toThrow();
   expect(canSwitchMode(attempt)).toBe(false);
@@ -70,4 +66,41 @@ it("treats generic 503 responses as uncertain and never sends if session storage
   await expect(submitAttempt(attempt)).rejects.toThrow("storage");
   expect(fetch).toHaveBeenCalledOnce();
   vi.restoreAllMocks();
+});
+
+it.each(["allowance", "invalidInput"])(
+  "recognizes definitive initial 422 %s without unlocking an earlier ambiguous attempt",
+  async (code) => {
+    const attempt = createAttempt({ tool: "top-gear" }, "account");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue({
+          ok: false,
+          status: 422,
+          json: async () => ({ code }),
+        }),
+    );
+    await expect(submitAttempt(attempt)).rejects.toThrow();
+    expect(canSwitchMode(attempt)).toBe(true);
+    attempt.status = "uncertain";
+    await expect(submitAttempt(attempt)).rejects.toThrow();
+    expect(canSwitchMode(attempt)).toBe(false);
+  },
+);
+it("keeps unknown first 422 failures uncertain", async () => {
+  const attempt = createAttempt({ tool: "top-gear" }, "account");
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue({
+        ok: false,
+        status: 422,
+        json: async () => ({ error: "Unexpected infrastructure failure" }),
+      }),
+  );
+  await expect(submitAttempt(attempt)).rejects.toThrow();
+  expect(canSwitchMode(attempt)).toBe(false);
 });

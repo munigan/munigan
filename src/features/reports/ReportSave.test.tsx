@@ -7,7 +7,7 @@ import { ReportSave } from "./ReportSave";
 const { auth, social } = vi.hoisted(() => ({
   auth: {
     status: "anonymous",
-    account: null,
+    account: null as { id: string } | null,
     savingEnabled: true,
     enrollmentEnabled: true,
   },
@@ -37,6 +37,7 @@ function view(props = {}) {
 beforeEach(() => {
   sessionStorage.clear();
   auth.status = "anonymous";
+  auth.account = null;
   social.mockReset();
   onSaved.mockReset();
   vi.unstubAllGlobals();
@@ -59,6 +60,7 @@ it("never offers saving to a shared viewer", () => {
 });
 it("direct saves authenticated owners and announces saved only after API success", async () => {
   auth.status = "authenticated";
+  auth.account = { id: "owner" };
   let resolve!: (r: unknown) => void;
   vi.stubGlobal(
     "fetch",
@@ -74,6 +76,7 @@ it("direct saves authenticated owners and announces saved only after API success
 });
 it("keeps auth success separate from save failure", async () => {
   auth.status = "authenticated";
+  auth.account = { id: "owner" };
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -116,17 +119,16 @@ it("stores context before leaving for Discord, using an explicit matching error 
 
 it("translates owner-cookie failures without rendering server exception text", async () => {
   auth.status = "authenticated";
+  auth.account = { id: "owner" };
   vi.stubGlobal(
     "fetch",
-    vi
-      .fn()
-      .mockResolvedValue({
-        ok: false,
-        json: async () => ({
-          code: "OWNER_COOKIE_REQUIRED",
-          error: "private database detail",
-        }),
+    vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        code: "OWNER_COOKIE_REQUIRED",
+        error: "private database detail",
       }),
+    }),
   );
   view();
   await userEvent.click(screen.getByRole("button", { name: "Save report" }));
@@ -134,4 +136,56 @@ it("translates owner-cookie failures without rendering server exception text", a
     "original browser",
   );
   expect(screen.queryByText(/private database detail/)).not.toBeInTheDocument();
+});
+
+it("describes shared retained reports without claiming they are in the viewer library", () => {
+  view({
+    access: {
+      ...access,
+      saved: true,
+      canManage: false,
+      canSave: false,
+      effectiveExpiresAt: null,
+    },
+  });
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Saved report · Read-only",
+  );
+  expect(screen.queryByText("Saved to My Library")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Save report" }),
+  ).not.toBeInTheDocument();
+});
+it("reserves personal-library wording for authenticated owners", () => {
+  auth.status = "authenticated";
+  auth.account = { id: "owner" };
+  view({ access: { ...access, saved: true, effectiveExpiresAt: null } });
+  expect(screen.getByRole("status")).toHaveTextContent("Saved to My Library");
+});
+
+it("does not carry personal save-success wording into another account", async () => {
+  auth.status = "authenticated";
+  auth.account = { id: "owner" };
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+  const first = view();
+  await userEvent.click(screen.getByRole("button", { name: "Save report" }));
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "Saved to My Library",
+  );
+  auth.account = { id: "other" };
+  first.rerender(
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ auth: en, common: { close: "Close" } }}
+    >
+      <ReportSave
+        token="report"
+        access={{ ...access, canManage: false, canSave: false }}
+        onSaved={onSaved}
+      />
+    </NextIntlClientProvider>,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Saved report · Read-only",
+  );
 });

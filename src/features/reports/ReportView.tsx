@@ -293,6 +293,7 @@ export function ReportView({ token }: { token: string }) {
             access={{
               ...data.access,
               canSave: permissionsFresh && data.access.canSave,
+              canManage: permissionsFresh && data.access.canManage,
             }}
             onSaved={refresh}
             character={`${snapshot.settings.player!.name} · ${spec.name} ${spec.className}${selected ? ` · ${number(selected.dps, locale)} DPS` : ""}`}
