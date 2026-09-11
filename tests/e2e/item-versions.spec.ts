@@ -56,7 +56,7 @@ test("switches item versions, preserves drafts and simulates their actual stats"
   await selectOption(version, "classic");
   await expect(bagMjolnir).toBeChecked();
   await expect(mjolnir.locator(".item-level")).toHaveText("239");
-  await expect(mjolnir.locator("a[data-wowhead]").first()).toBeVisible();
+  await expect(mjolnir.locator("a[data-item-enhancements]").first()).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Restore draft" }).click();
   await expect(version).toHaveAttribute("data-select-value", "classic");

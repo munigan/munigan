@@ -46,7 +46,7 @@
     text-decoration: none;
     overflow: hidden;
   }
-  .wow-bag-slot .original-item-trigger {
+  .wow-bag-slot .item-tooltip-trigger {
     display: block;
     height: 100%;
   }

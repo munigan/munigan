@@ -10,7 +10,7 @@ test("Free iterations stay expanded and capped with keyboard, pointer and respon
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.route("https://wow.zamimg.com/js/tooltips.js", (route) =>
+  await page.route("**/api/tooltips/*/*", (route) =>
     route.abort(),
   );
   await page.goto("/gear-lab");

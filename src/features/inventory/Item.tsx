@@ -6,7 +6,7 @@ import { useState, type ComponentProps } from "react";
 import Image from "next/image";
 import type { ItemInstance } from "@/domain/top-gear/model";
 import { useItemVersion } from "./ItemVersionContext";
-import { OriginalItemLink } from "./OriginalItemLink";
+import { ClassicCompactItemLink } from "./ClassicCompactItemLink";
 import { getCatalog } from "@/domain/equipment/catalog";
 export function ItemImage({
   itemId,
@@ -60,7 +60,6 @@ export function ItemIcon({
     <ItemLink
       item={item}
       data-item-icon
-      data-wh-icon-size={!metadata?.icon ? "medium" : undefined}
       aria-label={
         children
           ? undefined
@@ -80,44 +79,13 @@ export function ItemLink({
   ...props
 }: { item: ItemInstance; tooltipOnly?: boolean } & ComponentProps<"a">) {
   const version = useItemVersion();
-  const catalog = getCatalog(version);
-  // Unchanged Wrath items can use the provider's complete effect/socket text.
-  // Original overrides must not display Classic's upgraded stats or procs.
-  if (
-    version === "original" &&
-    (catalog.adjustedItemIds?.has(item.itemId) ||
-      catalog.unsupportedItemIds?.has(item.itemId))
-  )
-    return (
-      <OriginalItemLink
-        item={item}
-        tooltipOnly={tooltipOnly}
-        {...props}
-        className={["item-link", className].filter(Boolean).join(" ")}
-      />
-    );
-  const options = `ench=${item.enchantId}&gems=${item.gemIds.join(":")}`;
   return (
-    <a
+    <ClassicCompactItemLink
+      item={item}
+      version={version}
+      tooltipOnly={tooltipOnly}
       {...props}
       className={["item-link", className].filter(Boolean).join(" ")}
-      href={`https://www.wowhead.com/wotlk/item=${item.itemId}`}
-      data-wowhead={options}
-      data-item-version={version}
-      target="_blank"
-      rel="noreferrer"
-      // Wowhead requires an anchor URL to resolve Wrath data. Passive bag icons
-      // expose image semantics and prevent navigation while retaining tooltips.
-      role={tooltipOnly ? "img" : props.role}
-      tabIndex={tooltipOnly ? 0 : props.tabIndex}
-      draggable={tooltipOnly ? false : props.draggable}
-      onClick={tooltipOnly ? (event) => event.preventDefault() : props.onClick}
-      onAuxClick={
-        tooltipOnly ? (event) => event.preventDefault() : props.onAuxClick
-      }
-      onContextMenu={
-        tooltipOnly ? (event) => event.preventDefault() : props.onContextMenu
-      }
     />
   );
 }

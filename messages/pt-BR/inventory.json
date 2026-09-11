@@ -413,5 +413,19 @@
       "swordguard": "Chance ao acertar em corpo a corpo ou à distância: +400 de poder de ataque por 15 s."
     },
     "gemsTitle": "Gemas"
+  },
+  "tooltip": {
+    "close": "Fechar detalhes do item",
+    "gem": "Gema",
+    "heroic": "Heroico",
+    "classic": "Wrath Classic",
+    "original": "Wrath Original",
+    "loading": "Carregando detalhes completos…",
+    "unavailable": "Detalhes temporariamente indisponíveis",
+    "sockets": "Engastes",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "setInfo": "Bônus de conjunto · referência da fonte",
+    "localEnchant": "Encantamento · dados locais do jogo"
   }
 }

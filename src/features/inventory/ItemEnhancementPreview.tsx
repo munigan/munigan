@@ -1,5 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
-import type { MouseEvent } from "react";
+import { useEffect, useId, useState, type MouseEvent } from "react";
+import { claimOwnedTooltip, releaseOwnedTooltip } from "./active-tooltip";
 import { EnchantImage } from "./enhancements/EnchantImage";
 import { itemEnchantOptions } from "./enhancements/enchant-options";
 import type { ItemInstance, Snapshot } from "@/domain/top-gear/model";
@@ -24,6 +25,17 @@ export function ItemEnhancementPreview({
   snapshot: Snapshot;
   onEdit: (field: EnhancementField) => void;
 }) {
+  const [enchantOpen, setEnchantOpen] = useState(false);
+  const enchantTooltipId = useId();
+  useEffect(
+    () => () => releaseOwnedTooltip(enchantTooltipId),
+    [enchantTooltipId],
+  );
+  function changeEnchantOpen(open: boolean) {
+    if (open) claimOwnedTooltip(enchantTooltipId, () => setEnchantOpen(false));
+    else releaseOwnedTooltip(enchantTooltipId);
+    setEnchantOpen(open);
+  }
   const t = useTranslations("inventory"),
     locale = useLocale();
   const catalog = getCatalog(snapshot.itemVersion);
@@ -53,9 +65,6 @@ export function ItemEnhancementPreview({
       onEdit("enchant");
     },
   };
-  const enchantTooltip = [enchantName, enchantDetails]
-    .filter(Boolean)
-    .join(" · ");
   if (!sockets.length && !enchants.length) return null;
   return (
     <div className="item-enhancement-preview">
@@ -116,34 +125,56 @@ export function ItemEnhancementPreview({
           </button>
         );
       })}
-      {enchants.length > 0 &&
-        (enchantTarget ? (
-          <a
+      {enchants.length > 0 && (
+        <TooltipRoot open={enchantOpen} onOpenChange={changeEnchantOpen}>
+          <TooltipTrigger
             {...enchantTriggerProps}
-            href={`https://www.wowhead.com/wotlk/${enchantTarget}`}
-            data-wowhead=""
-            role="button"
-            target="_blank"
-            rel="noreferrer"
-            title={enchantTooltip}
-            onKeyDown={(event) => {
-              if (event.key === " ") {
-                event.preventDefault();
-                event.stopPropagation();
-                onEdit("enchant");
-              }
-            }}
+            delay={150}
+            closeDelay={150}
+            onFocus={() => changeEnchantOpen(true)}
+            render={
+              enchantTarget ? (
+                <a
+                  href={`https://www.wowhead.com/wotlk/${enchantTarget}`}
+                  role="button"
+                  target="_blank"
+                  rel="noreferrer"
+                  onKeyDown={(event) => {
+                    if (event.key === " ") {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onEdit("enchant");
+                    }
+                  }}
+                />
+              ) : (
+                <button type="button" />
+              )
+            }
           >
             <EnchantImage enchant={enchant} size={20} />
-          </a>
-        ) : (
-          <TooltipRoot>
-            <TooltipTrigger {...enchantTriggerProps} type="button">
-              <EnchantImage enchant={enchant} size={20} />
-            </TooltipTrigger>
-            <TooltipContent>{enchantTooltip}</TooltipContent>
-          </TooltipRoot>
-        ))}
+          </TooltipTrigger>
+          <TooltipContent
+            sideOffset={8}
+            role="tooltip"
+            className="compact-enchant-tooltip"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="compact-tooltip-header">
+              <EnchantImage enchant={enchant} size={32} />
+              <strong>{enchantName}</strong>
+            </span>
+            {enchantDetails && (
+              <span className="compact-tooltip-section compact-tooltip-enchant-effect">
+                {enchantDetails}
+              </span>
+            )}
+            <span className="compact-tooltip-footer compact-tooltip-muted">
+              {t("tooltip.localEnchant")}
+            </span>
+          </TooltipContent>
+        </TooltipRoot>
+      )}
     </div>
   );
 }

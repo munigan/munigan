@@ -11,13 +11,17 @@ export const TooltipTrigger = Tooltip.Trigger;
 export function TooltipContent({
   className,
   side = "top",
+  sideOffset = 6,
   ...props
-}: Tooltip.Popup.Props & { side?: Tooltip.Positioner.Props["side"] }) {
+}: Tooltip.Popup.Props & {
+  side?: Tooltip.Positioner.Props["side"];
+  sideOffset?: number;
+}) {
   return (
     <Tooltip.Portal>
       <Tooltip.Positioner
         side={side}
-        sideOffset={6}
+        sideOffset={sideOffset}
         collisionPadding={8}
         className="app-tooltip-positioner"
       >

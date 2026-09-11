@@ -1,10 +1,52 @@
 import { selectOption } from "./select-option";
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
-test("keeps provider and Original tooltips inside short and narrow viewports", async ({
-  page,
-}) => {
+async function setup(page: Page) {
+  await page.route("**/api/tooltips/*/*", (route) => {
+    const [, version, id] = new URL(route.request().url()).pathname.match(
+      /tooltips\/(classic|original)\/(\d+)/,
+    )!;
+    return route.fulfill({
+      json: {
+        item: {
+          schemaVersion: 1,
+          id: Number(id),
+          version,
+          source: {
+            provider: version === "classic" ? "wowhead" : "cavernoftime",
+            url:
+              version === "classic"
+                ? `https://www.wowhead.com/wotlk/item=${id}`
+                : `https://wotlk.cavernoftime.com/item=${id}`,
+          },
+          name: `Fixture item ${id}`,
+          quality: 4,
+          icon: null,
+          itemLevel: 245,
+          heroic: true,
+          lines: [
+            { kind: "binding", text: "Binds when picked up" },
+            { kind: "slot", text: "One-Hand", rightText: "Mace" },
+            {
+              kind: "weapon",
+              text: "300 - 550 Damage",
+              rightText: "Speed 2.60",
+            },
+            ...Array.from({ length: 12 }, (_, index) => ({
+              kind: "effect",
+              text: `Equip: Full effect ${index + 1}, including every functional condition and duration, preserved as readable text.`,
+            })),
+            { kind: "requirement", text: "Requires Level 80" },
+            { kind: "set", text: "(4) Set: Complete set effect." },
+          ],
+          sockets: ["red"],
+          socketBonus: "Socket Bonus: +8 Strength",
+        },
+        meta: { fetchedAt: "2026-09-11T00:00:00.000Z", cache: "fresh" },
+      },
+    });
+  });
   const fixture = JSON.parse(
     readFileSync("tests/fixtures/sim/warrior.request.json", "utf8"),
   );
@@ -29,56 +71,38 @@ test("keeps provider and Original tooltips inside short and narrow viewports", a
     label: "Fury (19/52/0)",
   });
   await page.getByRole("button", { name: "Select gear", exact: true }).click();
-  await expect(page.locator(".slot-group")).toHaveCount(14);
-  // Switching provider tooltips can reset their inline width to auto. A long
-  // weapon effect must not stretch the box after hovering a different item.
-  for (const id of [44006, 47528, 47475, 47528]) {
-    await page.locator(`.inventory-row a[href$="item=${id}"]`).first().hover();
-    const tooltip = page.locator(".wowhead-tooltip[data-visible=yes]");
-    await expect(tooltip).toBeVisible();
-    await expect
-      .poll(async () => (await tooltip.boundingBox())?.width)
-      .toBe(320);
-    if (id === 47528) {
-      // Reusing the provider box must not shrink its inner tables: right-hand
-      // item labels should reach the same content edge as the effect text.
-      await expect
-        .poll(() =>
-          tooltip.evaluate((node) => {
-            const style = getComputedStyle(node);
-            const contentRight =
-              node.getBoundingClientRect().right -
-              parseFloat(style.borderRightWidth) -
-              parseFloat(style.paddingRight);
-            const labels = Array.from(node.querySelectorAll("th")).filter(
-              (cell) =>
-                /^(Phase 3|Mace|Speed 2\.60)$/.test(
-                  cell.textContent?.trim() ?? "",
-                ),
-            );
-            return (
-              labels.length === 3 &&
-              labels.every(
-                (cell) =>
-                  Math.abs(cell.getBoundingClientRect().right - contentRight) <
-                  2,
-              )
-            );
-          }),
-        )
-        .toBe(true);
-    }
-  }
-  await page.mouse.move(0, 0);
-  for (const id of [44006, 45931]) {
-    const link = page.locator(`.inventory-row a[href$="item=${id}"]`).first();
-    await link.focus();
-    const tooltip = page.locator(
-      id === 45931
-        ? ".original-item-tooltip:popover-open"
-        : ".wowhead-tooltip[data-visible=yes]",
+}
+const activeTooltip = (page: Page) =>
+  page.locator(".classic-compact-tooltip:popover-open").last();
+
+test("Classic Compact enriches both versions and stays scrollable inside short and narrow viewports", async ({
+  page,
+}) => {
+  await setup(page);
+  for (const version of ["original", "classic"]) {
+    await selectOption(
+      page.getByLabel("Item version", { exact: true }),
+      version,
     );
-    await expect(tooltip).toBeVisible();
+    for (const id of [44006, 47528, 47475, 45931]) {
+      const link = page
+        .locator(`.inventory-row a[data-item-id="${id}"]`)
+        .first();
+      await link.hover();
+      const tooltip = activeTooltip(page);
+      await expect(tooltip).toContainText("Full effect 12");
+      await expect
+        .poll(async () => (await tooltip.boundingBox())?.width)
+        .toBe(336);
+      await expect(tooltip).toContainText(
+        version === "classic" ? "Wowhead" : "Cavern of Time",
+      );
+      await page.mouse.move(0, 0);
+      await expect(tooltip).toBeHidden();
+    }
+    const link = page.locator('.inventory-row a[data-item-id="47528"]').first();
+    await link.focus();
+    const tooltip = activeTooltip(page);
     for (const [width, height] of [
       [320, 240],
       [390, 320],
@@ -88,26 +112,158 @@ test("keeps provider and Original tooltips inside short and narrow viewports", a
       await expect
         .poll(async () => {
           const rect = await tooltip.boundingBox();
-          const inside =
+          return (
             !!rect &&
             rect.x >= 8 &&
             rect.y >= 8 &&
             rect.x + rect.width <= width - 8 &&
-            rect.y + rect.height <= height - 8;
-          return inside
-            ? "inside"
-            : `${id}@${width}x${height}: ${JSON.stringify(rect)}`;
+            rect.y + rect.height <= height - 8
+          );
         })
-        .toBe("inside");
+        .toBe(true);
     }
-    if (id === 44006) {
-      await page.setViewportSize({ width: 320, height: 240 });
-      await tooltip.hover();
-      await page.mouse.wheel(0, 200);
-      await expect
-        .poll(() => tooltip.evaluate((node) => node.scrollTop))
-        .toBeGreaterThan(0);
-    }
+    await page.setViewportSize({ width: 320, height: 240 });
+    await tooltip.hover();
+    await page.mouse.wheel(0, 200);
+    await expect
+      .poll(() => tooltip.evaluate((node) => node.scrollTop))
+      .toBeGreaterThan(0);
+    await page.keyboard.press("Escape");
+    await expect(tooltip).toBeHidden();
     await link.blur();
+    await page.setViewportSize({ width: 1440, height: 900 });
   }
+  await expect(page.locator('script[src*="tooltips.js"]')).toHaveCount(0);
+});
+
+test("hover crosses the anchor gap; keyboard Escape leaves the item picker dialog open", async ({
+  page,
+}) => {
+  await setup(page);
+  const link = page.locator('.inventory-row a[data-item-id="47528"]').first();
+  await link.hover();
+  const tooltip = activeTooltip(page);
+  await expect(tooltip).toContainText("Full effect 12");
+  await tooltip.hover();
+  await page.waitForTimeout(250);
+  await expect(tooltip).toBeVisible();
+  await page.mouse.move(0, 0);
+  await expect(tooltip).toBeHidden();
+  await page
+    .getByRole("button", { name: "Add custom item to Head", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Add custom items" });
+  await expect(dialog).toBeVisible();
+  const modalLink = dialog.locator("a[data-item-id]").first();
+  await modalLink.focus();
+  const modalTooltip = activeTooltip(page);
+  await expect(modalTooltip).toContainText("Full effect 12");
+  await page.setViewportSize({ width: 390, height: 320 });
+  await modalTooltip.hover();
+  await page.mouse.wheel(0, 200);
+  await expect
+    .poll(() => modalTooltip.evaluate((node) => node.scrollTop))
+    .toBeGreaterThan(0);
+  await page.keyboard.press("Escape");
+  await expect(modalTooltip).toBeHidden();
+  await expect(dialog).toBeVisible();
+});
+
+test("touch retains gear editing and gives source inspection an explicit close", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 844 },
+  });
+  const page = await context.newPage();
+  await setup(page);
+  await page.locator('.inventory-row a[data-item-id="47528"]').first().tap();
+  const dialog = page.getByRole("dialog", { name: "Gems & enchants" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).tap();
+  await page
+    .getByRole("button", { name: "Add custom item to Head", exact: true })
+    .tap();
+  const picker = page.getByRole("dialog", { name: "Add custom items" });
+  await picker.locator("a[data-item-id]").first().tap();
+  const tooltip = activeTooltip(page);
+  await expect(tooltip).toBeVisible();
+  await tooltip.getByRole("button", { name: "Close item details" }).tap();
+  await expect(tooltip).toBeHidden();
+  await expect(picker).toBeVisible();
+  await context.close();
+});
+
+test("hovering a second item or gem replaces the keyboard-focused item tooltip", async ({
+  page,
+}) => {
+  await setup(page);
+  const row = page
+    .locator(".inventory-row")
+    .filter({ has: page.locator('a[data-item-id="44006"]') })
+    .first();
+  const name = row.locator(".item-row-copy > .item-tooltip-trigger > a");
+  await name.focus();
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveCount(1);
+  await row.locator(".item-enhancement-gem").first().hover();
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveAttribute("data-gem", "true");
+  await expect(name).toBeFocused();
+  await row.locator("a[data-item-icon]").first().hover();
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveAttribute("data-gem", "false");
+  const enchant = row.locator('[data-enhancement-field="enchant"]');
+  await enchant.hover();
+  await expect(page.locator(".compact-enchant-tooltip")).toBeVisible();
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveCount(0);
+  await enchant.focus();
+  await row.locator("a[data-item-icon]").first().hover();
+  await expect(
+    page.locator(".classic-compact-tooltip:popover-open"),
+  ).toHaveCount(1);
+  await expect(page.locator(".compact-enchant-tooltip")).toHaveCount(0);
+});
+
+test("touch inspects a noneditable trinket from its icon and name without opening an editor", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 844 },
+  });
+  const page = await context.newPage();
+  await setup(page);
+  const row = page
+    .locator(".inventory-row")
+    .filter({ has: page.locator('a[data-item-id="45931"]') })
+    .first();
+  await expect(row).toHaveAttribute("data-editable", "false");
+  for (const link of [
+    row.locator("a[data-item-icon]").first(),
+    row.locator(".item-row-copy > .item-tooltip-trigger > a"),
+  ]) {
+    await link.tap();
+    const tooltip = activeTooltip(page);
+    await expect(tooltip).toContainText("Fixture item 45931");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(context.pages()).toHaveLength(1);
+    await tooltip.getByRole("button", { name: "Close item details" }).tap();
+    await expect(tooltip).toBeHidden();
+  }
+  await context.close();
 });

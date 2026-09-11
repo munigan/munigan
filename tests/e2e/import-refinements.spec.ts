@@ -52,7 +52,7 @@ test("corrects a malformed bag export without losing character data and imports 
   const supportedBags = page.getByRole("list", { name: "Supported bag items" });
   await expect(supportedBags.getByRole("listitem")).toHaveCount(1);
   await expect(supportedBags.locator('[href*="item=40528"]')).toHaveAttribute(
-    "data-wowhead",
+    "data-item-enhancements",
     "ench=3817&gems=41285:39996",
   );
   await expect(supportedBags.locator('[href*="item=9999999"]')).toHaveCount(0);
@@ -206,7 +206,7 @@ test("previews each export independently without starting review or simulation",
   await expect(preview.getByRole("button")).toHaveCount(0);
   await expect(preview.getByRole("checkbox")).toHaveCount(0);
   await expect(
-    preview.locator('[data-wowhead="ench=3817&gems=41398:49110"]'),
+    preview.locator('[data-item-enhancements="ench=3817&gems=41398:49110"]'),
   ).toHaveCount(1);
   await expect(
     preview.getByRole("img", { name: "Item 9999999", exact: true }),
