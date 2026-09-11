@@ -82,6 +82,9 @@ export function ClassicCompactItemLink({
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const touch = useRef(false),
     hovered = useRef(false);
   const catalog = getCatalog(version);
@@ -151,18 +154,25 @@ export function ClassicCompactItemLink({
   function cancelClose() {
     clearTimeout(closeTimer.current);
   }
+  function cancelOpen() {
+    clearTimeout(openTimer.current);
+    openTimer.current = undefined;
+  }
   function show() {
+    cancelOpen();
     claimOwnedTooltip(id, hide);
     cancelClose();
     if (!open) setResult((current) => (current?.failed ? undefined : current));
     setOpen(true);
   }
   function hide() {
+    cancelOpen();
     releaseOwnedTooltip(id);
     cancelClose();
     setOpen(false);
   }
   function scheduleClose() {
+    cancelOpen();
     cancelClose();
     closeTimer.current = setTimeout(() => {
       if (
@@ -175,10 +185,12 @@ export function ClassicCompactItemLink({
   useEffect(
     () => () => {
       clearTimeout(closeTimer.current);
+      clearTimeout(openTimer.current);
       releaseOwnedTooltip(id);
     },
     [id],
   );
+  useEffect(() => () => clearTimeout(openTimer.current), [key]);
   useEffect(() => {
     if (!open) return;
     let active = true;
@@ -259,7 +271,11 @@ export function ClassicCompactItemLink({
       onMouseEnter={() => {
         if (!touch.current) {
           hovered.current = true;
-          show();
+          cancelClose();
+          if (!open) {
+            cancelOpen();
+            openTimer.current = setTimeout(show, 250);
+          }
         }
       }}
       onMouseLeave={() => {
@@ -271,7 +287,10 @@ export function ClassicCompactItemLink({
       }}
       onBlur={scheduleClose}
       onKeyDownCapture={(event) => {
-        if (event.key === "Escape" && open) {
+        if (
+          event.key === "Escape" &&
+          (open || openTimer.current !== undefined)
+        ) {
           event.preventDefault();
           event.stopPropagation();
           hide();

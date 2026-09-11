@@ -373,7 +373,8 @@ it("labels socket state and groups complete provider text with footer requiremen
   );
 });
 
-it("tooltip actions do not bubble into the gear row and Escape dismisses hover from elsewhere", () => {
+it("tooltip actions do not bubble into the gear row and Escape dismisses hover from elsewhere", async () => {
+  vi.useFakeTimers();
   const edit = vi.fn();
   render(
     view(
@@ -383,6 +384,7 @@ it("tooltip actions do not bubble into the gear row and Escape dismisses hover f
     ),
   );
   fireEvent.mouseEnter(screen.getByRole("link"));
+  await act(() => vi.advanceTimersByTimeAsync(250));
   fireEvent.click(
     within(screen.getByRole("tooltip")).getByRole("button", {
       name: "Close item details",
@@ -390,6 +392,7 @@ it("tooltip actions do not bubble into the gear row and Escape dismisses hover f
   );
   expect(edit).not.toHaveBeenCalled();
   fireEvent.mouseEnter(screen.getByRole("link"));
+  await act(() => vi.advanceTimersByTimeAsync(250));
   fireEvent.keyDown(document.body, { key: "Escape" });
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
 });
@@ -465,7 +468,8 @@ it("dismisses a tooltip when page scrolling moves its anchor out of view", () =>
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
 });
 
-it("shows only the latest tooltip when hover replaces a focused item", () => {
+it("shows only the latest tooltip when hover replaces a focused item", async () => {
+  vi.useFakeTimers();
   render(
     view(
       <>
@@ -478,6 +482,7 @@ it("shows only the latest tooltip when hover replaces a focused item", () => {
   );
   fireEvent.focus(screen.getByRole("link", { name: "First item" }));
   fireEvent.mouseEnter(screen.getByRole("link", { name: "Second gem" }));
+  await act(() => vi.advanceTimersByTimeAsync(250));
   expect(screen.getAllByRole("tooltip")).toHaveLength(1);
   expect(screen.getByRole("tooltip")).toHaveTextContent("Bold Cardinal Ruby");
 });
@@ -512,4 +517,38 @@ it("uses skeletons only when an item has no local catalog details", async () => 
   expect(
     screen.getByRole("tooltip").querySelectorAll(".compact-tooltip-skeleton"),
   ).toHaveLength(4);
+});
+
+it("waits 250ms on hover, cancels brief passes, and focuses immediately", async () => {
+  vi.useFakeTimers();
+  render(view(<ItemLink item={item}>Item</ItemLink>));
+  const link = screen.getByRole("link");
+  fireEvent.mouseEnter(link);
+  await act(() => vi.advanceTimersByTimeAsync(249));
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  fireEvent.mouseLeave(link);
+  await act(() => vi.advanceTimersByTimeAsync(300));
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  fireEvent.mouseEnter(link);
+  await act(() => vi.advanceTimersByTimeAsync(250));
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  fireEvent.keyDown(link, { key: "Escape" });
+  fireEvent.focus(link);
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+});
+
+it("keeps ownership when an open item's identity changes", () => {
+  const links = (itemId: number) =>
+    view(
+      <>
+        <ItemLink item={{ ...item, itemId }}>First</ItemLink>
+        <ItemLink item={{ ...item, itemId: 40111 }}>Second</ItemLink>
+      </>,
+    );
+  const rendered = render(links(50362));
+  fireEvent.focus(screen.getByRole("link", { name: "First" }));
+  rendered.rerender(links(50363));
+  fireEvent.focus(screen.getByRole("link", { name: "Second" }));
+  expect(screen.getAllByRole("tooltip")).toHaveLength(1);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Bold Cardinal Ruby");
 });

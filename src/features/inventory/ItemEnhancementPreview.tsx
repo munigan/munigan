@@ -129,7 +129,7 @@ export function ItemEnhancementPreview({
         <TooltipRoot open={enchantOpen} onOpenChange={changeEnchantOpen}>
           <TooltipTrigger
             {...enchantTriggerProps}
-            delay={150}
+            delay={250}
             closeDelay={150}
             onFocus={() => changeEnchantOpen(true)}
             render={
