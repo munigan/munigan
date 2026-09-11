@@ -482,6 +482,47 @@
     font-variant-numeric: tabular-nums;
     color: var(--color-text);
   }
+  .report-view .combination-stat-trigger {
+    padding: 0;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-decoration-line: underline;
+    text-decoration-style: dashed;
+    text-decoration-color: currentColor;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+    cursor: help;
+  }
+  .report-view .combination-stat-trigger:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+  .combination-stat-tooltip {
+    padding: 12px;
+  }
+  .combination-stat-tooltip-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--color-control-border);
+    font-variant-numeric: tabular-nums;
+  }
+  .combination-stat-tooltip-heading [data-capped="true"] {
+    color: var(--color-gain);
+  }
+  .combination-stat-tooltip-heading [data-capped="false"] {
+    color: var(--color-danger);
+  }
+  .combination-stat-tooltip p {
+    margin: 6px 0 0;
+    color: var(--color-muted);
+  }
   .report-view .combination-stats [data-capped="true"] dd {
     color: var(--color-gain);
   }

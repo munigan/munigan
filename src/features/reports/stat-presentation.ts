@@ -75,7 +75,7 @@ export function talentBonusLines(
 export function capLabel(cap: StatCap, t: Translation, compact = false) {
   return t(`${compact ? "compact" : "labels"}.${cap.presentation.label}`);
 }
-export function presentCombinationStat(
+function combinationStatText(
   stat: CombinationStat,
   t: Translation,
   locale: string,
@@ -85,7 +85,7 @@ export function presentCombinationStat(
     const { cap } = data;
     return {
       label: capLabel(cap, t, true),
-      description: [
+      lines: [
         cap.stat === Stat.StatExpertise
           ? t("cap.expertiseDescription", {
               value: decimal(cap.effective, locale),
@@ -95,16 +95,16 @@ export function presentCombinationStat(
         capContext(cap, t, locale),
         ...capBonuses(cap, t, locale),
         ...talentBonusLines(cap.talentBonuses, t, locale),
-      ].join(" · "),
+      ],
     };
   }
   if (data.kind === "armorPenetration")
     return {
       label: t("labels.armorPenetration"),
-      description: [
+      lines: [
         t("armorDescription"),
         ...talentBonusLines(stat.talentBonuses, t, locale),
-      ].join(" · "),
+      ],
     };
   const key =
     data.stat === Stat.StatSpellHaste
@@ -117,7 +117,7 @@ export function presentCombinationStat(
   const label = t(`labels.${key}`);
   return {
     label,
-    description: [
+    lines: [
       t(
         data.stat === Stat.StatSpellHaste
           ? "hasteDescription"
@@ -125,7 +125,15 @@ export function presentCombinationStat(
         { stat: label },
       ),
       ...talentBonusLines(stat.talentBonuses, t, locale),
-    ].join(" · "),
+    ],
   };
+}
+export function presentCombinationStat(
+  stat: CombinationStat,
+  t: Translation,
+  locale: string,
+) {
+  const text = combinationStatText(stat, t, locale);
+  return { ...text, description: text.lines.join(" · ") };
 }
 export { percentage as reportPercentage };

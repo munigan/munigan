@@ -54,11 +54,12 @@ it.each([
         <StatsDetails row={row} snapshot={snapshot} onClose={() => {}} />
       </NextIntlClientProvider>,
     );
-    const tooltip = document.querySelector(
-      `.combination-stats [title*="Tundra Stalker"]`,
-    );
-    expect(tooltip).toHaveAttribute("title", expect.stringContaining(expected));
-    expect(tooltip?.querySelector("dd")).toHaveTextContent(percent);
+    const trigger = screen.getByRole("button", {
+      name: new RegExp(percent.replace(".", "\\.")),
+      hidden: true,
+    });
+    expect(trigger).toHaveTextContent(percent);
+    expect(trigger.closest("[title]")).toBeNull();
     expect(
       within(screen.getByRole("dialog")).getByText(expected),
     ).toBeVisible();

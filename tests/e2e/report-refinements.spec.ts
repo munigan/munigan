@@ -93,10 +93,55 @@ test("talent contributions appear in compact row tooltips and the stats dialog",
     .locator(".combination-stats > div")
     .filter({ has: page.locator("dt", { hasText: /^Exp$/ }) })
     .first();
-  await expect(stat).toHaveAttribute(
-    "title",
-    /Includes \+5 expertise from Tundra Stalker/,
+  await expect(stat).not.toHaveAttribute("title");
+  const trigger = stat.getByRole("button");
+  const popup = page
+    .getByRole("tooltip")
+    .filter({ hasText: "Includes +5 expertise from Tundra Stalker" });
+  await expect(trigger).toHaveCSS("text-decoration-style", "dashed");
+  await trigger.hover();
+  await expect(popup).toContainText(
+    "Includes +5 expertise from Tundra Stalker",
   );
+  await page.screenshot({
+    path: testInfo.outputPath("stat-tooltip-desktop.png"),
+  });
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
+  await page.mouse.move(0, 0);
+  await trigger.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(trigger).toBeFocused();
+  await expect(popup).toBeVisible();
+  await expect(trigger).toHaveAttribute(
+    "aria-describedby",
+    (await popup.getAttribute("id")) as string,
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await trigger.scrollIntoViewIfNeeded();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(popup).toHaveAttribute("data-open", "");
+  await expect(popup).toBeVisible();
+  await expect
+    .poll(async () => {
+      const box = await popup.boundingBox();
+      return (
+        !!box &&
+        box.x >= 0 &&
+        box.x + box.width <= 390 &&
+        box.y >= 0 &&
+        box.y + box.height <= 844
+      );
+    })
+    .toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("stat-tooltip-mobile.png"),
+  });
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1440, height: 900 });
   await expect(stat.locator("dd")).toContainText("6.50%");
   await expect(stat.locator("dt")).toHaveText("Exp");
   await page.getByRole("button", { name: "Stats details" }).click();
