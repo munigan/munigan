@@ -1,6 +1,14 @@
 # Production releases
 
-## Current production — navigation, Discord authentication and My Library (2026-09-11)
+## Current production — reliable Warmane import (2026-09-11)
+
+- Warmane imports now use an owned, authenticated Cloudflare relay with the shared parser, coordinated requests, a 60-second fresh cache and explicit saved-profile recovery for up to 24 hours. Review shows retrieval time/source and supports refresh in English and Portuguese.
+- Application source `0e6435e`; Vercel `dpl_4zhmAS6jie4QGRega4yhnaAKp17G`, promoted to https://munigan.app. Cloudflare Worker `wow-droptimizer-warmane-armory`, version `e60eaa62-f438-4a36-9a19-b32d574a635a`.
+- Fresh owned-Worker imports passed on all four realms. Real production-browser Munigaan/Onyxia import and refresh both returned 17 equipped items; English desktop and Portuguese mobile checks passed without browser errors. Cache, saved mode, authorization, error privacy and request identifiers were verified. No simulation submitted.
+- Validation: 406 app unit/UI tests, 20 actual Workers-runtime tests, three focused browser checks, app/Worker typechecks, lint, design/spec checks, Worker type generation/dry-run and remote production build passed. Independent backend and UI reviews approved after regression fixes.
+- Warmane outages can still prevent fresh imports; saved recovery requires an earlier successful import. Deployment, limits and rollback details: [Warmane relay operations](warmane-relay-operations.md).
+
+## Previous production — navigation, Discord authentication and My Library (2026-09-11)
 
 - All application changes merged to GitHub `main`, preserving the newer parallel simulator, iteration controls, production budget and Wrath branding.
 - Application source: `a602147` (release integration `1694e12`, latest UI work `aa4d09f`). Vercel `dpl_4QX4Ewi5xRsqf8pzMVtfKy6bCfsh`, ready at https://munigan.app. Trigger production `20260911.2`.

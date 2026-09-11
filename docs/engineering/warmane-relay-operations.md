@@ -59,3 +59,16 @@ Unauthenticated access returned 401. Sequential auto and saved reads reused the 
 Actual Workers-runtime tests cover authentication, request coalescing, fresh/cache/saved semantics, snapshot preservation and expiry, persisted cooldowns, Retry-After, retries, response limits and the real elapsed deadline: 20 passed. Worker production/test typechecks, generated types and deploy dry-run passed. Independent backend and UI reviews found two issues (local failure request IDs and restoring a draft during an in-flight request); both were fixed with regression tests and approved on re-review.
 
 See [the request-path investigation](warmane-import-reliability-investigation.md) for the poli93 comparison and the limits of the original upstream diagnosis.
+
+## Production web release
+
+- Application source: `0e6435e`, based on production `b323ed2`.
+- Vercel deployment: `dpl_4zhmAS6jie4QGRega4yhnaAKp17G`, [deployment inspection](https://vercel.com/diego-fernandes-projects/wow-droptimizer/4zhmAS6jie4QGRega4yhnaAKp17G).
+- Deployment URL: `https://wow-droptimizer-8rn32tmrc-diego-fernandes-projects.vercel.app`; promoted to [munigan.app](https://munigan.app).
+- Previous ready live deployment observed before promotion: `dpl_BcLKsWU3Jctp24qXAAeeKraZpL7w` (`wow-droptimizer-pqyl361rw-diego-fernandes-projects.vercel.app`).
+- Remote production build passed. The staged API returned fresh Munigaan/Onyxia gear, then cached and explicit saved results with the same `2026-09-11T17:06:13.005Z` retrieval time.
+- A real browser on munigan.app imported Munigaan/Onyxia into review with 17 equipped items at `17:07:19.937Z`, then refreshed successfully at `17:07:31.807Z`. Retrieval metadata changed as expected. English desktop and Portuguese 390px mobile review controls were verified; no horizontal overflow or browser runtime errors. No simulation submitted.
+- The live saved API returned `source=saved`, and invalid realm input returned 422 with a safe diagnostic, matching request ID/header and `Cache-Control: no-store`.
+- Final app validation: **74 files / 406 unit and UI tests**, TypeScript, full ESLint, design/spec checks, three focused Warmane browser checks and the remote production build passed. Worker validation: **20 runtime tests**, both typechecks, current generated declarations and dry-run passed. Controlled browser/API tests exercise outages and explicit saved recovery; those outages were not induced on production.
+
+Temporary secret files used for deployment were removed after verification. The active secret remains in Cloudflare and Vercel secret storage.

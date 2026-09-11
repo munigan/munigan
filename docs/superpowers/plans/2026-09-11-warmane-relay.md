@@ -51,6 +51,6 @@ Files: `src/features/import/ImportPanel.tsx`, focused new UI component/tests as 
 - [x] Independently review Worker/API and UI changes; resolve material findings.
 - [x] Enable the Worker with a generated secret via protected temporary stdin/file, and set the matching server-only Vercel variables `WARMANE_RELAY_URL` and `WARMANE_RELAY_SECRET`.
 - [x] Verify cold profile import from owned Worker for supported realms; no invented fixtures counted as live success. Verify unauthorized access denied. Enable and verify cache and refresh.
-- [ ] Run app unit/UI suite, typecheck, lint and relevant Playwright checks; build preview and verify own Worker through preview API.
-- [ ] Deploy production only after successful evidence. Test real import and refresh into review from production, plus cache/error response privacy. Do not submit simulations.
-- [ ] Record exact deployment versions/URLs and verification in `docs/engineering/warmane-relay-operations.md`; commit scoped changes. Publish current branch/release under existing repository workflow as authorized.
+- [x] Run app unit/UI suite, typecheck, lint and relevant Playwright checks; build preview and verify own Worker through preview API.
+- [x] Deploy production only after successful evidence. Test real import and refresh into review from production, plus cache/error response privacy. Do not submit simulations.
+- [x] Record exact deployment versions/URLs and verification in `docs/engineering/warmane-relay-operations.md`; commit scoped changes. Publish current branch/release under existing repository workflow as authorized.
