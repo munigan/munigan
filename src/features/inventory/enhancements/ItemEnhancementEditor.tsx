@@ -1,4 +1,5 @@
 "use client";
+import { colorParts, matchesSocket } from "@/domain/equipment/sockets";
 import { ItemSourceIcon } from "@/components/items/ItemSourceIcon";
 
 import { useId, useMemo, useRef, useState, type RefObject } from "react";
@@ -61,19 +62,6 @@ type Choice = {
   issues: Diagnostic[];
 };
 
-const colorParts: Partial<Record<GemColor, number>> = {
-  [GemColor.GemColorRed]: 1,
-  [GemColor.GemColorYellow]: 2,
-  [GemColor.GemColorBlue]: 4,
-  [GemColor.GemColorOrange]: 3,
-  [GemColor.GemColorPurple]: 5,
-  [GemColor.GemColorGreen]: 6,
-  [GemColor.GemColorPrismatic]: 7,
-};
-function matchesSocket(gem: GemColor | undefined, socket: GemColor) {
-  if (socket === GemColor.GemColorMeta) return gem === socket;
-  return !!((colorParts[gem ?? 0] ?? 0) & (colorParts[socket] ?? 0));
-}
 function colorName(color: GemColor, t: InventoryTranslation) {
   return t(
     `editor.colors.${GemColor[color]?.replace("GemColor", "") || "Prismatic"}`,

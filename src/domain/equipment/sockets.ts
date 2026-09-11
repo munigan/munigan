@@ -24,3 +24,17 @@ export function extraSocketLabel(item: UIItem | undefined, gemCount: number) {
     return "Blacksmith socket";
   return null;
 }
+
+export const colorParts: Partial<Record<GemColor, number>> = {
+  [GemColor.GemColorRed]: 1,
+  [GemColor.GemColorYellow]: 2,
+  [GemColor.GemColorBlue]: 4,
+  [GemColor.GemColorOrange]: 3,
+  [GemColor.GemColorPurple]: 5,
+  [GemColor.GemColorGreen]: 6,
+  [GemColor.GemColorPrismatic]: 7,
+};
+export function matchesSocket(gem: GemColor | undefined, socket: GemColor) {
+  if (socket === GemColor.GemColorMeta) return gem === socket;
+  return !!((colorParts[gem ?? 0] ?? 0) & (colorParts[socket] ?? 0));
+}

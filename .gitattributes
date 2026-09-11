@@ -1,2 +1,5 @@
 # Wrangler emits runtime declarations verbatim; keep generated output reproducible.
 workers/warmane-armory/worker-configuration.d.ts -whitespace linguist-generated=true
+workers/item-tooltips/worker-configuration.d.ts -whitespace linguist-generated=true
+# Captured provider responses stay verbatim for parser regression coverage.
+workers/item-tooltips/test/fixtures/* -whitespace

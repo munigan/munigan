@@ -13,7 +13,6 @@ import type { AppLocale } from "@/i18n/config";
 import { DocumentControls } from "./DocumentControls";
 import "@/app/globals.css";
 import { AppShell } from "@/features/shell/AppShell";
-import { WowheadTooltips } from "@/features/inventory/WowheadTooltips";
 import { ToastProvider } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { AuthProvider } from "@/features/auth/AuthProvider";
@@ -46,7 +45,6 @@ export async function AppDocument({
               </AuthProvider>
             </ToastProvider>
           </TooltipProvider>
-          <WowheadTooltips />
         </LocaleProvider>
       </body>
     </html>

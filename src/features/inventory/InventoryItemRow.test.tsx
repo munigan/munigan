@@ -107,7 +107,7 @@ it.each([
     target: "spell=44623",
   },
 ])(
-  "uses the WotLK Wowhead tooltip for $name and retains edit controls",
+  "shows owned local enchant details for $name and retains edit controls",
   async ({ itemId, enchantId, name, target }) => {
     const user = userEvent.setup();
     const { onEdit, onToggle } = setup(itemId, enchantId);
@@ -118,7 +118,9 @@ it.each([
       "href",
       `https://www.wowhead.com/wotlk/${target}`,
     );
-    expect(enchant).toHaveAttribute("data-wowhead");
+    expect(enchant).not.toHaveAttribute("data-wowhead");
+    await user.hover(enchant);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(name);
     await user.click(enchant);
     expect(onEdit).toHaveBeenCalledExactlyOnceWith("enchant");
     expect(onToggle).not.toHaveBeenCalled();
@@ -138,9 +140,7 @@ it("keeps an empty enchant editable without requesting a nonexistent Wowhead too
   expect(enchant.tagName).toBe("BUTTON");
   expect(enchant).not.toHaveAttribute("data-wowhead");
   await user.hover(enchant);
-  expect(
-    await screen.findByText("No enchant", { selector: ".app-tooltip-popup" }),
-  ).toBeVisible();
+  expect(await screen.findByRole("tooltip")).toBeVisible();
   await user.click(enchant);
   expect(onEdit).toHaveBeenCalledExactlyOnceWith("enchant");
 });
@@ -159,4 +159,36 @@ it("does not open an empty editor for items without sockets or enchants", () => 
   expect(container.querySelector(".item-enhancement-preview")).toBeNull();
   fireEvent.click(container.querySelector(".inventory-row")!);
   expect(onEdit).not.toHaveBeenCalled();
+});
+
+it("coordinates item and local enchant tooltips in both directions", async () => {
+  const user = userEvent.setup();
+  const { container } = setup(44006, 3817);
+  const name = container.querySelector(
+    ".item-row-copy > .item-tooltip-trigger > a",
+  )!;
+  const enchant = screen.getByRole("button", {
+    name: /Edit enchant on Arcanum of Torment/,
+  });
+  fireEvent.focus(name);
+  await user.hover(enchant);
+  await vi.waitFor(() =>
+    expect(
+      document.querySelector(".compact-enchant-tooltip"),
+    ).toBeInTheDocument(),
+  );
+  expect(screen.getAllByRole("tooltip")).toHaveLength(1);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Arcanum of Torment");
+  await user.unhover(enchant);
+  fireEvent.focus(enchant);
+  await vi.waitFor(() =>
+    expect(
+      document.querySelector(".compact-enchant-tooltip"),
+    ).toBeInTheDocument(),
+  );
+  fireEvent.mouseEnter(name);
+  await vi.waitFor(() =>
+    expect(screen.getAllByRole("tooltip")).toHaveLength(1),
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Obsidian Greathelm");
 });

@@ -56,13 +56,13 @@ test("item title hit areas exclude trailing whitespace for both tooltip provider
           Boolean(
             document
               .elementFromPoint(x, y)
-              ?.closest("a[data-item-version], .original-item-trigger"),
+              ?.closest("a[data-item-version], .item-tooltip-trigger"),
           ),
         space,
       ),
     ).toBe(false);
     await expect(
-      page.locator(".original-item-tooltip:popover-open"),
+      page.locator(".classic-compact-tooltip:popover-open"),
     ).toHaveCount(0);
   }
 });

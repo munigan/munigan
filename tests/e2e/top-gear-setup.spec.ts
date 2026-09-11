@@ -7,10 +7,8 @@ const fixture = JSON.parse(
 test("imports owned bags, exposes exclusions and preserves a free anonymous gear selection", async ({
   page,
 }) => {
-  // The import and exclusion flow must still work when the optional provider is blocked.
-  await page.route("https://wow.zamimg.com/js/tooltips.js", (route) =>
-    route.abort(),
-  );
+  // Import and exclusion remain usable when enrichment is unavailable.
+  await page.route("**/api/tooltips/*/*", (route) => route.abort());
   await page.goto("/gear-lab");
   const player = fixture.raid.parties[0].players[0];
   await page.getByLabel("Character export", { exact: true }).fill(
@@ -67,14 +65,14 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
   await page.getByLabel("Automatically fill empty sockets").uncheck();
   await page.getByRole("button", { name: "Close", exact: true }).click();
   const helmetLink = page
-    .locator(".inventory-row a[data-wowhead]")
+    .locator(".inventory-row a[data-item-enhancements]")
     .filter({ hasText: "Valorous Dreadnaught Helmet" });
   await expect(helmetLink).toHaveAttribute(
     "href",
     /wowhead.com\/wotlk\/item=40528/,
   );
   await expect(helmetLink).toHaveAttribute(
-    "data-wowhead",
+    "data-item-enhancements",
     "ench=3817&gems=41285:39996",
   );
   await expect(

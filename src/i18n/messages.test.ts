@@ -118,3 +118,11 @@ it("ships the final bilingual account copy and one Gear Lab display name", () =>
     REPORT_EXPIRED: "Este relatório expirou e não pode mais ser salvo.",
   });
 });
+
+it("ships item tooltip translations for the item links on the home page", () => {
+  for (const catalog of [homeEn, homePt]) {
+    expect(catalog).toHaveProperty("inventory.tooltip.close");
+    expect(catalog).toHaveProperty("inventory.stats.Strength");
+    expect(catalog).toHaveProperty("inventory.editor.colors.Red");
+  }
+});

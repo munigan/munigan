@@ -9,7 +9,15 @@ const saved = (page: Page) =>
   page.evaluate(() =>
     JSON.parse(localStorage.getItem("wow-droptimizer.top-gear.v1")!),
   );
-async function setup(page: Page) {
+async function setup(
+  page: Page,
+  enchantOverrides: Record<number, number> = {},
+  professions = ["Engineering", "Jewelcrafting"],
+) {
+  const equipment = structuredClone(player.equipment);
+  for (const [slot, enchant] of Object.entries(enchantOverrides)) {
+    equipment.items[Number(slot)].enchant = enchant;
+  }
   await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(
     JSON.stringify({
@@ -18,11 +26,8 @@ async function setup(page: Page) {
       race: "human",
       level: 80,
       talents: player.talentsString,
-      professions: [
-        { name: "Engineering", level: 450 },
-        { name: "Jewelcrafting", level: 450 },
-      ],
-      gear: player.equipment,
+      professions: professions.map((name) => ({ name, level: 450 })),
+      gear: equipment,
     }),
   );
   await page
@@ -49,21 +54,17 @@ test("row and enhancement clicks edit independently of selection; apply persists
   ).not.toHaveText("No enchant");
   const before = await saved(page);
   await row.locator('[data-enhancement-field="enchant"]').hover();
-  await expect(
-    page.locator(".wowhead-tooltip[data-visible=yes]"),
-  ).toContainText("Hyperspeed Accelerators");
-  await expect(
-    page.locator(".wowhead-tooltip[data-visible=yes]"),
-  ).toContainText("340");
-  await page.mouse.move(0, 0);
-  await expect(page.locator(".wowhead-tooltip[data-visible=yes]")).toHaveCount(
-    0,
+  await expect(page.locator(".compact-enchant-tooltip")).toContainText(
+    "Hyperspeed Accelerators",
   );
+  await expect(page.locator(".compact-enchant-tooltip")).toContainText("340");
+  await page.mouse.move(0, 0);
+  await expect(page.locator(".compact-enchant-tooltip")).toHaveCount(0);
   const instanceId = await row.getAttribute("data-instance-id");
   await expect(checkbox).not.toBeChecked();
   await checkbox.check();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await row.locator(".item-row-copy > .item-tooltip-link").click();
+  await row.locator(".item-row-copy .item-tooltip-link").click();
   const dialog = page.getByRole("dialog", { name: "Gems & enchants" });
   await expect(dialog).toBeVisible();
   await expect(checkbox).toBeChecked();
@@ -109,7 +110,7 @@ test("row and enhancement clicks edit independently of selection; apply persists
   ).toBeNull();
 });
 
-test("Wowhead enchant spell tooltips open on hover and focus while activation edits locally", async ({
+test("Owned enchant tooltips open on hover and focus while activation edits locally", async ({
   page,
 }) => {
   await setup(page);
@@ -118,7 +119,7 @@ test("Wowhead enchant spell tooltips open on hover and focus while activation ed
       '.inventory-row [data-enhancement-field="enchant"][href$="spell=59954"]',
     )
     .first();
-  const tooltip = page.locator(".wowhead-tooltip[data-visible=yes]");
+  const tooltip = page.locator(".compact-enchant-tooltip");
   await enchant.hover();
   await expect(tooltip).toContainText("Arcanum of Torment");
   await expect(tooltip).toContainText("50");
@@ -140,6 +141,49 @@ test("Wowhead enchant spell tooltips open on hover and focus while activation ed
   expect(page.context().pages()).toHaveLength(1);
 });
 
+test("enchant tooltip icons remain square beside long names", async ({
+  page,
+}) => {
+  await setup(page, { 3: 3722, 4: 1144 }, ["Tailoring", "Jewelcrafting"]);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [spell, name] of [
+      [55642, "Lightweave Embroidery"],
+      [33990, "Chest - Major Spirit"],
+    ] as const) {
+      const enchant = page
+        .locator(
+          `.inventory-row [data-enhancement-field="enchant"][href$="spell=${spell}"]`,
+        )
+        .first();
+      await enchant.hover();
+      const tooltip = page.locator(".compact-enchant-tooltip");
+      await expect(tooltip).toContainText(name);
+      const frame = tooltip.locator("img").locator("..");
+      await expect
+        .poll(async () => {
+          const rect = await frame.boundingBox();
+          return rect ? Math.abs(rect.width - rect.height) : Infinity;
+        })
+        .toBeLessThanOrEqual(1);
+      await expect(tooltip).toHaveCSS("padding", "16px");
+      await expect(tooltip).toHaveCSS("font-size", "13px");
+      await expect(tooltip).toHaveCSS("line-height", "20px");
+      expect(
+        await tooltip.evaluate((node) => node.scrollWidth <= node.clientWidth),
+      ).toBe(true);
+      await test.info().attach(`enchant-${spell}-${width}`, {
+        body: await tooltip.screenshot({
+          path: test.info().outputPath(`enchant-${spell}-${width}.png`),
+        }),
+        contentType: "image/png",
+      });
+      await page.mouse.move(0, 0);
+      await expect(tooltip).toHaveCount(0);
+    }
+  }
+});
+
 test("chest enchants show their spell instead of their formula, including after editing", async ({
   page,
 }) => {
@@ -148,13 +192,13 @@ test("chest enchants show their spell instead of their formula, including after 
     .locator(".inventory-row")
     .filter({ hasText: "Chestguard of the Recluse" });
   const enchant = chest.locator('[data-enhancement-field="enchant"]');
-  const tooltip = page.locator(".wowhead-tooltip[data-visible=yes]");
+  const tooltip = page.locator(".compact-enchant-tooltip");
   await expect(enchant.locator("img")).toHaveAttribute(
     "src",
     /\/trade_engraving\.jpg$/,
   );
   await enchant.hover();
-  await expect(tooltip).toContainText("Enchant Chest - Powerful Stats");
+  await expect(tooltip).toContainText("Powerful Stats");
   await expect(tooltip).not.toContainText("Formula:");
   await expect(tooltip).not.toContainText("Teaches you");
   await page.screenshot({ path: "/tmp/wowhead-powerful-stats-tooltip.png" });
@@ -180,7 +224,7 @@ test("chest enchants show their spell instead of their formula, including after 
     .click();
   await expect(editor).toHaveCount(0);
   await enchant.hover();
-  await expect(tooltip).toContainText("Enchant Chest - Super Stats");
+  await expect(tooltip).toContainText("Super Stats");
   await expect(tooltip).not.toContainText("Powerful Stats");
   await expect(tooltip).not.toContainText("Formula:");
 });

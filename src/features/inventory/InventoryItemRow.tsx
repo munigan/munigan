@@ -47,7 +47,7 @@ export function InventoryItemRow({
       data-source={item.source}
       data-selected={selected}
       data-instance-id={item.instanceId}
-      onClick={open}
+      onClick={editable ? open : undefined}
     >
       <div className="item-choice">
         <input
@@ -65,11 +65,15 @@ export function InventoryItemRow({
           item={preview}
           className="item-tooltip-link item-row-icon"
           tabIndex={-1}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            open();
-          }}
+          onClick={
+            editable
+              ? (event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  open();
+                }
+              : undefined
+          }
         />
         <div className="item-row-copy">
           <ItemLink
@@ -81,13 +85,17 @@ export function InventoryItemRow({
                 ? t("editor.openItem", { name: metadata.name })
                 : undefined
             }
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              open();
-            }}
+            onClick={
+              editable
+                ? (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    open();
+                  }
+                : undefined
+            }
             onKeyDown={(event) => {
-              if (event.key === " ") {
+              if (editable && event.key === " ") {
                 event.preventDefault();
                 event.stopPropagation();
                 open();

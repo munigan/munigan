@@ -16,5 +16,7 @@ export default defineConfig([
     "playwright-report/**",
     "next-env.d.ts",
     "workers/**/worker-configuration.d.ts",
+    "workers/**/.wrangler/**",
+    ".artifacts/**",
   ]),
 ]);

@@ -413,5 +413,33 @@
       "swordguard": "Chance on melee or ranged hit: +400 attack power for 15 sec."
     },
     "gemsTitle": "Gems"
+  },
+  "tooltip": {
+    "finger": "Finger",
+    "trinket": "Trinket",
+    "damage": "{min} - {max} Damage",
+    "speed": "Speed {value}",
+    "dps": "({value} damage per second)",
+    "equipStat": "Equip: {stat}",
+    "hands": {
+      "Unknown": "Weapon",
+      "MainHand": "Main Hand",
+      "OneHand": "One-Hand",
+      "OffHand": "Off Hand",
+      "TwoHand": "Two-Hand"
+    },
+    "close": "Close item details",
+    "gem": "Gem",
+    "heroic": "Heroic",
+    "classic": "Wrath Classic",
+    "original": "Original Wrath",
+    "loading": "Loading details…",
+    "fetchingDetails": "Fetching additional details…",
+    "unavailable": "Additional details unavailable",
+    "sockets": "Sockets",
+    "active": "Active",
+    "inactive": "Inactive",
+    "setInfo": "Set bonuses · source reference",
+    "localEnchant": "Enchant · local game data"
   }
 }

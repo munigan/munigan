@@ -3,6 +3,22 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
+  item-tooltips:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm ci
+        working-directory: workers/item-tooltips
+      - run: npm test && npm run typecheck && npm run types -- --check && npm run dry-run
+        working-directory: workers/item-tooltips
   warmane-relay:
     runs-on: ubuntu-latest
     steps:

@@ -76,16 +76,16 @@ test("runs real local DPS and compares complete owned sets", async ({
     page.getByText("All admitted combinations evaluated", { exact: false }),
   ).toBeAttached({ timeout: 90000 });
   await expect(
-    page.locator(".gear-strip a[data-wowhead]").first(),
-  ).toHaveAttribute("href", /wowhead\.com\/wotlk\/item=/);
+    page.locator(".gear-strip a[data-item-enhancements]").first(),
+  ).toHaveAttribute("href", /(?:wowhead\.com\/wotlk\/|cavernoftime\.com\/)item=/);
   const setButton = page.locator(".combination-row").nth(1).getByRole("button");
   await setButton.focus();
   await page.keyboard.press("Enter");
   await expect(setButton).toHaveAttribute("aria-pressed", "true");
   await expect(
-    page.locator(".set-changes a[data-wowhead]").first(),
+    page.locator(".set-changes a[data-item-enhancements]").first(),
   ).toBeVisible();
-  await expect(page.locator("button a[data-wowhead]")).toHaveCount(0);
+  await expect(page.locator("button a[data-item-enhancements]")).toHaveCount(0);
   await page.getByRole("button", { name: "Stats details" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog").getByRole("table")).toBeVisible();
