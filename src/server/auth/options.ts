@@ -25,9 +25,20 @@ const disabledPaths = [
 export function authOptions(env: NodeJS.ProcessEnv): BetterAuthOptions {
   return {
     secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.APP_ORIGIN,
+    baseURL: env.BETTER_AUTH_URL,
     trustedOrigins: env.APP_ORIGIN ? [env.APP_ORIGIN] : [],
     disabledPaths,
+    advanced: {
+      disableOriginCheck: false,
+      disableCSRFCheck: false,
+      useSecureCookies:
+        env.NODE_ENV === "production" ||
+        env.BETTER_AUTH_URL?.startsWith("https://"),
+      crossSubDomainCookies: { enabled: false },
+      ipAddress: {
+        ipAddressHeaders: env.VERCEL ? ["x-vercel-forwarded-for"] : [],
+      },
+    },
     user: {
       modelName: "auth_user",
       fields: {
