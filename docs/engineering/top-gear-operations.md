@@ -18,6 +18,12 @@ Each admitted set receives equal sampling and a distinct deterministic seed inte
 
 `reconcileJobs` settles canceled/expired queued jobs without consuming CPU capacity, releasing their reservations. It resets expired running leases for resumption and increments an outbox dispatch generation. Reports return 410 after seven days and can be removed after a further 30-day grace period when no retained retry references them. Deletion is limited to settled rows. Rotate capability encryption keys only with a migration/re-encryption strategy; an unplanned key change breaks idempotent read-token replay.
 
+## Production admission budget
+
+Vercel Production sets `GLOBAL_DAILY_UNITS=200000000` as of 2026-09-11, a 100× increase from 2,000,000. This is the shared site budget, equivalent to 40,000 combination attempts per UTC day. Each new job reserves its estimated combination count × 5,000 work units × two allowed attempts; settlement charges actual attempts and releases the remaining reservation. Existing daily usage remains counted when the limit increases.
+
+Daily admission runs in the website's job and retry APIs. Updating the Vercel environment variable requires a new Production deployment; this budget change does not require a Trigger worker redeployment. The per-run limit remains 120 sets at 500 iterations each. Browser limits remain two active jobs and 20 admissions per day; IP limits remain four active jobs and 40 admissions per day. Global worker concurrency remains two jobs, and the queue limit remains 20 jobs.
+
 ## Trigger.dev Development configuration
 
 The SDK, build package and CLI are pinned to 4.5.16. `trigger.config.ts` uses Node 24, the supported additional-files extension to package `dist/simulator/wowsimcli`, and one shared queue (`wotlk-simulation`, concurrency 2). No per-user queue key and no nested task fan-out is used. Provider abort signals propagate into the native process adapter.

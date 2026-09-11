@@ -114,7 +114,7 @@ Vercel accepts a durable PostgreSQL job, then dispatches its outbox after the re
 
 Database pools have four connections, five-second idle cleanup, and Vercel pool lifecycle handling. Neon can suspend between recovery sweeps when there is no app traffic. Sweeps still consume the Free plan's compute allowance; free hosting is capacity-limited. Trigger Free stops running tasks after its included credits are exhausted. No paid plan or add-on was enabled.
 
-Production admission: 120 sets per run (`TOP_GEAR_MAX_UNITS=600000`), 500 iterations per set, 900-second job deadline, 2,000,000 global daily work units, and 20 queued jobs maximum. The daily budget is shared by all visitors and is intentionally smaller than the local default for this free release.
+Production admission: 120 sets per run (`TOP_GEAR_MAX_UNITS=600000`), 500 iterations per set, 900-second job deadline, 200,000,000 global daily work units (`GLOBAL_DAILY_UNITS=200000000`), and 20 queued jobs maximum. On 2026-09-11, the shared daily budget increased 100× from 2,000,000 units. Each attempted combination consumes 5,000 units; admission reserves two attempts per estimated combination and releases unused capacity on settlement. The daily budget resets at midnight UTC. Per-browser and per-IP limits remain 20 and 40 admitted jobs per day.
 
 `APP_ORIGIN` is the custom HTTPS hostname. Vercel supplies `x-vercel-forwarded-for` for hashed per-source admission limits. Production uses a separate Neon database and fresh capability key. Local reports were not migrated.
 
