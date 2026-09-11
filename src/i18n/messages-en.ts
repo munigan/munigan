@@ -6,6 +6,7 @@ import inventory from "../../messages/en-US/inventory.json";
 import settings from "../../messages/en-US/settings.json";
 import reports from "../../messages/en-US/reports.json";
 import diagnostics from "../../messages/en-US/diagnostics.json";
+import auth from "../../messages/en-US/auth.json";
 export const messages = {
   common,
   shell,
@@ -15,4 +16,5 @@ export const messages = {
   settings,
   reports,
   diagnostics,
+  auth,
 };

@@ -10,6 +10,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { DialogDismiss } from "@/components/ui/Dialog";
 import { Brand } from "./Brand";
 import { ToolNav } from "./ToolNav";
+import { AccountMenu } from "@/features/auth/AccountMenu";
 
 export function WorkbenchHeader() {
   const { locale, area, persistLocale } = useAppLocale();
@@ -33,6 +34,7 @@ export function WorkbenchHeader() {
           <span>{t("help")}</span>
         </Link>
         <LanguageSelector />
+        <AccountMenu />
       </div>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger
@@ -69,6 +71,7 @@ export function WorkbenchHeader() {
               {t("help")}
             </Link>
             <LanguageSelector />
+            <AccountMenu mobile onNavigate={() => setOpen(false)} />
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>

@@ -15,6 +15,8 @@ import "@/app/globals.css";
 import { AppShell } from "@/features/shell/AppShell";
 import { WowheadTooltips } from "@/features/inventory/WowheadTooltips";
 import { ToastProvider } from "@/components/ui/Toast";
+import { AuthProvider } from "@/features/auth/AuthProvider";
+import "@/features/auth/auth.css";
 export async function AppDocument({
   children,
   locale,
@@ -35,7 +37,9 @@ export async function AppDocument({
         >
           <DocumentControls />
           <ToastProvider>
-            <AppShell>{children}</AppShell>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+            </AuthProvider>
           </ToastProvider>
           <WowheadTooltips />
         </LocaleProvider>

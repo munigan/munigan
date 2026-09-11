@@ -117,6 +117,9 @@ a.workbench-nav-row:hover,
   gap: 24px;
   margin-left: auto;
 }
+.workbench-header-utilities > .auth-control {
+  flex-shrink: 0;
+}
 .workbench-help {
   display: inline-flex;
   align-items: center;
