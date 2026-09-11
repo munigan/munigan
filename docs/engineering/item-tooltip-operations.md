@@ -46,3 +46,14 @@ The final implementation incorporates main `7a72b43`, including the Gear Lab rou
 Validation passed: 92 files / 637 app unit and component tests, 25 Worker runtime/parser tests, TypeScript, ESLint, design/spec checks, and ten maintained tooltip/enhancement browser checks plus a real-response visual capture. Browser coverage includes both item versions, full effects, 320px/390px and short viewports, internal scroll, keyboard focus/Escape, modal placement, touch inspection/close, exact socket editing, offscreen dismissal and owned enchant hover/focus/editing. Source text is rendered as escaped React text; local labels and enchant descriptions are available in English and Portuguese.
 
 Final review approved both specification and code quality after two interaction fixes: only one item, gem or enchant tooltip can be open at once, and tapping either the icon or name of a non-editable inventory item opens inspection. Editable items retain their existing editing action. Both have focused component and browser regressions.
+
+
+## Application deployment — 2026-09-11
+
+Application source commit `7d87629` was remotely built and deployed as `dpl_3kQz5yEBxpx4DMvQR6yNpBjaCdAB` at `https://wow-droptimizer-kyo4ftpeo-diego-fernandes-projects.vercel.app`, then promoted to `https://munigan.app`. The protected build passed compilation, TypeScript and static generation. Before promotion, both provider endpoints returned complete trinket data with the corrected slot classification; an unknown catalog item returned 404 and an invalid version returned 400, both with `no-store`.
+
+Live verification completed at `2026-09-11T19:05:07.216Z`. Both Deathbringer's Will variants returned 200 with provider-specific JSON and the full 30-second effect. An original Koltira's Helmet lookup populated a new cache entry. A repeated classic trinket request was a Vercel cache HIT in 26 ms and preserved the Worker retrieval timestamp. Unknown and invalid lookups retained their expected uncached errors.
+
+Live browser verification confirmed keyboard focus first shows local details, then enriches the owned tooltip with armor, stats, effects, sockets and full set references from Cavern of Time. Exactly one tooltip was visible; Escape dismissed it. The document loaded no Wowhead or Cavern of Time scripts. The Gear Lab import page remained available after navigation. Maintained browser tests cover the remaining hover, touch, modal and enhancement interactions.
+
+The previous custom-domain deployment was `dpl_8wfjt3UVxREBTPPwYgzhoipoaraN` (`https://wow-droptimizer-5drzizv8g-diego-fernandes-projects.vercel.app`). To roll back the web application, promote that deployment; its existing environment and Warmane importer are independent of the tooltip service. The Worker may remain available with its private authentication and preserved snapshots.
