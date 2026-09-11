@@ -17,6 +17,7 @@ import { WowheadTooltips } from "@/features/inventory/WowheadTooltips";
 import { ToastProvider } from "@/components/ui/Toast";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import "@/features/auth/auth.css";
+import { DeleteAccountDialogHost } from "@/features/auth/DeleteAccountDialog";
 export async function AppDocument({
   children,
   locale,
@@ -39,6 +40,7 @@ export async function AppDocument({
           <ToastProvider>
             <AuthProvider>
               <AppShell>{children}</AppShell>
+              <DeleteAccountDialogHost />
             </AuthProvider>
           </ToastProvider>
           <WowheadTooltips />

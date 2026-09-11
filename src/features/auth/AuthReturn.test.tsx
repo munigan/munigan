@@ -115,3 +115,24 @@ it("explains lost flows without performing any claim", async () => {
   );
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it("validates a matching deletion return without sending a deletion request", async () => {
+  const { storeDeletionReturn, loadDeletionReturn } =
+    await import("./deletion-return");
+  storeDeletionReturn(key, "account-a");
+  storeSignInReturn(key, {
+    returnPath: "/library",
+    locale: "en-US",
+    expectedUserId: "account-a",
+  });
+  history.replaceState(null, "", `/auth/return?flow=${key}`);
+  const fetch = vi
+    .fn()
+    .mockResolvedValue(Response.json({ account: { id: "account-a" } }));
+  vi.stubGlobal("fetch", fetch);
+  view();
+  await waitFor(() => expect(replace).toHaveBeenCalledWith("/library"));
+  expect(loadDeletionReturn()?.validated).toBe(true);
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch.mock.calls[0][0]).toBe("/api/account/session");
+});

@@ -207,3 +207,23 @@ it("refreshes terminal data and invalidates permissions synchronously on identit
   expect(result.current.data).not.toBeNull();
   expect(fetch).toHaveBeenCalledTimes(3);
 });
+
+it("invalidates terminal report permissions when a report is deleted in this browser", async () => {
+  vi.stubGlobal("BroadcastChannel", undefined);
+  const { invalidateAccountData } =
+    await import("@/features/auth/data-invalidation");
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(response(200, { report: { status: "complete" } }))
+    .mockReturnValue(new Promise(() => {}));
+  vi.stubGlobal("fetch", fetch);
+  const { result } = renderHook(() =>
+    useReport("/report", "/report", "account-a"),
+  );
+  await act(async () => {});
+  expect(result.current.permissionsFresh).toBe(true);
+  act(() => invalidateAccountData());
+  expect(result.current.permissionsFresh).toBe(false);
+  await act(async () => {});
+  expect(fetch).toHaveBeenCalledTimes(2);
+});

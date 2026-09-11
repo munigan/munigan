@@ -97,3 +97,50 @@ describe("AuthProvider", () => {
     vi.unstubAllGlobals();
   });
 });
+
+it("clears account immediately after confirmed deletion and ignores an older session request", async () => {
+  let release!: (response: Response) => void;
+  vi.spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(
+      Response.json({
+        account: { id: "a", name: "Deleted account", image: null },
+        savingEnabled: true,
+        enrollmentEnabled: true,
+      }),
+    )
+    .mockReturnValueOnce(
+      new Promise<Response>((r) => {
+        release = r;
+      }),
+    );
+  function DeleteProbe() {
+    const auth = useAccount();
+    return (
+      <>
+        <span>{auth.status}</span>
+        <span>{auth.account?.name}</span>
+        <button onClick={() => void auth.refresh()}>Refresh</button>
+        <button onClick={() => auth.accountDeleted("a")}>Deleted</button>
+      </>
+    );
+  }
+  render(
+    <AuthProvider>
+      <DeleteProbe />
+    </AuthProvider>,
+  );
+  await screen.findByText("Deleted account");
+  await userEvent.click(screen.getByRole("button", { name: "Refresh" }));
+  await userEvent.click(screen.getByRole("button", { name: "Deleted" }));
+  expect(screen.getByText("anonymous")).toBeVisible();
+  await act(async () =>
+    release(
+      Response.json({
+        account: { id: "a", name: "Deleted account", image: null },
+        savingEnabled: true,
+        enrollmentEnabled: true,
+      }),
+    ),
+  );
+  expect(screen.queryByText("Deleted account")).not.toBeInTheDocument();
+});

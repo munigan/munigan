@@ -15,6 +15,8 @@ import {
   oauthCallbackPath,
 } from "./return-state";
 
+import { validateDeletionReturn } from "./deletion-return";
+
 type Flow = { kind: "intent" | "flow"; key: string };
 const activeKey = "munigan.auth.active";
 export function AuthReturn() {
@@ -141,6 +143,7 @@ export function AuthReturn() {
             setError("accountChanged");
             return;
           }
+          validateDeletionReturn(flow!.key, result.account.id);
           clearSignInReturn(flow!.key);
           sessionStorage.removeItem(activeKey);
           router.replace(

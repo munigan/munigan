@@ -40,7 +40,7 @@ export function AccountMenu({ mobile = false, onNavigate }: { mobile?: boolean; 
       <div className="auth-mobile-profile"><span className="auth-avatar">{account.name.slice(0, 1).toUpperCase()}</span><div><strong>{account.name}</strong><small>{t("discordAccount")}</small></div></div>
       <Link className="auth-mobile-library" href="/library" onClick={onNavigate}>{t("library")}</Link>
       <button className="auth-mobile-action" onClick={() => void attemptSignOut()}>{t("signOut")}</button>
-      <button className="auth-mobile-action auth-menu-danger" onClick={() => window.dispatchEvent(new CustomEvent("munigan:account-delete-request"))}>{t("deleteAccount")}</button>
+      <button className="auth-mobile-action auth-menu-danger" onClick={() => { onNavigate?.(); window.dispatchEvent(new CustomEvent("munigan:account-delete-request")); }}>{t("deleteAccount")}</button>
       {signOutError && <div className="auth-mobile-error" role="alert"><span>{t("signOutFailed")}</span><button onClick={() => void attemptSignOut()}>{t("retrySignOut")}</button></div>}
     </div>
   );
@@ -57,7 +57,7 @@ export function AccountMenu({ mobile = false, onNavigate }: { mobile?: boolean; 
               <div className="auth-menu-profile"><span className="auth-avatar">{account.name.slice(0, 1).toUpperCase()}</span><div><strong>{account.name}</strong><small>{t("discordAccount")}</small></div></div>
               <Menu.Item className="auth-menu-item" render={<Link href="/library" />} onClick={onNavigate}>{t("library")}</Menu.Item>
               <Menu.Item className="auth-menu-item" onClick={() => void attemptSignOut()}>{t("signOut")}</Menu.Item>
-              <Menu.Item className="auth-menu-item auth-menu-danger" onClick={() => window.dispatchEvent(new CustomEvent("munigan:account-delete-request"))}>{t("deleteAccount")}</Menu.Item>
+              <Menu.Item className="auth-menu-item auth-menu-danger" onClick={() => { onNavigate?.(); window.dispatchEvent(new CustomEvent("munigan:account-delete-request")); }}>{t("deleteAccount")}</Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>

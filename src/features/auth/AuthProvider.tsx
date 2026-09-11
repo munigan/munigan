@@ -21,6 +21,7 @@ export type AuthState = {
 type AuthContextValue = AuthState & {
   refresh(): Promise<void>;
   signOut(): Promise<void>;
+  accountDeleted(expectedUserId: string): void;
 };
 type SessionPayload = Omit<AuthState, "status">;
 
@@ -70,14 +71,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (!response.ok) throw new Error("session unavailable");
       const payload: unknown = await response.json();
-      if (!isSessionPayload(payload)) throw new Error("invalid session response");
+      if (!isSessionPayload(payload))
+        throw new Error("invalid session response");
       if (generation.current !== requestGeneration) return;
       setState({
         ...payload,
         status: payload.account ? "authenticated" : "anonymous",
       });
     } catch {
-      if (nextController.signal.aborted || generation.current !== requestGeneration)
+      if (
+        nextController.signal.aborted ||
+        generation.current !== requestGeneration
+      )
         return;
       setState((current) => ({
         ...current,
@@ -106,7 +111,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh, session.data, session.isPending]);
 
   useEffect(() => {
-    const channel = typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(channelName);
+    const channel =
+      typeof BroadcastChannel === "undefined"
+        ? null
+        : new BroadcastChannel(channelName);
     broadcast.current = channel;
     const invalidate = () => void refresh();
     if (channel) channel.addEventListener("message", invalidate);
@@ -124,7 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     const result = await authClient.signOut();
-    if (result.error) throw new Error(result.error.message || "sign-out failed");
+    if (result.error)
+      throw new Error(result.error.message || "sign-out failed");
     ++generation.current;
     controller.current?.abort();
     setState((current) => ({ ...current, status: "anonymous", account: null }));
@@ -135,7 +144,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ ...state, refresh, signOut }), [refresh, signOut, state]);
+  const accountDeleted = useCallback((expectedUserId: string) => {
+    ++generation.current;
+    controller.current?.abort();
+    setState((current) =>
+      current.account?.id === expectedUserId || current.status === "loading"
+        ? { ...current, status: "anonymous", account: null }
+        : current,
+    );
+    try {
+      if (broadcast.current) broadcast.current.postMessage("invalidate");
+      else localStorage.setItem(storageKey, crypto.randomUUID());
+    } catch {
+      /* The local account has already been invalidated. */
+    }
+  }, []);
+  const value = useMemo(
+    () => ({ ...state, refresh, signOut, accountDeleted }),
+    [refresh, signOut, accountDeleted, state],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

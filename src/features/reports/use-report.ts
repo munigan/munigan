@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { subscribeAccountData } from "@/features/auth/data-invalidation";
 import { describeError, type ErrorDescriptor } from "@/i18n/error";
 
 export function useReport<T extends { report: { status: string } }>(
@@ -9,6 +10,7 @@ export function useReport<T extends { report: { status: string } }>(
 ) {
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
+  useEffect(() => subscribeAccountData(refresh), [refresh]);
   const [state, setState] = useState<{
     identityKey: string;
     revision: number;

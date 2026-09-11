@@ -7,6 +7,7 @@ import settings from "../../messages/pt-BR/settings.json";
 import reports from "../../messages/pt-BR/reports.json";
 import diagnostics from "../../messages/pt-BR/diagnostics.json";
 import auth from "../../messages/pt-BR/auth.json";
+import library from "../../messages/pt-BR/library.json";
 export const messages = {
   common,
   shell,
@@ -17,4 +18,5 @@ export const messages = {
   reports,
   diagnostics,
   auth,
+  library,
 };
