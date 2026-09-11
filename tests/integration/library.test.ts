@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 import { AccountError } from "@/server/auth/errors";
 import { lockActiveAccount } from "@/server/auth/account-lock";
@@ -37,6 +38,23 @@ it("isolates owners and publishes a report idempotently", async () => {
   await expect(
     libraryReportPath(b.id, (await listLibrary(a.id, {})).items[0].id),
   ).rejects.toMatchObject({ status: 404 });
+});
+
+it("rejects a library row whose job belongs to another account", async () => {
+  const jobOwner = await seedAccount();
+  const rowOwner = await seedAccount();
+  const job = await seedTerminalReport({ accountId: jobOwner.id });
+  const itemId = randomUUID();
+  await pool.query(
+    `INSERT INTO library_items(id,user_id,job_id,tool,kind,title,character_name,summary,created_at)
+     SELECT $1,$2,id,'top-gear','report','Mismatched','Mismatched','{}',created_at
+       FROM tg_jobs WHERE id=$3`,
+    [itemId, rowOwner.id, job.jobId],
+  );
+
+  await expect(libraryReportPath(rowOwner.id, itemId)).rejects.toMatchObject({
+    status: 404,
+  });
 });
 
 it("escapes search metacharacters and excludes full report fields", async () => {

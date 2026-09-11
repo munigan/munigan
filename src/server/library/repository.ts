@@ -174,7 +174,7 @@ export async function libraryReportPath(
        JOIN tg_jobs j ON j.id=li.job_id
        JOIN account_lifecycle a ON a.user_id=li.user_id
       WHERE li.id=$1 AND li.user_id=$2 AND li.deleted_at IS NULL
-        AND j.deleted_at IS NULL AND j.token_cipher IS NOT NULL
+        AND j.account_id=$2 AND j.deleted_at IS NULL AND j.token_cipher IS NOT NULL
         AND a.status='active'`,
     [itemId, userId],
   );
