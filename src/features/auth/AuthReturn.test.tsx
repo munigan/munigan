@@ -8,6 +8,7 @@ import {
   storeReturnState,
   storeSignInReturn,
   loadReturnState,
+  loadSignInReturn,
 } from "./return-state";
 const { replace, social } = vi.hoisted(() => ({
   replace: vi.fn(),
@@ -26,7 +27,7 @@ const key = "a".repeat(43),
     scrollY: 400,
   };
 function view() {
-  render(
+  return render(
     <NextIntlClientProvider locale="en-US" messages={{ auth: en }}>
       <AuthReturn />
     </NextIntlClientProvider>,
@@ -142,9 +143,89 @@ it("does not resume a stored intent after rejected OAuth state", async () => {
   history.replaceState(null, "", "/auth/return?error=state_mismatch");
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
+  const first = view();
+  expect(await screen.findByRole("alert")).toHaveTextContent(en.returnLost);
+  first.unmount();
+  expect(location.search).toBe("");
+  view();
+  expect(await screen.findByRole("alert")).toHaveTextContent(en.returnLost);
+  expect(loadReturnState(key)).toBeNull();
+  expect(sessionStorage.getItem("munigan.auth.active")).toBeNull();
+  expect(fetch).not.toHaveBeenCalled();
+  expect(replace).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: en.backGearLab })).toBeVisible();
+});
+
+it("invalidates only the rejected sign-in and matching deletion context across reload", async () => {
+  const { storeDeletionReturn, loadDeletionReturn } =
+    await import("./deletion-return");
+  storeDeletionReturn(key, "account-a");
+  storeSignInReturn(key, {
+    returnPath: "/library",
+    locale: "en-US",
+    expectedUserId: "account-a",
+  });
+  const other = "b".repeat(43);
+  storeReturnState(other, state);
+  sessionStorage.setItem("munigan.top-gear.admission", "unrelated-draft");
+  sessionStorage.setItem(
+    "munigan.auth.active",
+    JSON.stringify({ version: 1, kind: "flow", key }),
+  );
+  history.replaceState(null, "", "/auth/return?error=state_mismatch");
+  const fetch = vi
+    .fn()
+    .mockResolvedValue(Response.json({ account: { id: "account-a" } }));
+  vi.stubGlobal("fetch", fetch);
+  const first = view();
+  await screen.findByRole("alert");
+  first.unmount();
   view();
   expect(await screen.findByRole("alert")).toHaveTextContent(en.returnLost);
   expect(fetch).not.toHaveBeenCalled();
   expect(replace).not.toHaveBeenCalled();
-  expect(screen.getByRole("button", { name: en.backGearLab })).toBeVisible();
+  expect(loadSignInReturn(key)).toBeNull();
+  expect(loadDeletionReturn()).toBeNull();
+  expect(loadReturnState(other)).toEqual(state);
+  expect(sessionStorage.getItem("munigan.top-gear.admission")).toBe(
+    "unrelated-draft",
+  );
+});
+
+it("preserves successful reload recovery for a save failure without rejected state", async () => {
+  storeReturnState(key, state);
+  history.replaceState(null, "", `/auth/return?intent=${key}`);
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(
+      Response.json({ code: "AUTH_UNAVAILABLE" }, { status: 503 }),
+    )
+    .mockResolvedValue(Response.json({ reportPath: state.reportPath }));
+  vi.stubGlobal("fetch", fetch);
+  const first = view();
+  await screen.findByRole("alert");
+  first.unmount();
+  expect(location.search).toBe("");
+  view();
+  await waitFor(() => expect(replace).toHaveBeenCalledWith(state.reportPath));
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(social).not.toHaveBeenCalled();
+});
+
+it("does not clear deletion reconfirmation owned by a different flow", async () => {
+  const { storeDeletionReturn, loadDeletionReturn } =
+    await import("./deletion-return");
+  const other = "b".repeat(43);
+  storeDeletionReturn(other, "account-a");
+  storeSignInReturn(key, { returnPath: "/library", locale: "en-US" });
+  sessionStorage.setItem(
+    "munigan.auth.active",
+    JSON.stringify({ version: 1, kind: "flow", key }),
+  );
+  history.replaceState(null, "", "/auth/return?error=state_mismatch");
+  vi.stubGlobal("fetch", vi.fn());
+  view();
+  await screen.findByRole("alert");
+  expect(loadDeletionReturn()?.flow).toBe(other);
+  expect(loadSignInReturn(key)).toBeNull();
 });

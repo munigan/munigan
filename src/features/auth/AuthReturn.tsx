@@ -15,10 +15,31 @@ import {
   oauthCallbackPath,
 } from "./return-state";
 
-import { validateDeletionReturn } from "./deletion-return";
+import {
+  clearDeletionReturn,
+  loadDeletionReturn,
+  validateDeletionReturn,
+} from "./deletion-return";
 
 type Flow = { kind: "intent" | "flow"; key: string };
 const activeKey = "munigan.auth.active";
+function invalidateActiveReturn() {
+  const raw = sessionStorage.getItem(activeKey);
+  sessionStorage.removeItem(activeKey);
+  if (!raw) return;
+  const stored = JSON.parse(raw);
+  if (
+    stored?.version !== 1 ||
+    typeof stored.key !== "string" ||
+    !validFlowKey(stored.key)
+  )
+    return;
+  if (stored.kind === "intent") clearReturnState(stored.key);
+  if (stored.kind === "flow") {
+    clearSignInReturn(stored.key);
+    if (loadDeletionReturn()?.flow === stored.key) clearDeletionReturn();
+  }
+}
 export function AuthReturn() {
   const t = useTranslations("auth"),
     router = useRouter();
@@ -34,11 +55,14 @@ export function AuthReturn() {
     if (captured.current) return;
     captured.current = true;
     const params = new URLSearchParams(window.location.search);
-    // Strip OAuth/error parameters before any asynchronous work or completion POST.
-    history.replaceState(history.state, "", "/auth/return");
     try {
-      // A rejected OAuth state must not resume even previously stored save context.
-      if (params.get("error") === "state_mismatch") throw new Error("lost");
+      // Invalidate before stripping the marker so a clean-URL reload cannot resume
+      // a rejected save or reconfirmation. Storage failure keeps the marker intact.
+      const rejected = params.get("error") === "state_mismatch";
+      if (rejected) invalidateActiveReturn();
+      // Strip OAuth/error parameters before asynchronous work or completion POST.
+      history.replaceState(history.state, "", "/auth/return");
+      if (rejected) throw new Error("lost");
       let next: Flow | null = null;
       if (params.has("intent") || params.has("flow")) {
         const kind = params.has("intent") ? "intent" : "flow";

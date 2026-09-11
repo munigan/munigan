@@ -307,6 +307,56 @@ test("authentication survives save failure and retries the same intent exactly o
   ).toBe(1);
   expect(calls()).toEqual(["token", "userinfo"]);
 });
+test("replayed callback invalidates a pending save across clean return reload", async ({
+  page,
+}) => {
+  await prepareSave(page);
+  let callback = "";
+  page.on("request", (req) => {
+    if (new URL(req.url()).pathname === "/api/auth/callback/discord")
+      callback = req.url();
+  });
+  await db.query(
+    "CREATE FUNCTION fail_save() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'controlled save failure'; END $$",
+  );
+  await db.query(
+    "CREATE TRIGGER fail_save BEFORE INSERT ON library_items FOR EACH ROW EXECUTE FUNCTION fail_save()",
+  );
+  try {
+    await page.getByRole("button", { name: "Allow", exact: true }).click();
+    await expect(page.locator(".auth-return [role=alert]")).toContainText(
+      "this report wasn't saved",
+    );
+  } finally {
+    await db.query("DROP TRIGGER fail_save ON library_items");
+    await db.query("DROP FUNCTION fail_save()");
+  }
+  expect((await db.query("SELECT id FROM auth_session")).rowCount).toBe(1);
+  expect(
+    await page.evaluate(() =>
+      Boolean(sessionStorage.getItem("munigan.auth.active")),
+    ),
+  ).toBe(true);
+  let completions = 0;
+  page.on("request", (req) => {
+    if (new URL(req.url()).pathname === "/api/library/save-intents/complete")
+      completions++;
+  });
+  await page.goto(callback);
+  await expect(page).toHaveURL(/\/auth\/return$/);
+  await expect(page.locator(".auth-return [role=alert]")).toContainText(
+    "missing or expired",
+  );
+  await page.reload();
+  await expect(page.locator(".auth-return [role=alert]")).toContainText(
+    "missing or expired",
+  );
+  await expect(page).toHaveURL(/\/auth\/return$/);
+  expect(completions).toBe(0);
+  expect((await db.query("SELECT id FROM library_items")).rowCount).toBe(0);
+  expect(calls()).toEqual(["token", "userinfo"]);
+});
+
 test("missing original browser proof permits login but never saves", async ({
   page,
   context,
