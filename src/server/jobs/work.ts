@@ -155,15 +155,81 @@ async function finish(
     }
   });
 }
+type ExecutionPhase =
+  | "claim"
+  | "planning"
+  | "admission"
+  | "evaluation"
+  | "persistence"
+  | "finalization";
+export type ExecutionPerformance = {
+  jobId: string;
+  specId: string;
+  concurrency: number;
+  planned: number;
+  attempts: number;
+  succeeded: number;
+  iterationsPerSet: number;
+  elapsedMs: number;
+  // Accumulated operation time: concurrent phases can exceed elapsedMs.
+  phaseMs: Record<ExecutionPhase, number>;
+  leaseLost: boolean;
+  timedOut: boolean;
+};
+type ExecutionOptions = {
+  concurrency?: number;
+  onPerformance?: (measurement: ExecutionPerformance) => void;
+};
 export async function executeTopGear(
   jobId?: string,
   signal: AbortSignal = new AbortController().signal,
   evaluator: typeof evaluate = evaluate,
+  options: ExecutionOptions = {},
 ) {
-  const job = await claim(jobId);
+  const concurrency = options.concurrency ?? 1;
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 4)
+    throw new Error("Simulation concurrency must be between 1 and 4");
+  const startedAt = performance.now();
+  const phaseMs: Record<ExecutionPhase, number> = {
+    claim: 0,
+    planning: 0,
+    admission: 0,
+    evaluation: 0,
+    persistence: 0,
+    finalization: 0,
+  };
+  async function measure<T>(
+    phase: ExecutionPhase,
+    operation: () => T | Promise<T>,
+  ): Promise<T> {
+    const start = performance.now();
+    try {
+      return await operation();
+    } finally {
+      phaseMs[phase] += performance.now() - start;
+    }
+  }
+  const job = await measure("claim", () => claim(jobId));
   if (!job) return false;
+  let planned = 0,
+    attempts = 0,
+    succeeded = 0;
+  let finishing = false;
+  const finalize = (
+    termination: TopGearReport["termination"],
+    error?: string,
+  ) => {
+    finishing = true;
+    return measure("finalization", () =>
+      finish(job.id, job.lease, termination, error),
+    );
+  };
   const controller = new AbortController();
-  const abort = () => controller.abort(signal.reason);
+  let canceled = false;
+  const abort = () => {
+    canceled = true;
+    controller.abort(signal.reason);
+  };
   signal.addEventListener("abort", abort, { once: true });
   if (signal.aborted) abort();
   let timeout = false,
@@ -187,7 +253,10 @@ export async function executeTopGear(
       if (!r.rowCount) {
         leaseLost = true;
         controller.abort();
-      } else if (r.rows[0].cancel_requested) controller.abort();
+      } else if (r.rows[0].cancel_requested) {
+        canceled = true;
+        controller.abort();
+      }
     } catch {
       leaseLost = true;
       controller.abort();
@@ -195,67 +264,91 @@ export async function executeTopGear(
       checking = false;
     }
   }, 1000);
-  let finishing = false;
   try {
     if (job.cancel_requested) {
-      finishing = true;
-      await finish(job.id, job.lease, "canceled");
+      await finalize("canceled");
       return true;
     }
     if (job.deadline_at.getTime() <= Date.now()) {
-      finishing = true;
-      await finish(job.id, job.lease, "runtime-limit");
+      await finalize("runtime-limit");
       return true;
     }
     const request = requestOf(job);
-    const plan =
-      job.plan ?? planRun(request.snapshot, request.selection, job.policy);
-    await pool.query(
-      "UPDATE tg_jobs SET plan=$3,phase='equipped' WHERE id=$1 AND lease=$2",
-      [job.id, job.lease, JSON.stringify(plan)],
+    const plan = await measure(
+      "planning",
+      () =>
+        job.plan ?? planRun(request.snapshot, request.selection, job.policy),
     );
-    for (const [index, work] of plan.simulations.entries()) {
+    planned = plan.simulations.length;
+    await measure("persistence", () =>
+      pool.query(
+        "UPDATE tg_jobs SET plan=$3,phase='equipped' WHERE id=$1 AND lease=$2",
+        [job.id, job.lease, JSON.stringify(plan)],
+      ),
+    );
+    const runSet = async (index: number) => {
+      const work = plan.simulations[index];
       for (let retry = 0; retry < job.policy.maxAttempts; retry++) {
         controller.signal.throwIfAborted();
-        const admitted = await transaction(async (c) => {
-          const current = await c.query(
-            "SELECT cancel_requested FROM tg_jobs WHERE id=$1 AND lease=$2 FOR UPDATE",
-            [job.id, job.lease],
-          );
-          if (!current.rowCount || current.rows[0].cancel_requested) {
-            controller.abort();
-            return false;
-          }
-          await c.query(
-            "INSERT INTO tg_work(job_id,work_key) VALUES($1,$2) ON CONFLICT DO NOTHING",
-            [job.id, work.key],
-          );
-          const state = await c.query(
-            "UPDATE tg_work SET attempts=attempts+1,error=NULL WHERE job_id=$1 AND work_key=$2 AND result IS NULL AND attempts<$3 RETURNING attempts",
-            [job.id, work.key, job.policy.maxAttempts],
-          );
-          if (!state.rowCount)
+        const admitted = await measure("admission", () =>
+          transaction(async (c) => {
+            const current = await c.query(
+              "SELECT cancel_requested FROM tg_jobs WHERE id=$1 AND lease=$2 FOR UPDATE",
+              [job.id, job.lease],
+            );
+            if (!current.rowCount) {
+              leaseLost = true;
+              controller.abort();
+              return false;
+            }
+            if (current.rows[0].cancel_requested) {
+              canceled = true;
+              controller.abort();
+              return false;
+            }
             await c.query(
-              "UPDATE tg_work SET error=coalesce(error,'Attempt limit reached') WHERE job_id=$1 AND work_key=$2 AND result IS NULL",
+              "INSERT INTO tg_work(job_id,work_key) VALUES($1,$2) ON CONFLICT DO NOTHING",
               [job.id, work.key],
             );
-          return !!state.rowCount;
-        });
+            const state = await c.query(
+              "UPDATE tg_work SET attempts=attempts+1,error=NULL WHERE job_id=$1 AND work_key=$2 AND result IS NULL AND attempts<$3 RETURNING attempts",
+              [job.id, work.key, job.policy.maxAttempts],
+            );
+            if (!state.rowCount)
+              await c.query(
+                "UPDATE tg_work SET error=coalesce(error,'Attempt limit reached') WHERE job_id=$1 AND work_key=$2 AND result IS NULL",
+                [job.id, work.key],
+              );
+            return !!state.rowCount;
+          }),
+        );
         if (!admitted) break;
         try {
-          const result = await evaluator(
-            request.snapshot,
-            work.loadout,
-            work.iterations,
-            work.seed,
-            controller.signal,
-            work.isReference ?? index === 0,
+          controller.signal.throwIfAborted();
+          attempts++;
+          const result = await measure("evaluation", () =>
+            evaluator(
+              request.snapshot,
+              work.loadout,
+              work.iterations,
+              work.seed,
+              controller.signal,
+              work.isReference ?? index === 0,
+            ),
           );
           if (leaseLost) throw new Error("Worker lease lost");
-          await pool.query(
-            "UPDATE tg_work SET result=$3,error=NULL WHERE job_id=$1 AND work_key=$2 AND EXISTS(SELECT 1 FROM tg_jobs WHERE id=$1 AND lease=$4)",
-            [job.id, work.key, JSON.stringify(result), job.lease],
+          const saved = await measure("persistence", () =>
+            pool.query(
+              "UPDATE tg_work SET result=$3,error=NULL WHERE job_id=$1 AND work_key=$2 AND EXISTS(SELECT 1 FROM tg_jobs WHERE id=$1 AND lease=$4)",
+              [job.id, work.key, JSON.stringify(result), job.lease],
+            ),
           );
+          if (!saved.rowCount) {
+            leaseLost = true;
+            controller.abort();
+            throw new Error("Worker lease lost");
+          }
+          succeeded++;
           break;
         } catch (e) {
           if (leaseLost) throw e;
@@ -272,18 +365,20 @@ export async function executeTopGear(
               "ETIMEDOUT",
               "SIM_PROCESS_FAILED",
             ].includes(code);
-          await pool.query(
-            "UPDATE tg_work SET error=$3 WHERE job_id=$1 AND work_key=$2 AND EXISTS(SELECT 1 FROM tg_jobs WHERE id=$1 AND lease=$4)",
-            [
-              job.id,
-              work.key,
-              controller.signal.aborted
-                ? "Simulation interrupted"
-                : transient
-                  ? "Temporary simulator infrastructure failure"
-                  : "Simulator rejected this combination",
-              job.lease,
-            ],
+          await measure("persistence", () =>
+            pool.query(
+              "UPDATE tg_work SET error=$3 WHERE job_id=$1 AND work_key=$2 AND EXISTS(SELECT 1 FROM tg_jobs WHERE id=$1 AND lease=$4)",
+              [
+                job.id,
+                work.key,
+                controller.signal.aborted
+                  ? "Simulation interrupted"
+                  : transient
+                    ? "Temporary simulator infrastructure failure"
+                    : "Simulator rejected this combination",
+                job.lease,
+              ],
+            ),
           );
           if (controller.signal.aborted) throw e;
           if (!transient) break;
@@ -291,27 +386,53 @@ export async function executeTopGear(
       }
       controller.signal.throwIfAborted();
       if (index === 0)
-        await pool.query(
-          "UPDATE tg_jobs SET phase='combinations' WHERE id=$1 AND lease=$2",
-          [job.id, job.lease],
+        await measure("persistence", () =>
+          pool.query(
+            "UPDATE tg_jobs SET phase='combinations' WHERE id=$1 AND lease=$2",
+            [job.id, job.lease],
+          ),
         );
-    }
-    finishing = true;
-    await finish(job.id, job.lease, "complete");
+    };
+    // Keep the reference durable before publishing candidate progress.
+    if (planned) await runSet(0);
+    let next = 1;
+    let failure: { error: unknown } | undefined;
+    const workers = await Promise.allSettled(
+      Array.from(
+        { length: Math.min(concurrency, Math.max(0, planned - 1)) },
+        async () => {
+          try {
+            while (next < planned) {
+              controller.signal.throwIfAborted();
+              await runSet(next++);
+            }
+          } catch (error) {
+            // Preserve the initiating failure; sibling aborts are a consequence.
+            if (!controller.signal.aborted) failure = { error };
+            controller.abort();
+            throw error;
+          }
+        },
+      ),
+    );
+    // allSettled keeps the lease/heartbeat alive until every child is drained.
+    if (failure) throw failure.error;
+    const rejected = workers.find((worker) => worker.status === "rejected");
+    if (rejected) throw rejected.reason;
+    controller.signal.throwIfAborted();
+    await finalize("complete");
   } catch (e) {
     if (finishing) throw e;
     if (!leaseLost)
-      await finish(
-        job.id,
-        job.lease,
+      await finalize(
         timeout
           ? "runtime-limit"
-          : controller.signal.aborted
+          : canceled
             ? "canceled"
             : e instanceof Error && e.message.includes("Search limit")
               ? "search-limit"
               : "failed",
-        controller.signal.aborted
+        canceled || timeout
           ? undefined
           : e instanceof Error
             ? e.message
@@ -321,6 +442,21 @@ export async function executeTopGear(
     clearInterval(heartbeat);
     clearTimeout(timer);
     signal.removeEventListener("abort", abort);
+    options.onPerformance?.({
+      jobId: job.id,
+      specId: job.request.snapshot.specId,
+      concurrency,
+      planned,
+      attempts,
+      succeeded,
+      iterationsPerSet: job.policy.iterationsPerSet,
+      elapsedMs: Math.round(performance.now() - startedAt),
+      phaseMs: Object.fromEntries(
+        Object.entries(phaseMs).map(([phase, ms]) => [phase, Math.round(ms)]),
+      ) as Record<ExecutionPhase, number>,
+      leaseLost,
+      timedOut: timeout,
+    });
   }
   return true;
 }
@@ -348,8 +484,12 @@ export async function retryJob(
 }
 
 // The provider must not acknowledge a targeted job that was refused for capacity.
-export async function executeTargetedJob(jobId: string, signal: AbortSignal) {
-  const ran = await executeTopGear(jobId, signal);
+export async function executeTargetedJob(
+  jobId: string,
+  signal: AbortSignal,
+  options: ExecutionOptions = {},
+) {
+  const ran = await executeTopGear(jobId, signal, evaluate, options);
   if (!ran) {
     const r = await pool.query("SELECT status FROM tg_jobs WHERE id=$1", [
       jobId,

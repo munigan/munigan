@@ -2,6 +2,14 @@
 
 Published 2026-09-09.
 
+## Current worker — parallel Top Gear execution
+
+Released 2026-09-11. Trigger Production **20260911.1** ([deployment](https://cloud.trigger.dev/projects/v3/proj_tbzzdkaotlbspettqxxh/deployments/mshu2wqo)) uses Medium 2x (2 vCPU, 4 GB) and up to two native processes per job. Reference results persist before candidates start; cancellation, retries, lease fencing, and durable resumption remain enforced. Each run logs phase timings. The global queue/admission cap remains two jobs; sampling and the pinned simulator are unchanged.
+
+Hosted verification recomputed a captured 96-set/500-iteration Frost DK request. Trigger execution fell from **150.560 s to 36.676 s**; all 96 persisted simulation results were identical. Total run cost including invocation changed from **$0.00510640 to $0.00625992**. [Live report](https://munigan.app/reports/fCp9MhybzeWKQG79NNKi3S9DPVcMOINlOdF6EsV4YH4). Full evidence and limits: [performance investigation](top-gear-performance.md).
+
+Verification: 424 unit/UI tests, 19 database integration tests, native persisted-result parity, TypeScript, project lint excluding unrelated nested `.worktrees` artifacts, formatting, worker packaging, and the real hosted run passed. No website deployment or Git commit/push was performed.
+
 ## Current production — Buffs & settings redesign
 
 Released 2026-09-10 at https://munigan.app.
@@ -106,7 +114,7 @@ Vercel accepts a durable PostgreSQL job, then dispatches its outbox after the re
 
 Database pools have four connections, five-second idle cleanup, and Vercel pool lifecycle handling. Neon can suspend between recovery sweeps when there is no app traffic. Sweeps still consume the Free plan's compute allowance; free hosting is capacity-limited. Trigger Free stops running tasks after its included credits are exhausted. No paid plan or add-on was enabled.
 
-Production admission: 120 sets per run (`TOP_GEAR_MAX_UNITS=600000`), 500 iterations per set, 900-second job deadline, 2,000,000 global daily work units, and 20 queued jobs maximum. The daily budget is shared by all visitors and is intentionally smaller than the local default for this free release.
+Production admission: 120 sets per run (`TOP_GEAR_MAX_UNITS=600000`), 500 iterations per set, 900-second job deadline, 200,000,000 global daily work units (`GLOBAL_DAILY_UNITS=200000000`), and 20 queued jobs maximum. On 2026-09-11, the shared daily budget increased 100× from 2,000,000 units. Each attempted combination consumes 5,000 units; admission reserves two attempts per estimated combination and releases unused capacity on settlement. The daily budget resets at midnight UTC. Per-browser and per-IP limits remain 20 and 40 admitted jobs per day.
 
 `APP_ORIGIN` is the custom HTTPS hostname. Vercel supplies `x-vercel-forwarded-for` for hashed per-source admission limits. Production uses a separate Neon database and fresh capability key. Local reports were not migrated.
 

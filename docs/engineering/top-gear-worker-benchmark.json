@@ -1,0 +1,48 @@
+{
+  "measuredAt": "2026-09-11T12:52:57.068Z",
+  "environment": "Local Apple M1 Max; full worker and isolated local PostgreSQL; replay of frozen 96-set Production Frost DK job from 2026-09-11T01:03:44Z",
+  "measurements": [
+    {
+      "specId": "deathknight:FrostTalents",
+      "concurrency": 1,
+      "planned": 96,
+      "attempts": 96,
+      "succeeded": 96,
+      "iterationsPerSet": 500,
+      "elapsedMs": 29239,
+      "phaseMs": {
+        "claim": 3,
+        "planning": 0,
+        "admission": 102,
+        "evaluation": 28955,
+        "persistence": 73,
+        "finalization": 104
+      },
+      "leaseLost": false,
+      "timedOut": false,
+      "identicalResults": true,
+      "returned": 96
+    },
+    {
+      "specId": "deathknight:FrostTalents",
+      "concurrency": 2,
+      "planned": 96,
+      "attempts": 96,
+      "succeeded": 96,
+      "iterationsPerSet": 500,
+      "elapsedMs": 14994,
+      "phaseMs": {
+        "claim": 2,
+        "planning": 0,
+        "admission": 104,
+        "evaluation": 29109,
+        "persistence": 70,
+        "finalization": 94
+      },
+      "leaseLost": false,
+      "timedOut": false,
+      "identicalResults": true,
+      "returned": 96
+    }
+  ]
+}

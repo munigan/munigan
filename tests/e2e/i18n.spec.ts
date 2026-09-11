@@ -122,7 +122,7 @@ test("switching a restored selection preserves exact request and scroll", async 
   await page
     .getByRole("button", { name: "Restore draft", exact: true })
     .click();
-  await page.getByRole("button", { name: /Expand all/ }).click();
+  await expect(page.getByRole("button", { name: /Expand all/ })).toHaveCount(0);
   await expect(page.locator(".slot-group").first()).toBeVisible();
   const before = await page.evaluate(
     (key) => localStorage.getItem(key),
@@ -183,7 +183,9 @@ test("a report keeps its current page, selected set and scroll when language cha
   const before = reads;
   await selectOption(page.getByLabel("Language", { exact: true }), "pt-BR");
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
-  await expect(page.locator(".report-controls")).toContainText("21–40 de 40");
+  await expect(
+    page.getByRole("navigation", { name: /Pagination|Paginação/ }),
+  ).toContainText("21–40 de 40");
   expect(await selected?.evaluate((el) => el.isConnected)).toBe(true);
   expect(await page.evaluate(() => scrollY)).toBe(scroll);
   expect(reads).toBe(before);

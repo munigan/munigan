@@ -30,6 +30,13 @@
     "help": "Estimativa máxima, incluindo o equipamento atual uma vez. Combinações inválidas ou idênticas são removidas durante o processamento. Cada conjunto aceito recebe {iterations} iterações de simulação.",
     "reduce": "Selecione menos itens para ficar dentro do limite gratuito de conjuntos."
   },
+  "iterations": {
+    "label": "Iterações por conjunto",
+    "help": "Mais iterações reduzem a variação aleatória, mas aumentam o tempo de simulação.",
+    "freeLimit": "Limite do plano grátis",
+    "value": "{count} iterações",
+    "blocked": "O plano grátis permite {count} iterações. Sua simulação usará {count} por conjunto."
+  },
   "sources": {
     "equipped": "Equipado",
     "custom": "Personalizado",

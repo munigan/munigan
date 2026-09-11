@@ -105,8 +105,7 @@ test("switches item versions, preserves drafts and simulates their actual stats"
           .first(),
       ).toBeVisible();
       await page.keyboard.press("Escape");
-      await page.goto("/top-gear");
-      await page.getByRole("button", { name: "Restore draft" }).click();
+      await page.getByRole("button", { name: "Edit & run again" }).click();
     }
   }
   expect(crit.classic - crit.original).toBeCloseTo(13, 6);

@@ -35,7 +35,7 @@ test("item title hit areas exclude trailing whitespace for both tooltip provider
   await expect(
     page.getByRole("checkbox", { name: "Selected only", exact: true }),
   ).toHaveCount(0);
-  await page.locator(".expand-slots").click();
+  await expect(page.locator(".expand-slots")).toHaveCount(0);
   for (const id of [44006, 45931]) {
     const link = page.locator(`.item-row-copy a[href$="item=${id}"]`).first();
     await link.scrollIntoViewIfNeeded();

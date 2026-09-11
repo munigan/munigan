@@ -10,6 +10,37 @@
   flex-direction: column;
   gap: 20px;
 }
+.home-wrath-identity {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 104px;
+  /* Align the visible artwork, accounting for the logo's transparent inset. */
+  margin-left: -16px;
+}
+.home-wrath-logo {
+  width: 222px;
+  height: 100px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.home-wrath-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 24px;
+  border-left: 1px solid #3c4851;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  color: #b2bec7;
+}
+.home-wrath-version {
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: #9cd6f0;
+}
 .home-eyebrow {
   font-size: 12px;
   line-height: 16px;
@@ -263,5 +294,30 @@
   }
   .home-example {
     padding: 20px;
+  }
+}
+@media (max-width: 639px) {
+  .home-wrath-identity {
+    gap: 12px;
+  }
+  .home-wrath-logo {
+    width: 190px;
+    height: 84px;
+  }
+  .home-wrath-label {
+    padding-left: 12px;
+    font-size: 10px;
+  }
+  .home-wrath-version {
+    font-size: 13px;
+  }
+}
+@media (max-width: 359px) {
+  .home-wrath-identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .home-wrath-label {
+    margin-left: 16px;
   }
 }

@@ -29,7 +29,7 @@ test("keeps provider and Original tooltips inside short and narrow viewports", a
     label: "Warrior · Fury",
   });
   await page.getByRole("button", { name: "Select gear", exact: true }).click();
-  await page.locator(".expand-slots").click();
+  await expect(page.locator(".expand-slots")).toHaveCount(0);
   // Switching provider tooltips can reset their inline width to auto. A long
   // weapon effect must not stretch the box after hovering a different item.
   for (const id of [44006, 47528, 47475, 47528]) {

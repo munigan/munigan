@@ -96,10 +96,8 @@ test("a failed Armory lookup preserves input, translates the error and can be re
     "Armorytester",
   );
   await page.getByRole("button", { name: "Open navigation" }).click();
-  await selectOption(
-    page.locator(".workbench-drawer").getByLabel("Language", { exact: true }),
-    "pt-BR",
-  );
+  await page.getByRole("button", { name: "Language", exact: true }).click();
+  await page.getByRole("button", { name: /Português/ }).click();
   await page.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(
     page.getByLabel("Nome do personagem", { exact: true }),

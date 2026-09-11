@@ -119,9 +119,7 @@ test("batch picker retains selections across filters, restores drafts and submit
       json: { error: "Custom candidates received for testing." },
     });
   });
-  await page
-    .getByRole("button", { name: "Run Gear Lab", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Run Gear Lab", exact: true }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Custom candidates received" }),
   ).toBeVisible();
@@ -146,7 +144,7 @@ test("close cancels a batch and paired/empty slot groups expose the picker", asy
   await page.getByRole("dialog").getByRole("checkbox").check();
   await page.keyboard.press("Escape");
   expect(await draft(page)).toEqual(before);
-  await page.getByRole("button", { name: /Expand all/ }).click();
+  await expect(page.getByRole("button", { name: /Expand all/ })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: /^Add custom item to/ }),
   ).toHaveCount(14);

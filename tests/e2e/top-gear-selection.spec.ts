@@ -86,7 +86,7 @@ test("mobile run action stays reachable and shows submission errors beside the a
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: /Expand all/ }).click();
+  await expect(page.getByRole("button", { name: /Expand all/ })).toHaveCount(0);
   await page.locator(".slot-group").last().scrollIntoViewIfNeeded();
   const run = page.getByRole("button", { name: "Run Gear Lab", exact: true });
   await run.scrollIntoViewIfNeeded();
