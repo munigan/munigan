@@ -100,6 +100,9 @@
       "markHeroic": "Usaremos uma peça 264 correspondente que você possui ou incluiremos o caminho de pré-requisitos."
     },
     "reviewHelp": "Suas opções são incluídas por padrão. A disponibilidade é verificada por item. Um conjunto completo deve respeitar todos os saldos compartilhados.",
+    "walletIncludedCount": "{count, plural, =0 {# compras compatíveis incluídas} one {# compra compatível incluída} other {# compras compatíveis incluídas}}",
+    "walletCalculating": "Calculando compras incluídas…",
+    "walletCountUnavailable": "Contagem de compras incluídas indisponível.",
     "reviewPending": "As opções estão sendo atualizadas. Resolva os problemas da análise ou edite os recursos para tentar novamente.",
     "includedCount": "{count} incluídos",
     "available": "Disponível",

@@ -7,6 +7,14 @@ import enDiagnostics from "../../../../messages/en-US/diagnostics.json";
 import enInventory from "../../../../messages/en-US/inventory.json";
 import { purchaseFixture } from "../../../../tests/support/purchase-fixtures";
 import type { ResourceAmounts } from "@/domain/purchases/model";
+import { preparePurchases } from "@/domain/purchases/candidates";
+import { createSearchBudget } from "@/domain/equipment/search-budget";
+import {
+  setPurchaseExcluded,
+  setResourceBalance,
+} from "@/domain/purchases/state";
+import type { PurchaseAnalysisState } from "./purchase-worker-contract";
+import ptInventory from "../../../../messages/pt-BR/inventory.json";
 import { ResourceWallet } from "./ResourceWallet";
 
 function renderWallet(balances: ResourceAmounts = { frost: 100, triumph: 30 }) {
@@ -124,3 +132,77 @@ it("returns focus to the invoking add or edit control after Cancel and Escape", 
   await userEvent.keyboard("{Escape}");
   expect(edit).toHaveFocus();
 });
+
+it.each(["en-US", "pt-BR"] as const)(
+  "counts only available included rewards and clears the count while updating (%s)",
+  (locale) => {
+    let request = purchaseFixture({ frost: 60 });
+    const state = (): PurchaseAnalysisState => ({
+      status: "ready",
+      analysis: { status: "no-legal-sets", visitedNodes: 0, diagnostics: [] },
+      preview: preparePurchases(request, createSearchBudget(100000)),
+    });
+    const view = (analysis: PurchaseAnalysisState) => (
+      <NextIntlClientProvider
+        locale={locale}
+        messages={{
+          inventory: locale === "en-US" ? enInventory : ptInventory,
+          common: enCommon,
+          diagnostics: enDiagnostics,
+        }}
+      >
+        <ResourceWallet
+          request={request}
+          analysis={analysis}
+          onChange={vi.fn()}
+          onReview={vi.fn()}
+        />
+      </NextIntlClientProvider>
+    );
+    const { rerender } = render(view(state()));
+    const summary = () => document.querySelector(".resource-wallet-review")!;
+    expect(summary()).toHaveTextContent(
+      locale === "en-US"
+        ? "4 compatible purchases included"
+        : "4 compras compatíveis incluídas",
+    );
+    request = setPurchaseExcluded(request, 50098, true);
+    rerender(view({ status: "loading" }));
+    expect(summary()).not.toHaveTextContent(/4/);
+    expect(summary()).toHaveTextContent(
+      locale === "en-US" ? "Calculating" : "Calculando",
+    );
+    rerender(view(state()));
+    expect(summary()).toHaveTextContent(
+      locale === "en-US"
+        ? "3 compatible purchases included"
+        : "3 compras compatíveis incluídas",
+    );
+    for (const itemId of [50095, 50853])
+      request = setPurchaseExcluded(request, itemId, true);
+    rerender(view(state()));
+    expect(summary()).toHaveTextContent(
+      locale === "en-US"
+        ? "1 compatible purchase included"
+        : "1 compra compatível incluída",
+    );
+    request = setResourceBalance(request, "frost", 0);
+    rerender(view(state()));
+    expect(summary()).toHaveTextContent(
+      locale === "en-US"
+        ? "0 compatible purchases included"
+        : "0 compras compatíveis incluídas",
+    );
+    rerender(
+      view({
+        status: "ready",
+        analysis: { status: "search-limit", visitedNodes: 1 },
+        preview: null,
+      }),
+    );
+    expect(summary()).not.toHaveTextContent(/0/);
+    expect(summary()).toHaveTextContent(
+      locale === "en-US" ? "unavailable" : "indisponível",
+    );
+  },
+);

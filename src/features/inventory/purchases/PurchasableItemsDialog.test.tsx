@@ -139,3 +139,46 @@ it("retains expanded review groups when a wallet edit invalidates the preview", 
   rerender(view(preview));
   expect(document.querySelector("details")).toHaveAttribute("open");
 });
+
+it("puts Feral purchase variants first while keeping every legal alternative", async () => {
+  const { purchaseFixture } =
+    await import("../../../../tests/support/purchase-fixtures");
+  const { listSpecs, defaultSettings } =
+    await import("@/features/settings/registry");
+  const { preparePurchases } = await import("@/domain/purchases/candidates");
+  const { createSearchBudget } =
+    await import("@/domain/equipment/search-budget");
+  const { emptyLoadout } = await import("@/domain/top-gear/slots");
+  const request = purchaseFixture({ frost: 60 });
+  const spec = listSpecs().find((s) => s.module === "feral_druid")!;
+  request.snapshot.specId = spec.id;
+  request.snapshot.settings = defaultSettings(spec.id);
+  request.snapshot.inventory = [];
+  request.snapshot.equipped = emptyLoadout();
+  request.selection.selectedInstanceIds = [];
+  const preview = preparePurchases(request, createSearchBudget(100000));
+  const original = preview.candidates.map((c) => c.instance.instanceId);
+  render(
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ inventory, common, diagnostics }}
+    >
+      <PurchasableItemsDialog
+        request={request}
+        preview={preview}
+        open
+        onOpenChange={vi.fn()}
+        onChange={vi.fn()}
+      />
+    </NextIntlClientProvider>,
+  );
+  const ids = Array.from(document.querySelectorAll("[data-purchase-id]")).map(
+    (row) => row.getAttribute("data-purchase-id"),
+  );
+  expect(ids.filter((id) => ["50107", "50822", "50827"].includes(id!))).toEqual(
+    ["50827", "50107", "50822"],
+  );
+  expect(preview.candidates.map((c) => c.instance.instanceId)).toEqual(
+    original,
+  );
+});

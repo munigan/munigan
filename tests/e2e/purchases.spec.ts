@@ -66,6 +66,9 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   await add(page, "100");
   await add(page, "1", 9, "Heroic");
   await ready(page);
+  await expect(page.locator(".resource-wallet-review")).toContainText(
+    "20 compatible purchases included",
+  );
   // These verified Alliance Warrior DPS rewards require Protector Regalia,
   // so Frost-derived rows alone cannot satisfy the mixed-tier acceptance case.
   const regaliaRows = [48381, 48382, 48383, 48384, 48385].map((itemId) =>
@@ -91,6 +94,9 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   await regaliaQuantity.fill("0");
   await ready(page);
   for (const row of regaliaRows) await expect(row).toHaveCount(0);
+  await expect(page.locator(".resource-wallet-review")).toContainText(
+    "10 compatible purchases included",
+  );
   await expect(frostShoulder.getByRole("checkbox")).toBeChecked();
   await regaliaQuantity.fill("1");
   await ready(page);
@@ -106,9 +112,12 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
       (i: { source: string }) => i.source === "purchase",
     ),
   ).toBe(false);
-  await page.screenshot({
-    path: `${artifacts}/board-01-populated-desktop.png`,
-  });
+  writeFileSync(
+    `${artifacts}/final-fix-wallet-desktop.png`,
+    await page.screenshot({
+      path: `${artifacts}/board-01-populated-desktop.png`,
+    }),
+  );
   await page
     .getByRole("button", { name: "Edit Emblems of Frost", exact: true })
     .click();
@@ -138,13 +147,27 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
     .filter({ has: page.locator("summary").filter({ hasText: "251" }) });
   await group.locator("summary").click();
   const reward = page.locator('[data-purchase-id="50082"]');
+  const shoulders = await group
+    .locator('[data-purchase-id="50082"], [data-purchase-id="50846"]')
+    .evaluateAll((rows) =>
+      rows.map((row) => row.getAttribute("data-purchase-id")),
+    );
+  expect(shoulders).toEqual(["50082", "50846"]);
   await reward.getByRole("checkbox").uncheck();
   await expect(reward.getByRole("checkbox")).not.toBeChecked();
-  await page.screenshot({ path: `${artifacts}/board-04-purchase-review.png` });
+  writeFileSync(
+    `${artifacts}/final-fix-purchase-review.png`,
+    await page.screenshot({
+      path: `${artifacts}/board-04-purchase-review.png`,
+    }),
+  );
   await page.keyboard.press("Escape");
   await expect(
     page.getByRole("button", { name: "Review purchases", exact: true }),
   ).toBeFocused();
+  await expect(page.locator(".resource-wallet-review")).toContainText(
+    "19 compatible purchases included",
+  );
   const excluded = await draft(page);
   expect(excluded.purchases.excludedItemIds.original).toContain(50082);
   await page.reload();

@@ -459,6 +459,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
             <div className="inventory-with-wallet">
               <ResourceWallet
                 request={request}
+                analysis={purchaseAnalysis}
                 onChange={change}
                 onReview={() => setPurchasesOpen(true)}
               />

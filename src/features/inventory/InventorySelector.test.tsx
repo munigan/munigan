@@ -207,3 +207,54 @@ it("cannot edit the original custom enhancements while its costed preview is abs
   expect(onChange).not.toHaveBeenCalled();
   expect(JSON.stringify(request)).toBe(before);
 });
+
+it("puts Feral purchase variants first while keeping every legal alternative", async () => {
+  const { purchaseFixture } =
+    await import("../../../tests/support/purchase-fixtures");
+  const { listSpecs, defaultSettings } =
+    await import("@/features/settings/registry");
+  const { preparePurchases } = await import("@/domain/purchases/candidates");
+  const { createSearchBudget } =
+    await import("@/domain/equipment/search-budget");
+  const { emptyLoadout } = await import("@/domain/top-gear/slots");
+  const request = purchaseFixture({ frost: 60 });
+  const spec = listSpecs().find((s) => s.module === "feral_druid")!;
+  request.snapshot.specId = spec.id;
+  request.snapshot.settings = defaultSettings(spec.id);
+  request.snapshot.inventory = [];
+  request.snapshot.equipped = emptyLoadout();
+  request.selection.selectedInstanceIds = [];
+  const preview = preparePurchases(request, createSearchBudget(100000));
+  const original = preview.candidates.map((c) => c.instance.instanceId);
+  render(
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ inventory, diagnostics, common }}
+    >
+      <InventorySelector
+        request={request}
+        purchasePreview={preview}
+        onChange={vi.fn()}
+      />
+    </NextIntlClientProvider>,
+  );
+  const ids = Array.from(
+    document.querySelectorAll(".inventory-row[data-source=purchase]"),
+  ).map((row) => row.getAttribute("data-instance-id"));
+  expect(
+    ids.filter((id) =>
+      [
+        "purchase-original-50107",
+        "purchase-original-50822",
+        "purchase-original-50827",
+      ].includes(id!),
+    ),
+  ).toEqual([
+    "purchase-original-50827",
+    "purchase-original-50107",
+    "purchase-original-50822",
+  ]);
+  expect(preview.candidates.map((c) => c.instance.instanceId)).toEqual(
+    original,
+  );
+});

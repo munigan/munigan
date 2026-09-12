@@ -100,6 +100,9 @@
       "markHeroic": "We’ll use a matching 264 piece you own, or include its prerequisite path."
     },
     "reviewHelp": "Your options are included by default. Eligibility is checked per item. A complete set must fit all shared balances.",
+    "walletIncludedCount": "{count, plural, one {# compatible purchase included} other {# compatible purchases included}}",
+    "walletCalculating": "Calculating included purchases…",
+    "walletCountUnavailable": "Included purchase count unavailable.",
     "reviewPending": "Purchase options are updating. Resolve any analysis issue or edit resources to retry.",
     "includedCount": "{count} included",
     "available": "Available",

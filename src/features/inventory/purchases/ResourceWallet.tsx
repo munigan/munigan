@@ -8,6 +8,7 @@ import { tokenFamilyForClass } from "@/domain/purchases/catalog";
 import type { ResourceId } from "@/domain/purchases/model";
 import { removeResource, setResourceBalance } from "@/domain/purchases/state";
 import type { TopGearRequest } from "@/domain/top-gear/model";
+import type { PurchaseAnalysisState } from "./purchase-worker-contract";
 import { ResourceDialog } from "./ResourceDialog";
 import {
   isResourceForFamily,
@@ -18,6 +19,7 @@ import "./purchases.css";
 
 type Props = {
   request: TopGearRequest;
+  analysis?: PurchaseAnalysisState;
   onChange: (request: TopGearRequest) => void;
   onReview: () => void;
 };
@@ -27,13 +29,22 @@ type Translator = (
   values?: Record<string, string | number>,
 ) => string;
 
-export function ResourceWallet({ request, onChange, onReview }: Props) {
+export function ResourceWallet({
+  request,
+  analysis,
+  onChange,
+  onReview,
+}: Props) {
   const t = useTranslations("inventory.purchases") as unknown as Translator;
   const family = tokenFamilyForClass(request.snapshot.settings.player!.class);
   const familyLabel = t(`families.${family}`);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ResourceId>();
   const opener = useRef<HTMLElement | null>(null);
+  const preview = analysis?.status === "ready" ? analysis.preview : null;
+  const includedCount = preview?.candidates.filter(
+    (c) => c.included && c.available,
+  ).length;
   const balances = request.purchases?.balances ?? {};
   const ids = resourceOptions
     .map((option) => option.id(family))
@@ -115,7 +126,15 @@ export function ResourceWallet({ request, onChange, onReview }: Props) {
 
       {ids.length > 0 && (
         <div className="resource-wallet-review">
-          <strong>{t("reviewTitle")}</strong>
+          <strong role="status">
+            {includedCount !== undefined
+              ? t("walletIncludedCount", { count: includedCount })
+              : t(
+                  analysis?.status === "loading"
+                    ? "walletCalculating"
+                    : "walletCountUnavailable",
+                )}
+          </strong>
           <span>{t("reviewDescription")}</span>
           <Button type="button" variant="ghost" onClick={onReview}>
             {t("reviewPurchases")}

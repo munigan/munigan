@@ -31,6 +31,7 @@ import { getPurchaseCatalog } from "@/domain/purchases/catalog";
 import { itemVersionOf } from "@/domain/top-gear/item-version";
 import { setPurchaseExcluded } from "@/domain/purchases/state";
 import { setPurchaseEnhancements } from "@/domain/purchases/enhancements";
+import { orderPurchaseVariants } from "./purchases/presentation";
 const filterKeys = {
   "All slots": "all",
   Armor: "armor",
@@ -112,10 +113,18 @@ export function InventorySelector({
     (s) => s !== "finger2" && s !== "trinket2" && s !== "offHand",
   );
   const items = (s: Slot) =>
-    valid.filter((i) =>
-      slotGroup(s).some((slot) =>
-        canEquip(snapshot, catalog.items.get(i.itemId)!, slot),
+    orderPurchaseVariants(
+      valid.filter((i) =>
+        slotGroup(s).some((slot) =>
+          canEquip(snapshot, catalog.items.get(i.itemId)!, slot),
+        ),
       ),
+      (item) =>
+        item.source === "purchase"
+          ? purchaseCatalog?.byItemId.get(item.itemId)
+          : undefined,
+      snapshot.specId,
+      snapshot.settings.player!.class,
     );
   function toggle(id: string) {
     const candidate = candidateById.get(id);

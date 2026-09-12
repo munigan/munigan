@@ -27,6 +27,7 @@ import { getCatalog } from "@/domain/equipment/catalog";
 import { ItemIcon, ItemName } from "../Item";
 import type { PurchasePreview } from "./purchase-worker-contract";
 import { optionForResource } from "./resource-labels";
+import { orderPurchaseVariants } from "./presentation";
 import "./purchases.css";
 export function PurchasableItemsDialog({
   request,
@@ -52,6 +53,12 @@ export function PurchasableItemsDialog({
   const catalog = getPurchaseCatalog(profile);
   const equipment = getCatalog(profile);
   const family = tokenFamilyForClass(request.snapshot.settings.player!.class);
+  const orderedCandidates = orderPurchaseVariants(
+    preview?.candidates ?? [],
+    (candidate) => catalog.byItemId.get(candidate.instance.itemId),
+    request.snapshot.specId,
+    request.snapshot.settings.player!.class,
+  );
   const changeOpen = onOpenChange;
   const name = (id: number) => equipment.items.get(id)?.name ?? String(id);
   const resourceName = (id: ResourceId) => {
@@ -95,7 +102,7 @@ export function PurchasableItemsDialog({
                 <p role="status">{t("reviewPending")}</p>
               ) : (
                 [251, 264, 277, 232, 245, 258].map((level) => {
-                  const candidates = preview.candidates.filter(
+                  const candidates = orderedCandidates.filter(
                     (c) =>
                       catalog.byItemId.get(c.instance.itemId)?.itemLevel ===
                       level,
