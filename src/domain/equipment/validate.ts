@@ -168,7 +168,7 @@ export function validateItem(
       "unsupported-item-version",
       `${item.name} is not yet supported with Original WotLK item data`,
     );
-  if (instance.source === "custom") {
+  if (instance.source === "custom" || instance.source === "purchase") {
     const reason = customEligibilityError(snapshot, item, catalog);
     if (reason) error("custom-ineligible", reason);
   }
