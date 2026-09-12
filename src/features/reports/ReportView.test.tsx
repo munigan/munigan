@@ -1,5 +1,11 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { fixtureRequest } from "../../../tests/support/fixtures";
 import {
@@ -26,6 +32,7 @@ import diagnosticsPt from "../../../messages/pt-BR/diagnostics.json";
 import inventoryEn from "../../../messages/en-US/inventory.json";
 import inventoryPt from "../../../messages/pt-BR/inventory.json";
 import { loadDraft } from "../import/draft-store";
+import { Stat } from "@/generated/wotlk/common";
 import { ReportView } from "./ReportView";
 const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -109,6 +116,12 @@ function view(locale: "en-US" | "pt-BR") {
   );
 }
 
+function stats(strength: number) {
+  return Array.from({ length: 40 }, (_, index) =>
+    index === Stat.StatStrength ? strength : 0,
+  );
+}
+
 function purchasePages() {
   const first = fixture();
   const originalSnapshot = decodeSnapshot(first.report.snapshot);
@@ -132,6 +145,7 @@ function purchasePages() {
   const baseline: SetRow = {
     ...first.report.rows[0],
     id: "baseline",
+    stats: stats(1000),
     purchasePlan: {
       steps: [],
       spent: {},
@@ -142,6 +156,7 @@ function purchasePages() {
   const sixty: SetRow = {
     ...baseline,
     id: "spend-60",
+    stats: stats(2060),
     isEquipped: false,
     dps: 10060,
     gain: 59.5,
@@ -167,6 +182,7 @@ function purchasePages() {
   const regalia: SetRow = {
     ...baseline,
     id: "spend-regalia",
+    stats: stats(3095),
     isEquipped: false,
     dps: 10095,
     gain: 94.5,
@@ -313,6 +329,21 @@ it("updates the frozen purchase plan across selected, paginated, pinned, and loc
     screen.getByRole("row", { name: /Insígnia.*Aniquilador.*1.*0/ }),
   ).toBeInTheDocument();
   expect(container.querySelector(".combination-row.selected")).toBeTruthy();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Detalhes dos atributos" }),
+  );
+  expect(
+    screen.getByRole("heading", { name: "Atributos do personagem" }),
+  ).toBeInTheDocument();
+  const primaryStats = screen.getByRole("table", {
+    name: "Atributos principais",
+  });
+  const strength = within(primaryStats).getByRole("rowheader", {
+    name: "Força",
+  });
+  expect(
+    within(strength.closest("tr")!).getByText("3.095"),
+  ).toBeInTheDocument();
   expect(fetch).toHaveBeenCalledTimes(2);
 });
 
