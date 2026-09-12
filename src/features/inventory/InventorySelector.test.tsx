@@ -1,7 +1,8 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
 import inventory from "../../../messages/en-US/inventory.json";
+import common from "../../../messages/en-US/common.json";
 import diagnostics from "../../../messages/en-US/diagnostics.json";
 import { fixtureRequest } from "../../../tests/support/fixtures";
 import { InventorySelector } from "./InventorySelector";
@@ -152,4 +153,57 @@ it("converts registered custom tiers into one costed row and routes exclusions t
     onChange.mock.calls[0][0].purchases.excludedItemIds.original,
   ).toContain(50098);
   expect(onChange.mock.calls[0][0].snapshot).toEqual(request.snapshot);
+});
+
+it("cannot edit the original custom enhancements while its costed preview is absent", async () => {
+  const { purchaseFixture } =
+    await import("../../../tests/support/purchase-fixtures");
+  const request = purchaseFixture({ frost: 100 });
+  request.snapshot.inventory.push({
+    instanceId: "custom-shoulders",
+    itemId: 50098,
+    source: "custom",
+    gemIds: [40111],
+    enchantId: 3808,
+  });
+  request.selection.selectedInstanceIds.push("custom-shoulders");
+  request.purchases!.itemEnhancements.original = {
+    "50098": { gemIds: [0], enchantId: 0 },
+  };
+  const before = JSON.stringify(request);
+  const onChange = vi.fn();
+  render(
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ inventory, diagnostics, common }}
+    >
+      <InventorySelector
+        request={request}
+        purchasePreview={null}
+        onChange={onChange}
+      />
+    </NextIntlClientProvider>,
+  );
+  const row = document.querySelector('[data-instance-id="custom-shoulders"]')!;
+  expect(row).toHaveTextContent("Uses resources");
+  fireEvent.click(row);
+  expect(
+    screen.queryByRole("button", {
+      name: /Edit gems and enchants for Scourgelord/,
+    }),
+  ).not.toBeInTheDocument();
+  fireEvent.keyDown(
+    row.querySelector(".item-row-copy > .item-tooltip-trigger > a")!,
+    { key: " " },
+  );
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  for (const field of ["0", "enchant"]) {
+    const control = row.querySelector(`[data-enhancement-field="${field}"]`)!;
+    fireEvent.click(control);
+    fireEvent.keyDown(control, { key: " " });
+    fireEvent.keyDown(control, { key: "Enter" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  }
+  expect(onChange).not.toHaveBeenCalled();
+  expect(JSON.stringify(request)).toBe(before);
 });

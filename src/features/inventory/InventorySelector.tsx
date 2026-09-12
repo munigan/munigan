@@ -5,7 +5,11 @@ import { BagPreview } from "@/features/import/BagPreview";
 import { SectionHeading } from "@/components/ui/layout";
 import { Button } from "@/components/ui/Button";
 import { useMemo, useRef, useState } from "react";
-import type { TopGearRequest, Slot } from "@/domain/top-gear/model";
+import type {
+  TopGearRequest,
+  Slot,
+  ItemInstance,
+} from "@/domain/top-gear/model";
 import { slots } from "@/domain/top-gear/slots";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { canEquip, validateItem } from "@/domain/equipment/validate";
@@ -77,6 +81,10 @@ export function InventorySelector({
   const purchaseCatalog = request.purchases
     ? getPurchaseCatalog(itemVersionOf(snapshot))
     : null;
+  const isConvertedCustom = (item: ItemInstance) =>
+    !!request.purchases &&
+    item.source === "custom" &&
+    !!purchaseCatalog?.byItemId.has(item.itemId);
   const candidateById = new Map(
     purchasePreview?.candidates.map((c) => [c.instance.instanceId, c]),
   );
@@ -178,6 +186,10 @@ export function InventorySelector({
         analysis={enhancementAnalysis}
         onChange={onChange}
         onEdit={(id, field) => {
+          const item = snapshot.inventory.find(
+            (item) => item.instanceId === id,
+          );
+          if (!item || isConvertedCustom(item)) return;
           editorReturnFocus.current =
             document.activeElement instanceof HTMLElement
               ? document.activeElement
@@ -270,17 +282,13 @@ export function InventorySelector({
                         item.source === "purchase" &&
                         !candidateById.get(item.instanceId)?.available
                       }
-                      disabled={
-                        !!request.purchases &&
-                        !purchasePreview &&
-                        item.source === "custom" &&
-                        !!purchaseCatalog?.byItemId.has(item.itemId)
-                      }
+                      disabled={!purchasePreview && isConvertedCustom(item)}
                       selected={selection.selectedInstanceIds.includes(
                         item.instanceId,
                       )}
                       onToggle={() => toggle(item.instanceId)}
                       onEdit={(field) => {
+                        if (isConvertedCustom(item)) return;
                         editorReturnFocus.current =
                           document.activeElement instanceof HTMLElement
                             ? document.activeElement
@@ -310,7 +318,7 @@ export function InventorySelector({
           </section>
         );
       })}
-      {editing && editedItem && (
+      {editing && editedItem && !isConvertedCustom(editedItem) && (
         <ItemEnhancementEditor
           key={editedItem.instanceId}
           request={

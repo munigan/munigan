@@ -128,7 +128,10 @@ export function InventoryItemRow({
             <ItemEnhancementPreview
               item={preview}
               snapshot={snapshot}
-              onEdit={onEdit}
+              disabled={disabled}
+              onEdit={(field) => {
+                if (editable) onEdit(field);
+              }}
             />
           </div>
         </div>

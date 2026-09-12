@@ -9,7 +9,12 @@ import userEvent from "@testing-library/user-event";
 import { within } from "@testing-library/react";
 
 afterEach(cleanup);
-function setup(itemId?: number, enchantId = 3817) {
+function setup(
+  itemId?: number,
+  enchantId = 3817,
+  disabled = false,
+  gemIds = [41398, 40111],
+) {
   const { snapshot } = fixtureRequest();
   const item = {
     ...snapshot.inventory[0],
@@ -22,10 +27,11 @@ function setup(itemId?: number, enchantId = 3817) {
     <NextIntlClientProvider locale="en-US" messages={{ inventory, common }}>
       <InventoryItemRow
         item={item}
-        preview={{ ...item, gemIds: [41398, 40111], enchantId }}
+        preview={{ ...item, gemIds, enchantId }}
         snapshot={snapshot}
         index={0}
         selected
+        disabled={disabled}
         onEdit={onEdit}
         onToggle={onToggle}
         onRemove={onRemove}
@@ -192,3 +198,37 @@ it("coordinates item and local enchant tooltips in both directions", async () =>
   );
   expect(screen.getAllByRole("tooltip")).toHaveLength(1);
 });
+
+it.each([0, 3817])(
+  "disables and guards every enhancement entry point when the row is disabled (enchant %s)",
+  (enchantId) => {
+    const { container, onEdit } = setup(
+      44006,
+      enchantId,
+      true,
+      enchantId ? [41398, 40111] : [0, 0],
+    );
+    const row = container.querySelector(".inventory-row")!;
+    const mainLink = row.querySelector(
+      ".item-row-copy > .item-tooltip-trigger > a",
+    )!;
+    expect(
+      screen.queryByRole("button", { name: /Edit gems and enchants/ }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(row);
+    fireEvent.keyDown(mainLink, { key: " " });
+    for (const control of row.querySelectorAll<HTMLElement>(
+      "[data-enhancement-field]",
+    )) {
+      fireEvent.click(control);
+      fireEvent.keyDown(control, { key: " " });
+      fireEvent.keyDown(control, { key: "Enter" });
+      expect(onEdit).not.toHaveBeenCalled();
+      if (control.tagName === "BUTTON") expect(control).toBeDisabled();
+      else {
+        expect(control).toHaveAttribute("aria-disabled", "true");
+        expect(control).toHaveAttribute("tabindex", "-1");
+      }
+    }
+  },
+);
