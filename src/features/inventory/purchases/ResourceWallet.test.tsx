@@ -48,6 +48,31 @@ it("renders one localized wallet row per resource and reviews purchase candidate
   expect(onReview).toHaveBeenCalledTimes(1);
 });
 
+it("describes Trophy purchases separately from Mark upgrades", () => {
+  renderWallet({
+    trophy: 1,
+    "mark:normal:vanquisher": 1,
+    "regalia:vanquisher": 1,
+  });
+
+  const trophy = screen
+    .getByText("Trophy of the Crusade")
+    .closest<HTMLElement>(".resource-wallet-row")!;
+  expect(trophy).toHaveTextContent(
+    "Also requires Emblems of Triumph · Buys T9 · Item level 245",
+  );
+  const mark = screen
+    .getByText("Vanquisher’s Mark of Sanctification")
+    .closest<HTMLElement>(".resource-wallet-row")!;
+  expect(mark).toHaveTextContent("Normal · Upgrades T10 251 → 264");
+  const regalia = screen
+    .getByText("Regalia of the Grand Vanquisher")
+    .closest<HTMLElement>(".resource-wallet-row")!;
+  expect(regalia).toHaveTextContent(
+    "Heroic · Redeems directly for T9 · Item level 258",
+  );
+});
+
 it("updates inline quantities and removes a resource with accessible actions", async () => {
   const { onChange } = renderWallet({ frost: 2, triumph: 30 });
   await userEvent.click(

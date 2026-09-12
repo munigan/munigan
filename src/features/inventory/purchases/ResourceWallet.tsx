@@ -78,12 +78,7 @@ export function ResourceWallet({ request, onChange, onReview }: Props) {
             <ResourceIcon token={!id.includes("frost") && id !== "triumph"} />
             <div className="resource-wallet-copy">
               <strong>{name}</strong>
-              <span>
-                {t(`walletDescriptions.${option.quality}`, {
-                  tier: option.tier,
-                  level: option.itemLevel,
-                })}
-              </span>
+              <span>{t(option.walletDescriptionKey)}</span>
             </div>
             <NumberInput
               label={t("walletQuantity", { name })}

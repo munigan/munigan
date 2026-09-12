@@ -74,9 +74,12 @@
       "markHeroic": "Melhora a peça 264 correspondente."
     },
     "walletDescriptions": {
-      "base": "Compra T{tier} base · Nível do item {level}",
-      "normal": "Normal · Melhora T{tier} · Nível do item {level}",
-      "heroic": "Heroico · Compra ou melhora T{tier} · Nível do item {level}"
+      "frost": "Compra T10 base · Nível do item 251",
+      "triumph": "Compra T9 base · Nível do item 232",
+      "trophy": "Também requer Emblemas do Triunfo · Compra T9 · Nível do item 245",
+      "regalia": "Heroico · Troca direta por T9 · Nível do item 258",
+      "markNormal": "Normal · Melhora T10 251 → 264",
+      "markHeroic": "Heroico · Melhora T10 264 → 277"
     },
     "quantityLabels": {
       "base": "Emblemas disponíveis",

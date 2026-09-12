@@ -74,9 +74,12 @@
       "markHeroic": "Upgrades the matching 264 piece."
     },
     "walletDescriptions": {
-      "base": "Buys base T{tier} · Item level {level}",
-      "normal": "Normal · Upgrades T{tier} · Item level {level}",
-      "heroic": "Heroic · Buys or upgrades T{tier} · Item level {level}"
+      "frost": "Buys base T10 · Item level 251",
+      "triumph": "Buys base T9 · Item level 232",
+      "trophy": "Also requires Emblems of Triumph · Buys T9 · Item level 245",
+      "regalia": "Heroic · Redeems directly for T9 · Item level 258",
+      "markNormal": "Normal · Upgrades T10 251 → 264",
+      "markHeroic": "Heroic · Upgrades T10 264 → 277"
     },
     "quantityLabels": {
       "base": "Emblems available",

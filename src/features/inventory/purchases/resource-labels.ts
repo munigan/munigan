@@ -10,6 +10,7 @@ type ResourceOption = {
   id: (family: TokenFamily) => ResourceId;
   labelKey: string;
   descriptionKey: string;
+  walletDescriptionKey: string;
   prerequisiteTitleKey: string;
   prerequisiteKey: string;
 };
@@ -22,6 +23,7 @@ export const resourceOptions: readonly ResourceOption[] = [
     id: () => "frost",
     labelKey: "resources.frost",
     descriptionKey: "descriptions.frost",
+    walletDescriptionKey: "walletDescriptions.frost",
     prerequisiteTitleKey: "prerequisites.noneTitle",
     prerequisiteKey: "prerequisites.frost",
   },
@@ -32,6 +34,7 @@ export const resourceOptions: readonly ResourceOption[] = [
     id: (family) => `mark:normal:${family}`,
     labelKey: "resources.markNormal",
     descriptionKey: "descriptions.markNormal",
+    walletDescriptionKey: "walletDescriptions.markNormal",
     prerequisiteTitleKey: "prerequisites.baseIncludedTitle",
     prerequisiteKey: "prerequisites.markNormal",
   },
@@ -42,6 +45,7 @@ export const resourceOptions: readonly ResourceOption[] = [
     id: (family) => `mark:heroic:${family}`,
     labelKey: "resources.markHeroic",
     descriptionKey: "descriptions.markHeroic",
+    walletDescriptionKey: "walletDescriptions.markHeroic",
     prerequisiteTitleKey: "prerequisites.normalIncludedTitle",
     prerequisiteKey: "prerequisites.markHeroic",
   },
@@ -52,6 +56,7 @@ export const resourceOptions: readonly ResourceOption[] = [
     id: () => "triumph",
     labelKey: "resources.triumph",
     descriptionKey: "descriptions.triumph",
+    walletDescriptionKey: "walletDescriptions.triumph",
     prerequisiteTitleKey: "prerequisites.noneTitle",
     prerequisiteKey: "prerequisites.triumph",
   },
@@ -62,6 +67,7 @@ export const resourceOptions: readonly ResourceOption[] = [
     id: () => "trophy",
     labelKey: "resources.trophy",
     descriptionKey: "descriptions.trophy",
+    walletDescriptionKey: "walletDescriptions.trophy",
     prerequisiteTitleKey: "prerequisites.triumphIncludedTitle",
     prerequisiteKey: "prerequisites.trophy",
   },
@@ -72,6 +78,7 @@ export const resourceOptions: readonly ResourceOption[] = [
     id: (family) => `regalia:${family}`,
     labelKey: "resources.regalia",
     descriptionKey: "descriptions.regalia",
+    walletDescriptionKey: "walletDescriptions.regalia",
     prerequisiteTitleKey: "prerequisites.directTitle",
     prerequisiteKey: "prerequisites.regalia",
   },

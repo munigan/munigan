@@ -93,11 +93,16 @@ export function ResourceDialog({
   }
 
   function save() {
-    const withoutPrevious =
+    const withSelected = setResourceBalance(
+      request,
+      selectedResource,
+      quantity,
+    );
+    const next =
       resourceId && resourceId !== selectedResource
-        ? removeResource(request, resourceId)
-        : request;
-    onChange(setResourceBalance(withoutPrevious, selectedResource, quantity));
+        ? removeResource(withSelected, resourceId)
+        : withSelected;
+    onChange(next);
     onOpenChange(false);
   }
 

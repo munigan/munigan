@@ -70,6 +70,49 @@ it("keeps an edited quantity local and replaces the existing balance on Save", a
   expect(onOpenChange.mock.calls.at(-1)?.[0]).toBe(false);
 });
 
+it("preserves persisted purchase metadata when replacing the sole balance", async () => {
+  const request = purchaseFixture({ frost: 100 });
+  request.purchases = {
+    ...request.purchases!,
+    recipeRevision: "retired-recipe-revision",
+    excludedItemIds: {
+      original: [50098],
+      classic: [51125],
+    },
+    itemEnhancements: {
+      original: { "50098": { enchantId: 0 } },
+      classic: { "51125": { gemIds: [null, 40111] } },
+    },
+  };
+  const original = structuredClone(request);
+  const onChange = vi.fn();
+  render(
+    <Messages locale="en-US">
+      <ResourceDialog
+        request={request}
+        resourceId="frost"
+        open
+        onOpenChange={vi.fn()}
+        onChange={onChange}
+      />
+    </Messages>,
+  );
+
+  await userEvent.click(
+    screen.getByRole("radio", {
+      name: /Normal · 264.*Mark of Sanctification/i,
+    }),
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Save resource" }));
+
+  expect(onChange).toHaveBeenCalledTimes(1);
+  expect(onChange.mock.calls[0][0].purchases).toEqual({
+    ...original.purchases,
+    balances: { "mark:normal:vanquisher": 1 },
+  });
+  expect(request).toEqual(original);
+});
+
 it("discards unsaved edits on Cancel and Escape", async () => {
   const request = purchaseFixture({ frost: 100 });
   const onChange = vi.fn();
