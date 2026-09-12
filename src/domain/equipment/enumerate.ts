@@ -6,7 +6,9 @@ import type {
   Allowance,
   RunPlan,
   Diagnostic,
+  Slot,
 } from "@/domain/top-gear/model";
+import type { SearchBudget } from "./search-budget";
 import { slots, emptyLoadout } from "@/domain/top-gear/slots";
 import { getCatalog, type Catalog } from "./catalog";
 import { HandType, WeaponType } from "@/generated/wotlk/common";
@@ -107,6 +109,15 @@ export function* enumerateLoadouts(
   catalog: Catalog = getCatalog(snapshot.itemVersion),
   maxNodes = 100000,
   onExcluded?: (loadout: Loadout, diagnostics: Diagnostic[]) => void,
+  options?: {
+    budget?: SearchBudget;
+    deduplicate?: boolean;
+    acceptPartial?: (
+      loadout: Loadout,
+      assignedSlots: readonly Slot[],
+    ) => boolean;
+    acceptComplete?: (loadout: Loadout) => boolean;
+  },
 ): Generator<Loadout> {
   const domains = choices(snapshot, selection, catalog),
     loadout = emptyLoadout(),
@@ -114,7 +125,8 @@ export function* enumerateLoadouts(
     seen = new Set<string>();
   let visited = 0;
   function* visit(index: number): Generator<Loadout> {
-    if (++visited > maxNodes) throw new Error("Search limit reached");
+    if (options?.budget) options.budget.visit();
+    else if (++visited > maxNodes) throw new Error("Search limit reached");
     if (index === slots.length) {
       const gemmed = withEnhancements(
         snapshot,
@@ -135,9 +147,10 @@ export function* enumerateLoadouts(
             ),
           );
       if (diagnostics.length === 0) {
+        if (options?.acceptComplete && !options.acceptComplete(loadout)) return;
         const key = loadoutKey(snapshot, loadout);
-        if (!seen.has(key)) {
-          seen.add(key);
+        if (options?.deduplicate === false || !seen.has(key)) {
+          if (options?.deduplicate !== false) seen.add(key);
           yield alignPairedSlots(
             snapshot,
             loadout,
@@ -152,7 +165,11 @@ export function* enumerateLoadouts(
       if (id !== null && used.has(id)) continue;
       loadout[slots[index]] = id;
       if (id !== null) used.add(id);
-      yield* visit(index + 1);
+      if (
+        !options?.acceptPartial ||
+        options.acceptPartial(loadout, slots.slice(0, index + 1))
+      )
+        yield* visit(index + 1);
       if (id !== null) used.delete(id);
     }
     loadout[slots[index]] = null;
