@@ -52,9 +52,9 @@ test("selected report rows retain distinct frozen plans, item links and original
   await expect(panel).not.toContainText("Uses the item from step 1");
   await page.locator(".combination-row.equipped-row").click();
   await expect(panel).toContainText("No purchases needed");
-  await expect(panel.getByRole("row", { name: /Emblems of Frost/ })).toHaveText(
-    /Emblems of Frost0100/,
-  );
+  const unusedFrost = panel.getByRole("row", { name: /Emblems of Frost/ });
+  await expect(unusedFrost.getByRole("cell").nth(0)).toHaveText("0");
+  await expect(unusedFrost.getByRole("cell").nth(1)).toHaveText("100");
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: `${artifacts}/board-09-unused-resources.png`,

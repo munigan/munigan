@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Locator } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { selectOption } from "./select-option";
 
@@ -66,9 +66,36 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   await add(page, "100");
   await add(page, "1", 9, "Heroic");
   await ready(page);
-  await expect(
-    page.locator('.inventory-row[data-source="purchase"]'),
-  ).not.toHaveCount(0);
+  // These verified Alliance Warrior DPS rewards require Protector Regalia,
+  // so Frost-derived rows alone cannot satisfy the mixed-tier acceptance case.
+  const regaliaRows = [48381, 48382, 48383, 48384, 48385].map((itemId) =>
+    page.locator(
+      `.inventory-row[data-source="purchase"][data-instance-id="purchase-original-${itemId}"]`,
+    ),
+  );
+  for (const row of regaliaRows) {
+    await expect(row).toContainText("258");
+    await expect(row.getByRole("checkbox")).toBeChecked();
+  }
+  const frostShoulder = page.locator(
+    '.inventory-row[data-source="purchase"][data-instance-id="purchase-original-50082"]',
+  );
+  await expect(frostShoulder).toContainText("251");
+  await expect(frostShoulder.getByRole("checkbox")).toBeChecked();
+  const regaliaQuantity = page.getByRole("spinbutton", {
+    name: "Regalia of the Grand Protector quantity",
+    exact: true,
+  });
+  // One token exposes all five alternatives. Removing that token removes its
+  // rewards without removing Frost options; final-set token bounds have domain tests.
+  await regaliaQuantity.fill("0");
+  await ready(page);
+  for (const row of regaliaRows) await expect(row).toHaveCount(0);
+  await expect(frostShoulder.getByRole("checkbox")).toBeChecked();
+  await regaliaQuantity.fill("1");
+  await ready(page);
+  for (const row of regaliaRows)
+    await expect(row.getByRole("checkbox")).toBeChecked();
   const original = await draft(page);
   expect(original.purchases.balances).toEqual({
     frost: 100,
@@ -211,12 +238,10 @@ test("resource dialog matches shared controls across desktop, breakpoint, mobile
       borderRadius: width < 640 ? "0px" : shared.borderRadius,
     });
     expect(
-      await dialog
-        .locator(".resource-dialog-title")
-        .evaluate((el) => ({
-          size: getComputedStyle(el).fontSize,
-          lineHeight: getComputedStyle(el).lineHeight,
-        })),
+      await dialog.locator(".resource-dialog-title").evaluate((el) => ({
+        size: getComputedStyle(el).fontSize,
+        lineHeight: getComputedStyle(el).lineHeight,
+      })),
     ).toEqual(customTitle);
     expect(
       await dialog
@@ -380,4 +405,60 @@ test("missing normal prerequisite leaves unrelated gear available and unsaved ed
       .getByRole("checkbox"),
   ).toBeEnabled();
   await ready(page);
+});
+
+test("adds a new resource using only keyboard navigation, quantity entry and save", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const before = await draft(page);
+  expect(before.purchases).toBeUndefined();
+  async function tabTo(target: Locator) {
+    for (let step = 0; step < 40; step++) {
+      if (await target.evaluate((el) => el === document.activeElement)) break;
+      await page.keyboard.press("Tab");
+    }
+    await expect(target).toBeFocused();
+  }
+  const trigger = page.getByRole("button", {
+    name: "Add resource",
+    exact: true,
+  });
+  await tabTo(trigger);
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Add a token or currency" });
+  await expect(dialog).toBeVisible();
+  const tier = dialog.getByRole("button", { name: "Tier 10", exact: true });
+  await tabTo(tier);
+  await page.keyboard.press("Enter");
+  const frost = dialog.getByRole("radio", { name: /^Base · 251/ });
+  await tabTo(frost);
+  await page.keyboard.press("Space");
+  await expect(frost).toBeChecked();
+  const quantity = dialog.getByRole("spinbutton", {
+    name: "Quantity",
+    exact: true,
+  });
+  await tabTo(quantity);
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type("60");
+  await expect(quantity).toHaveValue("60");
+  expect((await draft(page)).purchases).toBeUndefined();
+  const save = dialog.getByRole("button", {
+    name: "Add resource",
+    exact: true,
+  });
+  await tabTo(save);
+  await expect(save).toBeInViewport({ ratio: 1 });
+  await page.screenshot({
+    path: `${artifacts}/keyboard-new-resource-save.png`,
+  });
+  await page.keyboard.press("Enter");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await ready(page);
+  expect((await draft(page)).purchases.balances).toEqual({ frost: 60 });
+  expect((await draft(page)).snapshot.inventory).toEqual(
+    before.snapshot.inventory,
+  );
 });
