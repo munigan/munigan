@@ -12,6 +12,91 @@
     "bagsCaption": "Equipped + carried bags",
     "equippedCaption": "Equipped only · no bags imported"
   },
+  "purchases": {
+    "walletTitle": "Tokens & currencies",
+    "walletDescription": "Add what you have. We’ll compare the tier gear you can obtain.",
+    "addTitle": "Add a token or currency",
+    "editTitle": "Edit resource",
+    "dialogDescription": "Choose the tier and item level you want to obtain.",
+    "addResource": "Add resource",
+    "saveResource": "Save resource",
+    "edit": "Edit",
+    "editResource": "Edit {name}",
+    "removeResource": "Remove {name}",
+    "cancel": "Cancel",
+    "tier": "Tier",
+    "tierValue": "Tier {tier}",
+    "quality": "Reward quality",
+    "quantity": "Quantity",
+    "walletQuantity": "{name} quantity",
+    "oneSelected": "1 resource selected",
+    "availableHelp": "Only the amount you own will be available.",
+    "familyMatch": "{family} · Matched to your {class}",
+    "reviewTitle": "Eligible tier items use these balances",
+    "reviewDescription": "Unused resources are kept.",
+    "reviewPurchases": "Review purchases",
+    "classes": {
+      "Deathknight": "Death Knight",
+      "Druid": "Druid",
+      "Hunter": "Hunter",
+      "Mage": "Mage",
+      "Paladin": "Paladin",
+      "Priest": "Priest",
+      "Rogue": "Rogue",
+      "Shaman": "Shaman",
+      "Warlock": "Warlock",
+      "Warrior": "Warrior"
+    },
+    "families": {
+      "vanquisher": "Vanquisher",
+      "protector": "Protector",
+      "conqueror": "Conqueror"
+    },
+    "qualities": {
+      "base": "Base · {level}",
+      "normal": "Normal · {level}",
+      "heroic": "Heroic · {level}"
+    },
+    "resources": {
+      "frost": "Emblems of Frost",
+      "triumph": "Emblems of Triumph",
+      "trophy": "Trophy of the Crusade",
+      "regalia": "Regalia of the Grand {family}",
+      "markNormal": "{family}’s Mark of Sanctification",
+      "markHeroic": "Heroic {family}’s Mark of Sanctification"
+    },
+    "descriptions": {
+      "frost": "Buys a new base tier piece.",
+      "triumph": "Buys a new base tier piece.",
+      "trophy": "Also requires Emblems of Triumph.",
+      "regalia": "Redeems directly for one tier piece.",
+      "markNormal": "Upgrades the matching 251 piece.",
+      "markHeroic": "Upgrades the matching 264 piece."
+    },
+    "walletDescriptions": {
+      "base": "Buys base T{tier} · Item level {level}",
+      "normal": "Normal · Upgrades T{tier} · Item level {level}",
+      "heroic": "Heroic · Buys or upgrades T{tier} · Item level {level}"
+    },
+    "quantityLabels": {
+      "base": "Emblems available",
+      "normal": "Tokens available",
+      "heroic": "Tokens available"
+    },
+    "prerequisites": {
+      "noneTitle": "No prior tier piece is required",
+      "frost": "Your Frost emblems can buy a matching 251 piece.",
+      "triumph": "Your Triumph emblems can buy a matching 232 piece.",
+      "triumphIncludedTitle": "Triumph emblems are also required",
+      "trophy": "The plan budgets the Trophy and the Triumph emblems for the matching 245 reward.",
+      "directTitle": "One token. Five possible rewards.",
+      "regalia": "We’ll compare all five compatible T9 pieces. No lower tier piece is needed.",
+      "baseIncludedTitle": "The base piece is included in the plan",
+      "markNormal": "We’ll use a matching 251 piece you own, or budget Frost emblems to buy it.",
+      "normalIncludedTitle": "The normal piece is included in the plan",
+      "markHeroic": "We’ll use a matching 264 piece you own, or include its prerequisite path."
+    }
+  },
   "versions": {
     "original": {
       "description": "Original Ulduar item levels · Mjolnir Runestone: iLvl 226"

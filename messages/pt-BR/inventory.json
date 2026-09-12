@@ -12,6 +12,91 @@
     "bagsCaption": "Equipados + itens nas bolsas",
     "equippedCaption": "Apenas equipados · nenhuma bolsa importada"
   },
+  "purchases": {
+    "walletTitle": "Fichas e moedas",
+    "walletDescription": "Adicione o que você tem. Compararemos os equipamentos de tier que você pode obter.",
+    "addTitle": "Adicionar ficha ou moeda",
+    "editTitle": "Editar recurso",
+    "dialogDescription": "Escolha o tier e o nível de item que você deseja obter.",
+    "addResource": "Adicionar recurso",
+    "saveResource": "Salvar recurso",
+    "edit": "Editar",
+    "editResource": "Editar {name}",
+    "removeResource": "Remover {name}",
+    "cancel": "Cancelar",
+    "tier": "Tier",
+    "tierValue": "Tier {tier}",
+    "quality": "Qualidade da recompensa",
+    "quantity": "Quantidade",
+    "walletQuantity": "Quantidade de {name}",
+    "oneSelected": "1 recurso selecionado",
+    "availableHelp": "Somente a quantidade que você possui estará disponível.",
+    "familyMatch": "{family} · Compatível com seu {class}",
+    "reviewTitle": "Itens de tier elegíveis usam estes saldos",
+    "reviewDescription": "Os recursos não usados são mantidos.",
+    "reviewPurchases": "Revisar compras",
+    "classes": {
+      "Deathknight": "Cavaleiro da Morte",
+      "Druid": "Druida",
+      "Hunter": "Caçador",
+      "Mage": "Mago",
+      "Paladin": "Paladino",
+      "Priest": "Sacerdote",
+      "Rogue": "Ladino",
+      "Shaman": "Xamã",
+      "Warlock": "Bruxo",
+      "Warrior": "Guerreiro"
+    },
+    "families": {
+      "vanquisher": "Aniquilador",
+      "protector": "Protetor",
+      "conqueror": "Conquistador"
+    },
+    "qualities": {
+      "base": "Base · {level}",
+      "normal": "Normal · {level}",
+      "heroic": "Heroico · {level}"
+    },
+    "resources": {
+      "frost": "Emblemas de Gelo",
+      "triumph": "Emblemas do Triunfo",
+      "trophy": "Troféu da Cruzada",
+      "regalia": "Insígnia do Grande {family}",
+      "markNormal": "Marca de Santificação do {family}",
+      "markHeroic": "Marca Heroica de Santificação do {family}"
+    },
+    "descriptions": {
+      "frost": "Compra uma nova peça base de tier.",
+      "triumph": "Compra uma nova peça base de tier.",
+      "trophy": "Também requer Emblemas do Triunfo.",
+      "regalia": "Pode ser trocada diretamente por uma peça de tier.",
+      "markNormal": "Melhora a peça 251 correspondente.",
+      "markHeroic": "Melhora a peça 264 correspondente."
+    },
+    "walletDescriptions": {
+      "base": "Compra T{tier} base · Nível do item {level}",
+      "normal": "Normal · Melhora T{tier} · Nível do item {level}",
+      "heroic": "Heroico · Compra ou melhora T{tier} · Nível do item {level}"
+    },
+    "quantityLabels": {
+      "base": "Emblemas disponíveis",
+      "normal": "Fichas disponíveis",
+      "heroic": "Fichas disponíveis"
+    },
+    "prerequisites": {
+      "noneTitle": "Nenhuma peça de tier anterior é necessária",
+      "frost": "Seus Emblemas de Gelo podem comprar uma peça 251 correspondente.",
+      "triumph": "Seus Emblemas do Triunfo podem comprar uma peça 232 correspondente.",
+      "triumphIncludedTitle": "Emblemas do Triunfo também são necessários",
+      "trophy": "O plano reserva o Troféu e os Emblemas do Triunfo para a recompensa 245 correspondente.",
+      "directTitle": "Uma ficha. Cinco recompensas possíveis.",
+      "regalia": "Compararemos as cinco peças T9 compatíveis. Nenhuma peça de tier inferior é necessária.",
+      "baseIncludedTitle": "A peça base está incluída no plano",
+      "markNormal": "Usaremos uma peça 251 correspondente que você possui ou reservaremos Emblemas de Gelo para comprá-la.",
+      "normalIncludedTitle": "A peça normal está incluída no plano",
+      "markHeroic": "Usaremos uma peça 264 correspondente que você possui ou incluiremos o caminho de pré-requisitos."
+    }
+  },
   "versions": {
     "original": {
       "description": "Níveis originais dos itens de Ulduar · Mjolnir Runestone: iLvl 226"
