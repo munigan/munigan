@@ -151,6 +151,60 @@ for (const profile of ["original", "classic"] satisfies ItemVersion[])
         expect(plan !== null).toBe(affordable);
       }
     });
+    it("shares a tight Triumph balance across 232 and 245 and redeems multiple tokens directly", () => {
+      for (const [triumph, affordable] of [
+        [75, true],
+        [74, false],
+      ] as const) {
+        const { prepared, budget } = prepare(
+          purchaseFixture({ triumph, trophy: 1 }),
+        );
+        const recipes = prepared.catalog.recipes.filter(
+          (r) => r.setVariant === "dk-dps" && r.faction === "horde",
+        );
+        const shoulder = recipes.find(
+          (r) => r.slot === "shoulder" && r.itemLevel === 232,
+        )!;
+        const hands = recipes.find(
+          (r) => r.slot === "hands" && r.itemLevel === 245,
+        )!;
+        const plan = solveAcquisition(
+          prepared,
+          {
+            ...prepared.snapshot.equipped,
+            shoulder: purchaseInstanceId(profile, shoulder.itemId),
+            hands: purchaseInstanceId(profile, hands.itemId),
+          },
+          budget,
+        );
+        expect(plan !== null).toBe(affordable);
+        if (plan) {
+          expect(plan.spent).toEqual({ triumph: 75, trophy: 1 });
+          expect(plan.remaining).toEqual({ triumph: 0, trophy: 0 });
+          expect(plan.steps).toHaveLength(2);
+          expect(plan.steps.every((step) => !step.prerequisite)).toBe(true);
+        }
+      }
+      const { prepared, budget } = prepare(
+        purchaseFixture({ "regalia:vanquisher": 2 }),
+      );
+      const plan = solveAcquisition(
+        prepared,
+        {
+          ...prepared.snapshot.equipped,
+          shoulder: purchaseInstanceId(profile, 48495),
+          hands: purchaseInstanceId(profile, 48492),
+        },
+        budget,
+      )!;
+      expect(plan.spent).toEqual({ "regalia:vanquisher": 2 });
+      expect(plan.remaining).toEqual({ "regalia:vanquisher": 0 });
+      expect(plan.steps.map((step) => step.itemId).sort()).toEqual([
+        48492, 48495,
+      ]);
+      expect(plan.steps.every((step) => !step.prerequisite)).toBe(true);
+      expect(plan.consumedInstanceIds).toEqual([]);
+    });
     it("rejects custom and other-variant prerequisites", () => {
       for (const [itemId, source] of [
         [50098, "custom"],

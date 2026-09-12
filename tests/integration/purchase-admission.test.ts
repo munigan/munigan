@@ -259,3 +259,26 @@ it("replans changed-wallet retries and serializes identical purchase intents", a
     frost: 100,
   });
 });
+
+it.each([
+  "negative balance",
+  "fractional balance",
+  "client costs",
+  "reserved inventory ID",
+])("rejects %s at admission without reserving job or budget", async (kind) => {
+  const input = args();
+  if (kind === "negative balance") input.request.purchases!.balances.frost = -1;
+  if (kind === "fractional balance")
+    input.request.purchases!.balances.frost = 1.5;
+  if (kind === "client costs")
+    Object.assign(input.request.purchases!, { spent: { frost: 0 } });
+  if (kind === "reserved inventory ID") {
+    const id = "purchase-original-48504";
+    input.request.snapshot.inventory[0].instanceId = id;
+    input.request.snapshot.equipped.legs = id;
+    input.request.selection.selectedInstanceIds = [id];
+  }
+  await expect(admitJob(input)).rejects.toThrow();
+  expect((await pool.query("SELECT * FROM tg_jobs")).rowCount).toBe(0);
+  expect((await pool.query("SELECT * FROM tg_budgets")).rowCount).toBe(0);
+});
