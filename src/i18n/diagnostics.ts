@@ -285,6 +285,7 @@ const recognizedCodes = new Set([
   ...Object.values(legacyMessages),
   ...patterns.map((entry) => entry.code),
   "invalidExport",
+  "purchaseCatalogChanged",
   "warmaneName",
   "warmaneRealm",
   "warmaneNotFound",

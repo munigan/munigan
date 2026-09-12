@@ -17,6 +17,12 @@ import {
   maxCustomItems,
   maxInventoryItems,
 } from "@/domain/equipment/custom-eligibility";
+import {
+  canonicalizePurchaseInputs,
+  isGeneratedPurchaseId,
+  purchaseInputsSchema,
+  validatePurchaseInputs,
+} from "@/domain/purchases/schema";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -89,6 +95,7 @@ const shape = z
         lockedSlots: z.partialRecord(slot, id.nullable()),
       })
       .strict(),
+    purchases: purchaseInputsSchema.optional(),
   })
   .strict();
 export function encodeSnapshot(s: Snapshot) {
@@ -103,8 +110,23 @@ export function decodeSnapshot(s: ReturnType<typeof encodeSnapshot>): Snapshot {
     settings: IndividualSimSettings.fromJson(s.settings),
   };
 }
+function withoutPurchases<T extends { purchases?: unknown }>(
+  request: T,
+): Omit<T, "purchases"> {
+  const copy = { ...request };
+  delete copy.purchases;
+  return copy;
+}
 export function encodeRequest(r: TopGearRequest) {
-  return { ...r, snapshot: encodeSnapshot(r.snapshot) };
+  const purchases = r.purchases
+    ? canonicalizePurchaseInputs(r.purchases)
+    : undefined;
+  const request = withoutPurchases(r);
+  return {
+    ...request,
+    snapshot: encodeSnapshot(r.snapshot),
+    ...(purchases ? { purchases } : {}),
+  };
 }
 // Drafts must be safe to edit, but need not be ready to simulate yet.
 export function decodeDraft(input: unknown): TopGearRequest {
@@ -144,12 +166,22 @@ export function decodeDraft(input: unknown): TopGearRequest {
       for (const nested of Object.values(value))
         pending.push([nested, depth + 1]);
   }
-  return { ...parsed, snapshot: { ...s, settings } };
+  const purchases = parsed.purchases
+    ? canonicalizePurchaseInputs(parsed.purchases)
+    : undefined;
+  const request = withoutPurchases(parsed);
+  return {
+    ...request,
+    snapshot: { ...s, settings },
+    ...(purchases ? { purchases } : {}),
+  };
 }
 
 export function validateRequest(input: unknown): TopGearRequest {
   const parsed = decodeDraft(input),
     s = parsed.snapshot;
+  if (parsed.purchases)
+    validatePurchaseInputs(parsed.purchases, itemVersionOf(s));
   const settings = s.settings,
     p = settings.player!;
   const spec = getSpec(s.specId);
@@ -227,6 +259,21 @@ export function validateRequest(input: unknown): TopGearRequest {
       );
   }
   const ids = new Set(snapshot.inventory.map((i) => i.instanceId));
+  const submittedInstanceIds = [
+    ...snapshot.inventory.map((item) => item.instanceId),
+    ...parsed.selection.selectedInstanceIds,
+    ...Object.values(snapshot.equipped).filter(
+      (value): value is string => !!value,
+    ),
+    ...Object.values(parsed.selection.lockedSlots).filter(
+      (value): value is string => !!value,
+    ),
+    ...Object.keys(snapshot.itemEnhancements ?? {}),
+  ];
+  if (submittedInstanceIds.some(isGeneratedPurchaseId))
+    throw new Error(
+      "Generated purchase items cannot be submitted as inventory",
+    );
   const custom = snapshot.inventory.filter((i) => i.source === "custom");
   if (
     custom.length > maxCustomItems ||

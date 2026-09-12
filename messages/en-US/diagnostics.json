@@ -30,6 +30,7 @@
   "oldItemData": "This draft uses older item data. Select the current item version or import again.",
   "requiredSettings": "A player and encounter are required",
   "oldSimulator": "This draft uses an older simulator version. Import again.",
+  "purchaseCatalogChanged": "The purchase catalog changed. Review your purchase inputs before submitting.",
   "complexSettings": "Simulation configuration is too complex",
   "finiteSettings": "Simulation settings must contain finite numbers",
   "classSpec": "Class does not match specialization",

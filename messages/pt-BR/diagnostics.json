@@ -30,6 +30,7 @@
   "oldItemData": "Este rascunho usa dados antigos dos itens. Selecione a versão atual dos itens ou importe novamente.",
   "requiredSettings": "É necessário definir um personagem e um encontro",
   "oldSimulator": "Este rascunho usa uma versão antiga do simulador. Importe novamente.",
+  "purchaseCatalogChanged": "O catálogo de compras mudou. Revise os recursos de compra antes de enviar.",
   "complexSettings": "A configuração da simulação é complexa demais",
   "finiteSettings": "As configurações da simulação devem conter números finitos",
   "classSpec": "A classe não corresponde à especialização",
