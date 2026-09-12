@@ -1,3 +1,9 @@
+import type {
+  PurchaseInputs,
+  FrozenPurchases,
+  PurchasePlan,
+  PurchaseRecipe,
+} from "@/domain/purchases/model";
 import type { IndividualSimSettings } from "@/generated/wotlk/ui";
 import type { ItemVersion } from "./item-version";
 export type Slot =
@@ -23,7 +29,7 @@ export type ItemInstance = {
   itemId: number;
   enchantId: number;
   gemIds: number[];
-  source: "equipped" | "bag" | "custom";
+  source: "equipped" | "bag" | "custom" | "purchase";
   equippedSlot?: Slot;
 };
 export type ItemEnhancementOverride = {
@@ -69,6 +75,7 @@ export type Selection = {
   lockedSlots: Partial<Record<Slot, string | null>>;
 };
 export type TopGearRequest = {
+  purchases?: PurchaseInputs;
   tool: "top-gear";
   snapshot: Snapshot;
   selection: Selection;
@@ -109,6 +116,7 @@ export type Allowance = {
   policyVersion: string;
 };
 export type RunPlan = {
+  purchases?: FrozenPurchases;
   candidateLoadouts: Loadout[];
   reference: Loadout;
   simulations: Array<{
@@ -121,6 +129,7 @@ export type RunPlan = {
   allowance: Allowance;
 };
 export type SetRow = {
+  purchasePlan?: PurchasePlan;
   id: string;
   loadout: Loadout;
   gemOverrides?: GemOverrides;
@@ -140,6 +149,12 @@ export type SetRow = {
   stdev?: number | null;
 };
 export type TopGearReport = {
+  purchases?: {
+    inputs: PurchaseInputs;
+    recipeRevision: string;
+    recipes: PurchaseRecipe[];
+    originalSnapshot: Snapshot;
+  };
   token: string;
   status: "queued" | "running" | "complete" | "partial" | "failed" | "canceled";
   phase: "planning" | "equipped" | "combinations" | "complete";

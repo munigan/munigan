@@ -12,6 +12,7 @@ import { classes } from "@/components/ui/classes";
 import "./item-source-icon.css";
 
 const paths = {
+  purchase: "M3 3h2l3 12h10l3-8H6M9 20h.01M18 20h.01",
   equipped: "m8 3-5 3-2 5 5 2v8h12v-8l5-2-2-5-5-3a4 4 0 0 1-8 0Z",
   bag: "M9 8 7 3c3 1 7 1 10 0l-2 5M9 8c-2 3-6 5-6 9 0 3 4 4 9 4s9-1 9-4c0-4-4-6-6-9M8 8h8m-1 0 3 3m-3-3v4M7 14c-1 1-1 2-1 3",
   custom:

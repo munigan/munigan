@@ -121,7 +121,9 @@ export function ItemDetails({ item }: { item: ItemInstance }) {
             ? t("item.carried")
             : item.source === "custom"
               ? t("item.custom")
-              : t("sources.equipped")}
+              : item.source === "purchase"
+                ? t("sources.purchase")
+                : t("sources.equipped")}
         </p>
         <p>
           {t("item.enchantLabel")}{" "}

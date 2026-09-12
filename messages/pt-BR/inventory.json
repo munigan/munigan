@@ -38,6 +38,7 @@
     "blocked": "O plano grátis permite {count} iterações. Sua simulação usará {count} por conjunto."
   },
   "sources": {
+    "purchase": "Compra",
     "equipped": "Equipado",
     "custom": "Personalizado",
     "bag": "Bolsas"

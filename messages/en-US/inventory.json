@@ -38,6 +38,7 @@
     "blocked": "Free is limited to {count} iterations. Your simulation will run with {count} per set."
   },
   "sources": {
+    "purchase": "Purchase",
     "equipped": "Equipped",
     "custom": "Custom",
     "bag": "Bags"
