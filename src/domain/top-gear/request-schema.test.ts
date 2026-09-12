@@ -8,6 +8,10 @@ import { describeError } from "@/i18n/error";
 import { localizeDiagnostic } from "@/i18n/diagnostics";
 import { createTranslator } from "next-intl";
 import portugueseDiagnostics from "../../../messages/pt-BR/diagnostics.json";
+import {
+  isGeneratedPurchaseId,
+  purchaseInstanceId,
+} from "@/domain/purchases/schema";
 
 const portuguese = createTranslator<Record<string, string>>({
   locale: "pt-BR",
@@ -185,11 +189,17 @@ it("reports stale purchase catalogs with a localized diagnostic identity", () =>
   }
 });
 
-it.each(["inventory", "selected", "equipped", "locked", "override"])(
-  "rejects generated purchase IDs in submitted %s references",
-  (reference) => {
+it.each(
+  ["purchase-original-51125", "purchase-classic-51125"].flatMap(
+    (generatedId) =>
+      ["inventory", "selected", "equipped", "locked", "override"].map(
+        (reference) => [generatedId, reference] as const,
+      ),
+  ),
+)(
+  "rejects generated ID %s in submitted %s references",
+  (generatedId, reference) => {
     const request = purchaseFixture({ frost: 1 });
-    const generatedId = "purchase:forged-item";
     if (reference === "inventory") {
       request.snapshot.inventory[0].instanceId = generatedId;
       request.snapshot.equipped.legs = generatedId;
@@ -206,6 +216,20 @@ it.each(["inventory", "selected", "equipped", "locked", "override"])(
     expect(() => validateRequest(encodeRequest(request))).toThrow(/generated/i);
   },
 );
+
+it.each(["purchase-original-51125", "purchase-classic-51125"])(
+  "recognizes canonical generated purchase ID %s",
+  (generatedId) => {
+    expect(isGeneratedPurchaseId(generatedId)).toBe(true);
+  },
+);
+
+it.each([
+  ["original", "purchase-original-51125"],
+  ["classic", "purchase-classic-51125"],
+] as const)("constructs the canonical %s purchase ID", (profile, expected) => {
+  expect(purchaseInstanceId(profile, 51125)).toBe(expected);
+});
 
 it("rejects purchase-source inventory at the incoming request boundary", () => {
   const wire = encodeRequest(purchaseFixture({ frost: 1 }));

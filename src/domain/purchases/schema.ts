@@ -136,6 +136,12 @@ export function validatePurchaseInputs(
   }
 }
 
+const purchaseInstancePrefix = "purchase-";
+
+export function purchaseInstanceId(profile: ItemVersion, itemId: number) {
+  return `${purchaseInstancePrefix}${profile}-${itemId}`;
+}
+
 export function isGeneratedPurchaseId(value: string) {
-  return value.startsWith("purchase:");
+  return value.startsWith(purchaseInstancePrefix);
 }
