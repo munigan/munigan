@@ -24,10 +24,11 @@ import {
   validatePurchaseInputs,
 } from "@/domain/purchases/schema";
 import { getPurchaseCatalog } from "@/domain/purchases/catalog";
-import { PurchaseEnhancementError } from "@/domain/purchases/enhancements";
-import { preparePurchases } from "@/domain/purchases/candidates";
-import { createSearchBudget } from "@/domain/equipment/search-budget";
-import { purchaseInstanceId } from "@/domain/purchases/schema";
+import {
+  PurchaseEnhancementError,
+  effectivePurchaseItem,
+  purchaseItem,
+} from "@/domain/purchases/enhancements";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -326,11 +327,6 @@ export function validateRequest(input: unknown): TopGearRequest {
           .map((item) => item.instanceId)
       : [],
   );
-  // Preparation validates the effective inherited or explicit purchase override.
-  // Preserve the original custom draft so disabling purchases restores its intent.
-  const prepared = converted.size
-    ? preparePurchases(parsed, createSearchBudget(100000))
-    : undefined;
   for (const [instanceId, override] of Object.entries(
     snapshot.itemEnhancements ?? {},
   )) {
@@ -361,16 +357,15 @@ export function validateRequest(input: unknown): TopGearRequest {
   )
     throw new Error("Equipped item mapping is inconsistent");
   for (const item of snapshot.inventory) {
-    const effective = converted.has(item.instanceId)
-      ? prepared!.snapshot.inventory.find(
-          (candidate) =>
-            candidate.instanceId ===
-            purchaseInstanceId(itemVersionOf(snapshot), item.itemId),
-        )
-      : item;
-    // Ineligible customs are still rejected, even if preparation excluded them.
-    const errors = validateItem(snapshot, effective ?? item);
-    if (errors.length && converted.has(item.instanceId) && effective)
+    // Only eligible registered rewards replace custom intent. Ordinary and
+    // ineligible items retain their original strict item validation.
+    const effective =
+      converted.has(item.instanceId) &&
+      !validateItem(snapshot, purchaseItem(snapshot, item.itemId)).length
+        ? effectivePurchaseItem(parsed, item.itemId).instance
+        : item;
+    const errors = validateItem(snapshot, effective);
+    if (errors.length && effective !== item)
       throw new PurchaseEnhancementError(
         itemVersionOf(snapshot),
         item.itemId,

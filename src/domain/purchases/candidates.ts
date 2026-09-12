@@ -1,5 +1,4 @@
 import { getCatalog } from "@/domain/equipment/catalog";
-import { validateItemEnhancements } from "@/domain/equipment/item-enhancements";
 import { validateItem } from "@/domain/equipment/validate";
 import type { SearchBudget } from "@/domain/equipment/search-budget";
 import { itemVersionOf } from "@/domain/top-gear/item-version";
@@ -9,7 +8,7 @@ import type {
 } from "@/domain/top-gear/model";
 import { getPurchaseCatalog } from "./catalog";
 import { acquisitionPaths } from "./acquisition";
-import { purchaseItem, PurchaseEnhancementError } from "./enhancements";
+import { purchaseItem, effectivePurchaseItem } from "./enhancements";
 import type {
   PreparedPurchases,
   PurchaseCandidate,
@@ -88,41 +87,11 @@ export function preparePurchases(
     if (recipe.classId !== request.snapshot.settings.player!.class) continue;
     const instance = purchaseItem(request.snapshot, recipe.itemId);
     if (validateItem(request.snapshot, instance, equipment).length) continue;
-    const custom = replaced
-      .filter((i) => i.itemId === recipe.itemId)
-      .sort((a, b) =>
-        a.instanceId < b.instanceId ? -1 : a.instanceId > b.instanceId ? 1 : 0,
-      )[0];
-    const inherited = custom
-      ? {
-          ...(custom.enchantId ? { enchantId: custom.enchantId } : {}),
-          ...request.snapshot.itemEnhancements?.[custom.instanceId],
-        }
-      : undefined;
-    const explicit =
-      request.purchases.itemEnhancements[profile]?.[String(recipe.itemId)];
-    const override = explicit ?? inherited;
-    // Only converted custom alternatives retain their raw gem baseline. Keep
-    // it separate from the sparse manual override: null/omitted sockets must
-    // remain eligible for the existing whole-set JC and meta automation.
-    // An explicit purchase override (including {}) suppresses all inheritance.
-    const effectiveInstance =
-      custom && explicit === undefined
-        ? { ...instance, gemIds: [...custom.gemIds] }
-        : instance;
-    if (override) {
-      const errors = validateItemEnhancements(
-        prepared.snapshot,
-        instance,
-        override,
-      );
-      if (errors.length)
-        throw new PurchaseEnhancementError(profile, recipe.itemId, errors);
-      enhancements[instance.instanceId] = {
-        ...override,
-        ...(override.gemIds ? { gemIds: [...override.gemIds] } : {}),
-      };
-    }
+    const { instance: effectiveInstance, override } = effectivePurchaseItem(
+      request,
+      recipe.itemId,
+    );
+    if (override) enhancements[instance.instanceId] = override;
     const paths = acquisitionPaths(
       prepared,
       [{ itemId: recipe.itemId, resultId: instance.instanceId }],

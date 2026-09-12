@@ -1,4 +1,4 @@
-import { it, expect } from "vitest";
+import { it, expect, vi } from "vitest";
 import { decodeDraft, encodeRequest, validateRequest } from "./request-schema";
 import { fixtureRequest } from "../../../tests/support/fixtures";
 import { Profession } from "@/generated/wotlk/common";
@@ -254,4 +254,35 @@ it("validates the effective custom purchase override while retaining original in
   ).toEqual({ gemIds: [9999999] });
   delete request.purchases;
   expect(() => validateRequest(encodeRequest(request))).toThrow();
+});
+
+it("validates converted custom enhancements without acquisition search or a search budget", async () => {
+  const acquisition = await import("@/domain/purchases/acquisition");
+  const search = await import("@/domain/equipment/search-budget");
+  const acquisitionSpy = vi
+    .spyOn(acquisition, "acquisitionPaths")
+    .mockImplementation(() => {
+      throw new search.SearchLimitError();
+    });
+  const budgetSpy = vi.spyOn(search, "createSearchBudget");
+  try {
+    const request = purchaseFixture({ frost: 100 });
+    request.snapshot.inventory.push({
+      instanceId: "custom",
+      itemId: 50098,
+      source: "custom",
+      gemIds: [40111],
+      enchantId: 0,
+    });
+    request.selection.selectedInstanceIds.push("custom");
+    request.snapshot.itemEnhancements = { custom: { gemIds: [null] } };
+    expect(
+      validateRequest(encodeRequest(request)).snapshot.inventory.at(-1)?.gemIds,
+    ).toEqual([40111]);
+    expect(acquisitionSpy).not.toHaveBeenCalled();
+    expect(budgetSpy).not.toHaveBeenCalled();
+  } finally {
+    acquisitionSpy.mockRestore();
+    budgetSpy.mockRestore();
+  }
 });
