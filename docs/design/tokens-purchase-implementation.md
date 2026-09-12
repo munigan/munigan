@@ -1,6 +1,6 @@
 # Gear Lab purchases: implementation verification
 
-Implemented on `codex/gear-lab-purchases` from `codex/top-gear` base `5173456`. Product and acceptance code verified at `6ddfaaa`; subsequent documentation-only commits do not alter the tested code. No deployment, database schema migration, dependency upgrade, or simulation allowance change is included.
+Implemented on `codex/gear-lab-purchases` from `codex/top-gear` base `5173456`. The complete regression checkpoint was `6ddfaaa`; final presentation fixes are in `88138aa` and were rechecked as described below. No deployment, database schema migration, dependency upgrade, or simulation allowance change is included.
 
 ## Verification
 
@@ -9,7 +9,7 @@ All required commands completed successfully on September 12, 2026:
 | Check | Result |
 | --- | --- |
 | `pnpm typecheck` | Passed |
-| `pnpm lint --ignore-pattern '.superpowers/**'` | Passed for all application/test/tool files |
+| `pnpm lint` | Passed after review scratch cleanup; no source exclusions needed |
 | `pnpm test` | 110 files, 832 tests passed |
 | `pnpm test:integration` | 15 files, 145 tests passed |
 | Native purchases/custom-items/item-enhancements files | 3 files, 6 tests passed |
@@ -89,3 +89,16 @@ The following records every controller ruling, in chronological order, with its 
 14. controller will run final broad acceptance commands after Task9 scoped test implementation and review — this provides fresh full-branch evidence without duplicating an agent broad-suite run. Task9 still runs new focused tests and visual QA, fixes actual integration failures, and reports evidence. Cost if wrong: coordination delay only; final checks remain mandatory.
 
    Cost if wrong: Coordination delay only; all mandatory final checks were still run.
+
+
+## Final presentation follow-up
+
+Final review found two minor design omissions, resolved in `88138aa`: the wallet now shows a fresh, localized count of included obtainable rewards, and known matching specialization variants appear first in both selection and review. All legal alternatives, ordinary inventory positions, slot/quality groups, ownership, solver identity and report ranking remain unchanged. Smite Priest and unknown/unregistered specs retain stable order because no exact registered tier counterpart is available.
+
+The fix passed 60 focused unit/UI/locale tests, a 13-test subset after assertion refinements, all five purchase browser cases, typecheck, scoped lint/format and diff checks. The browser proves counts change from 20 to 10 when Regalia is removed, then 19 after restoration and an exclusion. The final scoped review approved both fixes with no new findings. Controller `pnpm build` and plain `pnpm lint` both passed at `88138aa` after scratch cleanup (logs `final-polish-build.log` and `final-polish-lint.log`). Unchanged database/native behavior did not require repeated suites.
+
+Additional controller ruling, continuing the chronological list above:
+
+15. Prioritize known specialization-to-setVariant matches only; keep Smite Priest and unknown specs in stable original order because no exact registered counterpart exists. Stat/name guesses would mislead.
+
+    Cost if wrong: ambiguous specs do not receive a preferred-first presentation, but all legal alternatives remain available.
