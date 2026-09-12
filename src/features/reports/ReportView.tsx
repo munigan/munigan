@@ -39,11 +39,20 @@ import { useLocale, useTranslations } from "next-intl";
 import { describeError, type ErrorDescriptor } from "@/i18n/error";
 import { localizeDiagnostic } from "@/i18n/diagnostics";
 import { number } from "./report-presentation";
+import { PurchasePlanPanel } from "./PurchasePlanPanel";
+import { requestFromReport } from "@/domain/purchases/report-draft";
 
+type EncodedSnapshot = ReturnType<typeof encodeSnapshot>;
 type ReportResponse = {
   jobId: string;
-  report: Omit<TopGearReport, "snapshot"> & {
-    snapshot: ReturnType<typeof encodeSnapshot>;
+  report: Omit<TopGearReport, "snapshot" | "purchases"> & {
+    snapshot: EncodedSnapshot;
+    purchases?: Omit<
+      NonNullable<TopGearReport["purchases"]>,
+      "originalSnapshot"
+    > & {
+      originalSnapshot: EncodedSnapshot;
+    };
   };
   canManage: boolean;
   access: ReportAccess;
@@ -52,6 +61,24 @@ type ReportResponse = {
   totalRows: number;
   nextCursor: number | null;
 };
+
+function decodeReport(report: ReportResponse["report"]): TopGearReport {
+  const { purchases, ...storedReport } = report;
+
+  return {
+    ...storedReport,
+    snapshot: decodeSnapshot(report.snapshot),
+    ...(purchases
+      ? {
+          purchases: {
+            ...purchases,
+            originalSnapshot: decodeSnapshot(purchases.originalSnapshot),
+          },
+        }
+      : {}),
+  };
+}
+
 export function ReportView({ token }: { token: string }) {
   const t = useTranslations("reports");
   const ta = useTranslations("auth");
@@ -108,8 +135,8 @@ export function ReportView({ token }: { token: string }) {
     new URLSearchParams(loadedUrl.split("?")[1]).get("cursor") ?? 0,
   );
   const error = actionError || refreshDiagnostic || refreshError;
-  const snapshot = data ? decodeSnapshot(data.report.snapshot) : null,
-    report = data?.report;
+  const report = data ? decodeReport(data.report) : undefined;
+  const snapshot = report?.snapshot ?? null;
   const rows = data
     ? [
         ...new Map(
@@ -234,15 +261,9 @@ export function ReportView({ token }: { token: string }) {
     }
   }
   function edit() {
-    if (!snapshot || !report || !selected) return;
+    if (!report) return;
     try {
-      const next = structuredClone(snapshot);
-      saveDraft({
-        tool: "top-gear",
-        precision: "standard",
-        snapshot: next,
-        selection: report.selection,
-      });
+      saveDraft(requestFromReport(report));
       router.push("/gear-lab?restore=1");
     } catch (e) {
       setError(describeError(e));
@@ -437,70 +458,81 @@ export function ReportView({ token }: { token: string }) {
               difference={difference}
               onStats={() => setShowStats(true)}
             />
-            <div className="combinations-heading section-top">
-              <h2>
-                {t("combinations")}{" "}
-                <span className="muted small">
-                  {t("tested", { count: report.coverage.succeeded })}
-                </span>
-              </h2>
-              <div className="difference-controls">
-                <span className="muted">{t("differences")}</span>
-                <div
-                  className="report-segmented"
-                  role="radiogroup"
-                  aria-label={t("differencesLabel")}
-                >
-                  <label>
-                    <input
-                      type="radio"
-                      name="difference"
-                      checked={difference === "equipped"}
-                      onChange={() => setDifference("equipped")}
-                    />
-                    <span>{t("equipped")}</span>
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="difference"
-                      checked={difference === "highest"}
-                      onChange={() => setDifference("highest")}
-                    />
-                    <span>{t("topSet")}</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <CombinationTable
-              snapshot={snapshot}
-              report={report}
-              base={base}
-              baseGems={baseGems}
-              baseEnchants={baseEnchants}
-              selected={selected}
-              cursor={cursor}
-              setSelectedId={setSelectedId}
-            />
-            <Pagination
-              page={Math.floor(cursor / 20) + 1}
-              pending={isPending}
-              hasPrevious={cursor > 0}
-              hasNext={data.nextCursor !== null}
-              onPrevious={() => setCursor(Math.max(0, cursor - 20))}
-              onNext={() => setCursor(data.nextCursor!)}
-              range={{
-                start: report.rows.length ? cursor + 1 : 0,
-                end: report.rows.length ? cursor + report.rows.length : 0,
-                total: data.totalRows,
-              }}
-            />
-            <p
-              id="report-tie-explanation"
-              className="muted small uncertainty-note"
+            <div
+              className={
+                report.purchases && selected.purchasePlan
+                  ? "report-results-layout"
+                  : undefined
+              }
             >
-              {t("tieExplanation")}
-            </p>
+              <div className="report-results-main">
+                <div className="combinations-heading section-top">
+                  <h2>
+                    {t("combinations")}{" "}
+                    <span className="muted small">
+                      {t("tested", { count: report.coverage.succeeded })}
+                    </span>
+                  </h2>
+                  <div className="difference-controls">
+                    <span className="muted">{t("differences")}</span>
+                    <div
+                      className="report-segmented"
+                      role="radiogroup"
+                      aria-label={t("differencesLabel")}
+                    >
+                      <label>
+                        <input
+                          type="radio"
+                          name="difference"
+                          checked={difference === "equipped"}
+                          onChange={() => setDifference("equipped")}
+                        />
+                        <span>{t("equipped")}</span>
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          name="difference"
+                          checked={difference === "highest"}
+                          onChange={() => setDifference("highest")}
+                        />
+                        <span>{t("topSet")}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <CombinationTable
+                  snapshot={snapshot}
+                  report={report}
+                  base={base}
+                  baseGems={baseGems}
+                  baseEnchants={baseEnchants}
+                  selected={selected}
+                  cursor={cursor}
+                  setSelectedId={setSelectedId}
+                />
+                <Pagination
+                  page={Math.floor(cursor / 20) + 1}
+                  pending={isPending}
+                  hasPrevious={cursor > 0}
+                  hasNext={data.nextCursor !== null}
+                  onPrevious={() => setCursor(Math.max(0, cursor - 20))}
+                  onNext={() => setCursor(data.nextCursor!)}
+                  range={{
+                    start: report.rows.length ? cursor + 1 : 0,
+                    end: report.rows.length ? cursor + report.rows.length : 0,
+                    total: data.totalRows,
+                  }}
+                />
+                <p
+                  id="report-tie-explanation"
+                  className="muted small uncertainty-note"
+                >
+                  {t("tieExplanation")}
+                </p>
+              </div>
+              <PurchasePlanPanel report={report} row={selected} />
+            </div>
           </>
         )}
 

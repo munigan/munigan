@@ -76,6 +76,7 @@ export function CombinationTable({
           <div
             key={row.id}
             role="row"
+            aria-selected={row.id === selected.id}
             className={`combination-columns combination-row ${row.isEquipped ? "equipped-row" : ""} ${row.id === selected.id ? "selected" : ""}`}
             onClick={() => setSelectedId(row.id)}
           >

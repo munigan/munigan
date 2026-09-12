@@ -1,0 +1,179 @@
+@layer components {
+  .report-results-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
+    align-items: start;
+    gap: 32px;
+  }
+  .report-results-main {
+    min-width: 0;
+    grid-column: 1;
+  }
+  .purchase-plan-panel {
+    position: sticky;
+    top: 20px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-gear-row);
+    grid-column: 2;
+  }
+  .purchase-plan-header,
+  .purchase-plan-section,
+  .purchase-plan-empty {
+    padding: 20px 24px;
+  }
+  .purchase-plan-header {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .purchase-plan-header h2 {
+    margin: 0;
+    font-size: 22px;
+  }
+  .purchase-plan-header p,
+  .purchase-plan-empty p,
+  .purchase-plan-consumed p {
+    margin: 6px 0 0;
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .purchase-plan-section + .purchase-plan-section,
+  .purchase-plan-empty + .purchase-plan-section {
+    border-top: 1px solid var(--color-border);
+  }
+  .purchase-plan-section h3 {
+    margin: 0 0 14px;
+    color: var(--color-muted);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .purchase-plan-item-links {
+    display: grid;
+    gap: 12px;
+  }
+  .purchase-plan-item-links .item-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .purchase-plan-item-links .item-name {
+    min-width: 0;
+  }
+  .purchase-plan-steps {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .purchase-plan-steps li {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .purchase-plan-step-number {
+    color: var(--color-action);
+    font-size: 12px;
+    line-height: 36px;
+    white-space: nowrap;
+  }
+  .purchase-plan-step-copy,
+  .purchase-plan-step-copy > div > div {
+    min-width: 0;
+  }
+  .purchase-plan-step-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .purchase-plan-step-item > .item-link {
+    flex-shrink: 0;
+  }
+  .purchase-plan-step-item p,
+  .purchase-plan-step-item small,
+  .purchase-plan-step-cost,
+  .purchase-plan-prerequisite {
+    margin: 0;
+  }
+  .purchase-plan-step-item small,
+  .purchase-plan-step-cost,
+  .purchase-plan-prerequisite {
+    color: var(--color-muted);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .purchase-plan-step-cost {
+    margin-top: 5px;
+  }
+  .purchase-plan-prerequisite {
+    color: var(--color-action);
+  }
+  .purchase-plan-resources table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .purchase-plan-resources th,
+  .purchase-plan-resources td {
+    padding: 7px 0;
+    text-align: right;
+  }
+  .purchase-plan-resources th:first-child {
+    padding-right: 16px;
+    text-align: left;
+  }
+  .purchase-plan-resources thead th {
+    color: var(--color-muted);
+    font-size: 11px;
+    font-weight: 400;
+  }
+  .purchase-plan-resources tbody th {
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+  .purchase-plan-consumed {
+    background: var(--color-surface);
+  }
+  @media (max-width: 1100px) {
+    .report-results-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+      gap: 24px;
+    }
+  }
+  @media (max-width: 900px) {
+    .report-results-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .report-results-main {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .purchase-plan-panel {
+      position: static;
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+  @media (max-width: 479px) {
+    .purchase-plan-header,
+    .purchase-plan-section,
+    .purchase-plan-empty {
+      padding: 16px;
+    }
+    .purchase-plan-header h2 {
+      font-size: 18px;
+    }
+    .purchase-plan-steps li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+    .purchase-plan-step-number {
+      line-height: 20px;
+    }
+  }
+}
