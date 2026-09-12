@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import type { TopGearRequest, WorkPolicy } from "@/domain/top-gear/model";
 import type { estimateAllowance } from "@/domain/equipment/enumerate";
 import { RunIterations } from "./RunIterations";
+import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 export function RunAllowance({
   request,
   policy,
@@ -12,6 +13,7 @@ export function RunAllowance({
   readinessError,
   pending,
   onRun,
+  purchaseAnalysis,
 }: {
   request: TopGearRequest;
   policy: WorkPolicy | null;
@@ -20,9 +22,30 @@ export function RunAllowance({
   readinessError: string;
   pending: boolean;
   onRun: () => void;
+  purchaseAnalysis?: PurchaseAnalysisState;
 }) {
   const t = useTranslations("inventory");
   const locale = useLocale();
+  const purchaseStatus =
+    purchaseAnalysis?.status === "ready"
+      ? purchaseAnalysis.analysis.status
+      : purchaseAnalysis?.status;
+  const purchaseMessage =
+    purchaseStatus && purchaseStatus !== "complete"
+      ? t(
+          `purchases.${purchaseStatus === "search-limit" ? "searchLimit" : purchaseStatus === "no-legal-sets" ? "noLegalSets" : purchaseStatus === "catalog-changed" ? "catalogChanged" : purchaseStatus === "error" ? "analysisError" : purchaseStatus === "over-limit" ? "overLimit" : "calculating"}`,
+        )
+      : "";
+  const currentAllowance = purchaseAnalysis
+    ? purchaseAnalysis.status === "ready" &&
+      purchaseAnalysis.analysis.status === "complete"
+      ? purchaseAnalysis.analysis.plan.allowance
+      : purchaseAnalysis.status === "ready" &&
+          purchaseAnalysis.analysis.status === "over-limit"
+        ? purchaseAnalysis.analysis.allowance
+        : null
+    : allowance;
+  allowance = currentAllowance;
   return (
     <div
       className="run-action"
@@ -35,6 +58,9 @@ export function RunAllowance({
               {allowance ? (
                 <>
                   <strong>
+                    {purchaseAnalysis && allowance.countKind === "over-limit"
+                      ? "≥"
+                      : ""}
                     {Math.min(allowance.count, 999999).toLocaleString(locale)}
                   </strong>{" "}
                   /{" "}
@@ -44,7 +70,7 @@ export function RunAllowance({
                   {t("allowance.sets")}
                 </>
               ) : (
-                t("allowance.loading")
+                purchaseMessage || t("allowance.loading")
               )}
             </span>
             <span className="badge">{t("allowance.free")}</span>
@@ -80,7 +106,12 @@ export function RunAllowance({
       <Button
         variant="primary"
         className="primary run-button"
-        disabled={pending || !allowance?.allowed || !!readinessError}
+        disabled={
+          pending ||
+          !allowance?.allowed ||
+          !!readinessError ||
+          (!!purchaseAnalysis && purchaseStatus !== "complete")
+        }
         onClick={onRun}
       >
         {pending ? t("run.submitting") : t("run.find")}{" "}

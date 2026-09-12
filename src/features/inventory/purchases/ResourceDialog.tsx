@@ -109,7 +109,7 @@ export function ResourceDialog({
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       {open && (
-        <DialogContent className="resource-dialog max-w-[45rem] overflow-hidden p-0 sm:p-0">
+        <DialogContent className="resource-dialog max-w-[45rem] overflow-hidden p-0 sm:p-0 max-sm:w-full max-sm:max-h-dvh max-sm:rounded-none max-sm:border-0">
           <div className="resource-dialog-viewport">
             <header className="resource-dialog-header">
               <div>

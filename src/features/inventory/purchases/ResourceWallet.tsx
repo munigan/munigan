@@ -138,6 +138,7 @@ function ResourceIcon({ token }: { token: boolean }) {
   return (
     <svg
       className="resource-wallet-icon"
+      data-token={token}
       width="36"
       height="36"
       viewBox="0 0 36 36"

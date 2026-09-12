@@ -6,9 +6,6 @@ import diagnostics from "../../../messages/en-US/diagnostics.json";
 import { fixtureRequest } from "../../../tests/support/fixtures";
 import { InventorySelector } from "./InventorySelector";
 
-vi.mock("./InventoryItemRow", () => ({
-  InventoryItemRow: () => <div>Item row</div>,
-}));
 vi.mock("./custom-items/CustomItemPicker", () => ({
   AddCustomItem: () => <button>Add custom item</button>,
 }));
@@ -108,4 +105,51 @@ it("does not collapse the first visit when the user starts editing", () => {
     edited.selection.selectedInstanceIds.slice(1);
   rerender(view(edited));
   expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(14);
+});
+
+it("converts registered custom tiers into one costed row and routes exclusions to the original draft", async () => {
+  const { purchaseFixture } =
+    await import("../../../tests/support/purchase-fixtures");
+  const { preparePurchases } = await import("@/domain/purchases/candidates");
+  const { createSearchBudget } =
+    await import("@/domain/equipment/search-budget");
+  const { fireEvent } = await import("@testing-library/react");
+  const request = purchaseFixture({ frost: 60 });
+  request.snapshot.inventory.push({
+    instanceId: "custom-shoulders",
+    itemId: 50098,
+    source: "custom",
+    gemIds: [],
+    enchantId: 0,
+  });
+  request.selection.selectedInstanceIds.push("custom-shoulders");
+  const preview = preparePurchases(request, createSearchBudget(100000));
+  const onChange = vi.fn();
+  render(
+    <NextIntlClientProvider
+      locale="en-US"
+      messages={{ inventory, diagnostics }}
+    >
+      <InventorySelector
+        request={request}
+        purchasePreview={preview}
+        onChange={onChange}
+      />
+    </NextIntlClientProvider>,
+  );
+  expect(
+    document.querySelector('[data-instance-id="custom-shoulders"]'),
+  ).toBeNull();
+  const row = document.querySelector(
+    '[data-instance-id="purchase-original-50098"]',
+  )!;
+  const checkbox = row.querySelector('input[type="checkbox"]')!;
+  expect(checkbox).toBeChecked();
+  expect(row).toHaveTextContent("Uses resources");
+  expect(row.querySelector(".item-remove")).not.toBeNull();
+  fireEvent.click(checkbox);
+  expect(
+    onChange.mock.calls[0][0].purchases.excludedItemIds.original,
+  ).toContain(50098);
+  expect(onChange.mock.calls[0][0].snapshot).toEqual(request.snapshot);
 });

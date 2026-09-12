@@ -22,6 +22,11 @@ import {
   InventoryEnhancementIssues,
   type EnhancementSetAnalysis,
 } from "./InventoryEnhancementIssues";
+import type { PurchasePreview } from "./purchases/purchase-worker-contract";
+import { getPurchaseCatalog } from "@/domain/purchases/catalog";
+import { itemVersionOf } from "@/domain/top-gear/item-version";
+import { setPurchaseExcluded } from "@/domain/purchases/state";
+import { setPurchaseEnhancements } from "@/domain/purchases/enhancements";
 const filterKeys = {
   "All slots": "all",
   Armor: "armor",
@@ -32,15 +37,17 @@ export function InventorySelector({
   request,
   onChange,
   enhancementAnalysis = null,
+  purchasePreview = null,
 }: {
   request: TopGearRequest;
   onChange: (r: TopGearRequest) => void;
   enhancementAnalysis?: EnhancementSetAnalysis | null;
+  purchasePreview?: PurchasePreview | null;
 }) {
   const d = useTranslations("diagnostics");
   const t = useTranslations("inventory");
   const [filter, setFilter] = useState("All slots");
-  const { snapshot, selection } = request,
+  const { snapshot, selection } = purchasePreview ?? request,
     catalog = getCatalog(snapshot.itemVersion);
   const [editing, setEditing] = useState<{
     id: string;
@@ -67,8 +74,28 @@ export function InventorySelector({
   const editedItem = snapshot.inventory.find(
     (item) => item.instanceId === editing?.id,
   );
+  const purchaseCatalog = request.purchases
+    ? getPurchaseCatalog(itemVersionOf(snapshot))
+    : null;
+  const candidateById = new Map(
+    purchasePreview?.candidates.map((c) => [c.instance.instanceId, c]),
+  );
+  const customRewardIds = new Set(
+    request.snapshot.inventory
+      .filter((i) => i.source === "custom")
+      .map((i) => i.itemId),
+  );
   const valid = snapshot.inventory.filter(
-      (i) => !validateItem(snapshot, i).length,
+      (i) =>
+        !validateItem(snapshot, i).length &&
+        !(
+          purchasePreview &&
+          i.source === "custom" &&
+          purchaseCatalog?.byItemId.has(i.itemId)
+        ) &&
+        (i.source !== "purchase" ||
+          candidateById.get(i.instanceId)?.available ||
+          customRewardIds.has(i.itemId)),
     ),
     unsupported = snapshot.inventory.filter(
       (i) => i.source === "bag" && validateItem(snapshot, i).length,
@@ -83,13 +110,26 @@ export function InventorySelector({
       ),
     );
   function toggle(id: string) {
+    const candidate = candidateById.get(id);
+    if (candidate) {
+      onChange(
+        setPurchaseExcluded(
+          request,
+          candidate.instance.itemId,
+          candidate.included,
+        ),
+      );
+      return;
+    }
     onChange({
       ...request,
       selection: {
-        ...selection,
-        selectedInstanceIds: selection.selectedInstanceIds.includes(id)
-          ? selection.selectedInstanceIds.filter((itemId) => itemId !== id)
-          : [...selection.selectedInstanceIds, id],
+        ...request.selection,
+        selectedInstanceIds: request.selection.selectedInstanceIds.includes(id)
+          ? request.selection.selectedInstanceIds.filter(
+              (itemId) => itemId !== id,
+            )
+          : [...request.selection.selectedInstanceIds, id],
       },
     });
   }
@@ -171,7 +211,18 @@ export function InventorySelector({
             <Button
               variant="ghost"
               onClick={() =>
-                onChange(removeCustomItem(request, item.instanceId))
+                onChange(
+                  removeCustomItem(
+                    request,
+                    item.source === "purchase"
+                      ? request.snapshot.inventory.find(
+                          (original) =>
+                            original.source === "custom" &&
+                            original.itemId === item.itemId,
+                        )!.instanceId
+                      : item.instanceId,
+                  ),
+                )
               }
             >
               {t("removeCustom")}
@@ -206,6 +257,25 @@ export function InventorySelector({
                       preview={previews.get(item.instanceId) ?? item}
                       snapshot={snapshot}
                       index={index}
+                      removable={
+                        item.source === "custom" ||
+                        (item.source === "purchase" &&
+                          customRewardIds.has(item.itemId))
+                      }
+                      usesResources={
+                        !!purchaseCatalog?.byItemId.has(item.itemId) &&
+                        (item.source === "custom" || item.source === "purchase")
+                      }
+                      unavailable={
+                        item.source === "purchase" &&
+                        !candidateById.get(item.instanceId)?.available
+                      }
+                      disabled={
+                        !!request.purchases &&
+                        !purchasePreview &&
+                        item.source === "custom" &&
+                        !!purchaseCatalog?.byItemId.has(item.itemId)
+                      }
                       selected={selection.selectedInstanceIds.includes(
                         item.instanceId,
                       )}
@@ -218,7 +288,18 @@ export function InventorySelector({
                         setEditing({ id: item.instanceId, field });
                       }}
                       onRemove={() =>
-                        onChange(removeCustomItem(request, item.instanceId))
+                        onChange(
+                          removeCustomItem(
+                            request,
+                            item.source === "purchase"
+                              ? request.snapshot.inventory.find(
+                                  (original) =>
+                                    original.source === "custom" &&
+                                    original.itemId === item.itemId,
+                                )!.instanceId
+                              : item.instanceId,
+                          ),
+                        )
                       }
                     />
                   ))}
@@ -232,10 +313,25 @@ export function InventorySelector({
       {editing && editedItem && (
         <ItemEnhancementEditor
           key={editedItem.instanceId}
-          request={request}
+          request={
+            editedItem.source === "purchase"
+              ? { ...request, snapshot, selection }
+              : request
+          }
           item={editedItem}
           initialField={editing.field}
-          onApply={onChange}
+          onApply={(edited) =>
+            onChange(
+              editedItem.source === "purchase"
+                ? setPurchaseEnhancements(
+                    request,
+                    editedItem.itemId,
+                    edited.snapshot.itemEnhancements?.[editedItem.instanceId] ??
+                      {},
+                  )
+                : edited,
+            )
+          }
           onClose={() => setEditing(null)}
           returnFocus={editorReturnFocus}
         />

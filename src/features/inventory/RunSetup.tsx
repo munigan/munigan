@@ -14,6 +14,7 @@ import { CharacterPortrait } from "./CharacterPortrait";
 import { RunSettingRow, RunSettingAction } from "./RunSettingRow";
 import { RunAllowance } from "./RunAllowance";
 import { Button } from "@/components/ui/Button";
+import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 export function RunSetup({
   request,
   policy,
@@ -26,6 +27,8 @@ export function RunSetup({
   onSettings,
   onEnhancements,
   onRun,
+  onPurchases,
+  purchaseAnalysis,
 }: {
   request: TopGearRequest;
   policy: WorkPolicy | null;
@@ -38,6 +41,8 @@ export function RunSetup({
   onSettings: () => void;
   onEnhancements: () => void;
   onRun: () => void;
+  onPurchases?: () => void;
+  purchaseAnalysis?: PurchaseAnalysisState;
 }) {
   const t = useTranslations("inventory");
   const locale = useLocale();
@@ -116,6 +121,18 @@ export function RunSetup({
             s
           </p>
         </RunSettingRow>
+        {request.purchases && (
+          <RunSettingRow icon="settings">
+            <RunSettingAction onClick={() => onPurchases?.()}>
+              {t("purchases.summary")}
+            </RunSettingAction>
+            <p className="run-setting-description">
+              {t("purchases.summaryCount", {
+                count: Object.keys(request.purchases.balances).length,
+              })}
+            </p>
+          </RunSettingRow>
+        )}
         <EnhancementSummary
           snapshot={request.snapshot}
           onOpen={() => onEnhancements()}
@@ -125,6 +142,7 @@ export function RunSetup({
         request={request}
         policy={policy}
         allowance={allowance}
+        purchaseAnalysis={purchaseAnalysis}
         error={error}
         readinessError={readinessError}
         pending={pending}

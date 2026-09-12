@@ -39,6 +39,7 @@ import {
 } from "@/domain/equipment/enumerate";
 import {
   encodeRequest,
+  decodeDraft,
   validateRequest,
 } from "@/domain/top-gear/request-schema";
 import {
@@ -61,6 +62,12 @@ import {
 } from "./admission-attempt";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
 
+import { enhancementDiagnosticText } from "./enhancements/enhancement-labels";
+import { ResourceWallet } from "./purchases/ResourceWallet";
+import { PurchasableItemsDialog } from "./purchases/PurchasableItemsDialog";
+import { usePurchaseAnalysis } from "./purchases/usePurchaseAnalysis";
+import { revalidatePurchaseInputs } from "@/domain/purchases/state";
+import { setPurchaseEnhancements } from "@/domain/purchases/enhancements";
 export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const t = useTranslations("import");
   const ta = useTranslations("auth");
@@ -84,6 +91,11 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     [hasDraft, setHasDraft] = useState(false),
     [replace, setReplace] = useState(false),
     [storageError, setStorageError] = useState<ErrorDescriptor | null>(null);
+  const [purchasesOpen, setPurchasesOpen] = useState(false);
+  const [catalogNotice, setCatalogNotice] = useState("");
+  const purchaseAnalysis = usePurchaseAnalysis(request, policy);
+  const purchasePreview =
+    purchaseAnalysis.status === "ready" ? purchaseAnalysis.preview : null;
   const importPanel = useRef<ImportPanelHandle>(null);
   const [importRevision, setImportRevision] = useState(0);
   const [selectionVisit, setSelectionVisit] = useState({
@@ -261,7 +273,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     setReplace(false);
   }
   async function run(withoutSaving = false) {
-    if (!request || submitting.current) return;
+    if (submitting.current) return;
     submitting.current = true;
     setPending(true);
     try {
@@ -279,19 +291,36 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         setAdmissionIssue("account");
         return;
       }
-      validateRequest(encodeRequest(request));
-      saveDraft(request);
-      if (withoutSaving || !attempt.current)
+      if (withoutSaving || !attempt.current) {
+        if (!request) return;
+        if (
+          request.purchases &&
+          !(
+            purchaseAnalysis.status === "ready" &&
+            purchaseAnalysis.analysis.status === "complete" &&
+            purchaseAnalysis.analysis.plan.allowance.allowed
+          )
+        ) {
+          setError({ message: ti("purchases.calculating") });
+          return;
+        }
+        validateRequest(encodeRequest(request));
+        saveDraft(request);
         attempt.current = createAttempt(
           encodeRequest(request),
           withoutSaving || auth.status === "anonymous"
             ? "anonymous"
             : "account",
         );
+      }
       const submitted = JSON.parse(attempt.current.body);
       delete submitted.authMode;
       const reportUrl = await submitAttempt(attempt.current);
-      completedRequest.current = request;
+      completedRequest.current =
+        request &&
+        JSON.stringify(encodeRequest(request)) === JSON.stringify(submitted)
+          ? request
+          : decodeDraft(submitted);
       attempt.current = null;
       try {
         if (clearMatchingDraft(submitted)) setHasDraft(false);
@@ -324,14 +353,16 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   }
   const enhancementAnalysis = useMemo(
     () =>
-      request && Object.keys(request.snapshot.itemEnhancements ?? {}).length
+      request &&
+      !request.purchases &&
+      Object.keys(request.snapshot.itemEnhancements ?? {}).length
         ? analyzeItemEnhancementSets(request.snapshot, request.selection)
         : null,
     [request],
   );
   const allowance = useMemo(
     () =>
-      request && policy
+      request && !request.purchases && policy
         ? estimateAllowance(
             request.snapshot,
             request.selection,
@@ -425,16 +456,92 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
           </>
         ) : (
           <div className="gear-layout">
-            <InventorySelector
-              key={selectionVisit.revision}
-              request={request}
-              onChange={change}
-              enhancementAnalysis={enhancementAnalysis}
-            />
+            <div className="inventory-with-wallet">
+              <ResourceWallet
+                request={request}
+                onChange={change}
+                onReview={() => setPurchasesOpen(true)}
+              />
+              {purchaseAnalysis.status === "error" && (
+                <div className="purchase-analysis-repair" role="alert">
+                  <p>
+                    {purchaseAnalysis.diagnostic.code === "serviceConnection"
+                      ? ti("purchases.analysisError")
+                      : localizeDiagnostic(purchaseAnalysis.diagnostic, td)}
+                  </p>
+                  {purchaseAnalysis.diagnostic.diagnostics?.map(
+                    (diagnostic, index) => (
+                      <p className="muted small" key={index}>
+                        {enhancementDiagnosticText(diagnostic, ti)}
+                      </p>
+                    ),
+                  )}
+                  {purchaseAnalysis.diagnostic.code ===
+                    "purchaseEnhancementInvalid" &&
+                    purchaseAnalysis.diagnostic.params?.profile ===
+                      itemVersionOf(request.snapshot) && (
+                      <Button
+                        variant="secondary"
+                        onClick={() =>
+                          change(
+                            setPurchaseEnhancements(
+                              request,
+                              purchaseAnalysis.diagnostic.params!.itemId,
+                              {},
+                            ),
+                          )
+                        }
+                      >
+                        {ti("purchases.resetEnhancements", {
+                          itemId: purchaseAnalysis.diagnostic.params.itemId,
+                        })}
+                      </Button>
+                    )}
+                </div>
+              )}
+              {purchaseAnalysis.status === "ready" &&
+                purchaseAnalysis.analysis.status === "catalog-changed" && (
+                  <div className="purchase-analysis-repair" role="alert">
+                    <p>{ti("purchases.catalogChanged")}</p>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        const result = revalidatePurchaseInputs(request);
+                        setCatalogNotice(
+                          result.removedItemIds.length
+                            ? ti("purchases.removedChoices", {
+                                items: result.removedItemIds.join(", "),
+                              })
+                            : ti("purchases.catalogReviewed"),
+                        );
+                        change(result.request);
+                      }}
+                    >
+                      {ti("purchases.revalidate")}
+                    </Button>
+                  </div>
+                )}
+              {catalogNotice && (
+                <p role="status" className="muted small">
+                  {catalogNotice}
+                </p>
+              )}
+              <InventorySelector
+                key={selectionVisit.revision}
+                request={request}
+                onChange={change}
+                enhancementAnalysis={enhancementAnalysis}
+                purchasePreview={purchasePreview}
+              />
+            </div>
             <RunSetup
               request={request}
               policy={policy}
               allowance={allowance}
+              purchaseAnalysis={
+                request.purchases ? purchaseAnalysis : undefined
+              }
+              onPurchases={() => setPurchasesOpen(true)}
               error={error ? localizeDiagnostic(error, td) : ""}
               readinessError={
                 readinessError
@@ -469,10 +576,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                 )}
               </p>
               <div className="actions">
-                <Button
-                  disabled={pending || !request}
-                  onClick={() => void run()}
-                >
+                <Button disabled={pending} onClick={() => void run()}>
                   {ta("retryReturn")}
                 </Button>
                 <Button
@@ -494,6 +598,15 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
               </div>
             </div>
           </div>
+        )}
+        {request && (
+          <PurchasableItemsDialog
+            request={request}
+            preview={purchasePreview}
+            open={purchasesOpen}
+            onOpenChange={setPurchasesOpen}
+            onChange={change}
+          />
         )}
         <SignInDialog
           open={signInOpen}
