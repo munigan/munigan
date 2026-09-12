@@ -3,7 +3,7 @@ import { purchaseFixture } from "../../../tests/support/purchase-fixtures";
 import { setPurchaseEnhancements } from "./enhancements";
 import { preparePurchases } from "./candidates";
 import { createSearchBudget } from "@/domain/equipment/search-budget";
-import { encodeRequest } from "@/domain/top-gear/request-schema";
+import { decodeDraft, encodeRequest } from "@/domain/top-gear/request-schema";
 import { Profession } from "@/generated/wotlk/common";
 it("normalizes profile-scoped overrides without changing the original input or generated raw enhancements", () => {
   const request = purchaseFixture({ frost: 60 });
@@ -83,4 +83,31 @@ it("identifies an invalid purchase override so the editor can reset that exact r
   expect(() =>
     preparePurchases(reset, createSearchBudget(100000)),
   ).not.toThrow();
+});
+it("explicitly resets inherited custom intent to defaults without modifying the original custom item", () => {
+  const request = purchaseFixture({ frost: 60 });
+  request.snapshot.inventory.push({
+    instanceId: "custom-tier",
+    itemId: 50098,
+    source: "custom",
+    gemIds: [40111],
+    enchantId: 3808,
+  });
+  request.selection.selectedInstanceIds.push("custom-tier");
+  request.snapshot.itemEnhancements = { "custom-tier": { enchantId: 3839 } };
+  const before = encodeRequest(request);
+  expect(() => preparePurchases(request, createSearchBudget(100000))).toThrow();
+  const reset = setPurchaseEnhancements(request, 50098, {});
+  expect(reset.purchases!.itemEnhancements.original?.["50098"]).toEqual({});
+  expect(
+    decodeDraft(encodeRequest(reset)).purchases!.itemEnhancements.original?.[
+      "50098"
+    ],
+  ).toEqual({});
+  const prepared = preparePurchases(reset, createSearchBudget(100000));
+  expect(
+    prepared.snapshot.itemEnhancements?.["purchase-original-50098"],
+  ).toEqual({});
+  expect(reset.snapshot).toEqual(request.snapshot);
+  expect(encodeRequest(request)).toEqual(before);
 });

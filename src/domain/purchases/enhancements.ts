@@ -68,7 +68,16 @@ export function setPurchaseEnhancements(
   );
   const normalized = edited.snapshot.itemEnhancements?.[item.instanceId];
   const overrides = { ...request.purchases.itemEnhancements[profile] };
-  if (normalized) overrides[String(itemId)] = normalized;
+  const inheritsCustomIntent = request.snapshot.inventory.some(
+    (candidate) =>
+      candidate.source === "custom" &&
+      candidate.itemId === itemId &&
+      request.selection.selectedInstanceIds.includes(candidate.instanceId),
+  );
+  // Empty is an explicit default choice for converted customs. Deleting it
+  // would reactivate the original custom intent on the next preparation.
+  if (normalized || inheritsCustomIntent)
+    overrides[String(itemId)] = normalized ?? {};
   else delete overrides[String(itemId)];
   return {
     ...request,
