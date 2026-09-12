@@ -108,6 +108,11 @@ it("explicitly resets inherited custom intent to defaults without modifying the 
   expect(
     prepared.snapshot.itemEnhancements?.["purchase-original-50098"],
   ).toEqual({});
+  expect(
+    prepared.snapshot.inventory.find(
+      (item) => item.instanceId === "purchase-original-50098",
+    )?.gemIds,
+  ).toEqual([]);
   expect(reset.snapshot).toEqual(request.snapshot);
   expect(encodeRequest(request)).toEqual(before);
 });

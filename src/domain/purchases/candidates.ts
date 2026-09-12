@@ -95,14 +95,21 @@ export function preparePurchases(
       )[0];
     const inherited = custom
       ? {
-          ...(custom.gemIds.length ? { gemIds: [...custom.gemIds] } : {}),
           ...(custom.enchantId ? { enchantId: custom.enchantId } : {}),
           ...request.snapshot.itemEnhancements?.[custom.instanceId],
         }
       : undefined;
-    const override =
-      request.purchases.itemEnhancements[profile]?.[String(recipe.itemId)] ??
-      inherited;
+    const explicit =
+      request.purchases.itemEnhancements[profile]?.[String(recipe.itemId)];
+    const override = explicit ?? inherited;
+    // Only converted custom alternatives retain their raw gem baseline. Keep
+    // it separate from the sparse manual override: null/omitted sockets must
+    // remain eligible for the existing whole-set JC and meta automation.
+    // An explicit purchase override (including {}) suppresses all inheritance.
+    const effectiveInstance =
+      custom && explicit === undefined
+        ? { ...instance, gemIds: [...custom.gemIds] }
+        : instance;
     if (override) {
       const errors = validateItemEnhancements(
         prepared.snapshot,
@@ -133,7 +140,7 @@ export function preparePurchases(
       paths,
     };
     prepared.candidates.push(candidate);
-    prepared.snapshot.inventory.push(instance);
+    prepared.snapshot.inventory.push(effectiveInstance);
     if (candidate.available && candidate.included)
       prepared.selection.selectedInstanceIds.push(instance.instanceId);
   }

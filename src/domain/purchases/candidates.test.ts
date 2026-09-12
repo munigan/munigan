@@ -153,3 +153,71 @@ it("allows an excluded reward as a purchased intermediate", () => {
       ?.paths[0].steps.map((s) => s.itemId),
   ).toEqual([50098, 51125]);
 });
+
+import { prepareGems } from "@/domain/equipment/gemming";
+import { Profession } from "@/generated/wotlk/common";
+
+for (const automatic of [false, true]) {
+  it.each([
+    { label: "null", override: [null, 40111], expected: [40111, 40111] },
+    { label: "omitted tail", override: [40111], expected: [40111, 40112] },
+    { label: "explicit zero", override: [null, 0], expected: [40111, 0] },
+    { label: "empty array", override: [], expected: [40111, 40112] },
+  ])(
+    `preserves custom $label gems with automatic gemming ${automatic}`,
+    ({ override, expected }) => {
+      const request = purchaseFixture({ frost: 95 });
+      const custom = {
+        instanceId: "custom-chest",
+        itemId: 50094,
+        source: "custom" as const,
+        gemIds: [40111, 40112],
+        enchantId: 0,
+      };
+      request.snapshot.inventory.push(custom);
+      request.selection.selectedInstanceIds.push(custom.instanceId);
+      request.snapshot.itemEnhancements = {
+        [custom.instanceId]: { gemIds: override },
+      };
+      request.snapshot.gemming = {
+        enabled: automatic,
+        defaultGemId: 40111,
+        metaGemId: 41398,
+        jcGemId: 42142,
+      };
+      request.snapshot.settings.player!.profession1 = Profession.Jewelcrafting;
+      request.snapshot.professionLevels = { [Profession.Jewelcrafting]: 450 };
+      const originalLoadout = {
+        ...request.snapshot.equipped,
+        chest: custom.instanceId,
+      };
+      const originalGems =
+        prepareGems(request.snapshot, originalLoadout).overrides[
+          custom.instanceId
+        ] ?? custom.gemIds;
+      if (!automatic) expect(originalGems).toEqual(expected);
+      else expect(originalGems).toContain(42142);
+      const before = encodeRequest(request);
+      const prepared = prepare(request);
+      const generatedId = "purchase-original-50094";
+      const generated = prepared.snapshot.inventory.find(
+        (item) => item.instanceId === generatedId,
+      )!;
+      const generatedLoadout = {
+        ...prepared.snapshot.equipped,
+        chest: generatedId,
+      };
+      const generatedGems =
+        prepareGems(prepared.snapshot, generatedLoadout).overrides[
+          generatedId
+        ] ?? generated.gemIds;
+      expect(generatedGems).toEqual(originalGems);
+      expect(
+        prepared.candidates.find(
+          (candidate) => candidate.instance.itemId === 50094,
+        )!.instance.gemIds,
+      ).toEqual([]);
+      expect(encodeRequest(request)).toEqual(before);
+    },
+  );
+}
