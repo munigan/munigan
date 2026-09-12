@@ -32,3 +32,18 @@ it("preserves structured diagnostic parameters and validation details", async ()
     expect(payload.details).toHaveLength(1);
   }
 });
+
+it("preserves an explicit purchase admission diagnostic", async () => {
+  const response = failure(
+    new AdmissionError("Invalid purchase enhancement", 422, {
+      code: "purchaseEnhancementInvalid",
+      params: { itemId: 50098 },
+    }),
+  );
+  expect(response.status).toBe(422);
+  expect(await response.json()).toEqual({
+    error: "Invalid purchase enhancement",
+    code: "purchaseEnhancementInvalid",
+    params: { itemId: 50098 },
+  });
+});

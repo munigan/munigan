@@ -151,5 +151,9 @@
   "warmaneNetwork": "Não foi possível conectar à Warmane. Tente novamente em breve ou use um perfil salvo.",
   "warmaneRelayUnavailable": "A importação do Armory está temporariamente indisponível. Seus dados foram mantidos.",
   "warmaneNoSavedProfile": "Não há um perfil recente do Armory salvo. Atualize pelo Armory ou use uma exportação do addon.",
-  "warmaneBusy": "Aguarde {seconds} segundos antes de atualizar este perfil novamente."
+  "warmaneBusy": "Aguarde {seconds} segundos antes de atualizar este perfil novamente.",
+  "purchaseNoLegalSets": "Nenhum conjunto válido corresponde a estas compras. Revise as seleções e os recursos.",
+  "purchaseAllowanceExceeded": "Estas opções de compra excedem o limite de simulação. Reduza as seleções ou os recursos.",
+  "purchaseSearchLimit": "A busca de compras é muito complexa. Reduza as seleções ou os recursos.",
+  "purchaseEnhancementInvalid": "Revise ou redefina as gemas e o encantamento do item de compra {itemId}."
 }

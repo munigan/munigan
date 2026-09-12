@@ -10,6 +10,7 @@ import {
   encodeSnapshot,
   encodeRequest,
 } from "@/domain/top-gear/request-schema";
+import { hydratePurchaseSnapshot } from "@/domain/purchases/frozen";
 import { loadoutKey } from "@/domain/equipment/enumerate";
 import { rankResults } from "@/domain/top-gear/report";
 import { recommendedBuild } from "@/domain/top-gear/recommendation";
@@ -34,10 +35,21 @@ function requestOf(job: ProjectionJob): TopGearRequest {
   return { ...job.request, snapshot: decodeSnapshot(job.request.snapshot) };
 }
 
-export const encodeReport = (report: TopGearReport) => ({
-  ...report,
-  snapshot: encodeSnapshot(report.snapshot),
-});
+export function encodeReport(report: TopGearReport) {
+  const { purchases, ...rest } = report;
+  return {
+    ...rest,
+    snapshot: encodeSnapshot(report.snapshot),
+    ...(purchases
+      ? {
+          purchases: {
+            ...purchases,
+            originalSnapshot: encodeSnapshot(purchases.originalSnapshot),
+          },
+        }
+      : {}),
+  };
+}
 
 export async function projectReport(
   jobId: string,
@@ -54,21 +66,54 @@ export async function projectReport(
   const results = work.rows
     .filter((row) => row.result)
     .map((row) => row.result as SimulationResult);
+  let purchases = job.plan?.purchases;
+  // Missing plans produce an explicit worker failure and an empty failure report.
+  let snapshot = request.snapshot;
+  if (purchases && Array.isArray(purchases.generatedItems)) {
+    try {
+      snapshot = hydratePurchaseSnapshot(snapshot, purchases);
+    } catch (error) {
+      // A corrupt plan must still settle its reservation when no work ran.
+      // Never invent a replacement purchase space or reprice completed work.
+      if (results.length) throw error;
+      purchases = undefined;
+    }
+  }
   const ranked = rankResults(
-    request.snapshot,
+    snapshot,
     results,
-    job.plan?.candidateLoadouts ?? [],
+    Array.isArray(job.plan?.candidateLoadouts)
+      ? job.plan.candidateLoadouts
+      : [],
   );
+  if (purchases?.plansByLoadoutKey)
+    for (const row of ranked.rows)
+      row.purchasePlan =
+        purchases.plansByLoadoutKey[
+          loadoutKey(snapshot, row.loadout, row.isEquipped)
+        ];
   return {
     token: "",
     status: job.status,
     phase: job.phase,
-    snapshot: request.snapshot,
+    snapshot,
+    ...(purchases
+      ? {
+          purchases: {
+            inputs: purchases.inputs,
+            recipeRevision: purchases.recipeRevision,
+            recipes: purchases.recipes,
+            originalSnapshot: request.snapshot,
+          },
+        }
+      : {}),
     selection: request.selection,
     policy: job.policy,
     ...ranked,
     coverage: {
-      planned: job.plan?.simulations.length ?? null,
+      planned: Array.isArray(job.plan?.simulations)
+        ? job.plan.simulations.length
+        : null,
       succeeded: results.length,
       failed: work.rows.filter((row) => row.error && !row.result).length,
       returned: ranked.rows.length,
@@ -111,6 +156,18 @@ export function projectStoredReport(
       })),
       report.rows.filter((row) => row.eligible).map((row) => row.loadout),
     );
+    const purchasePlans = new Map(
+      report.rows.map((row) => [
+        loadoutKey(snapshot, row.loadout, row.isEquipped),
+        row.purchasePlan,
+      ]),
+    );
+    for (const row of ranked.rows) {
+      const purchasePlan = purchasePlans.get(
+        loadoutKey(snapshot, row.loadout, row.isEquipped),
+      );
+      if (purchasePlan) row.purchasePlan = purchasePlan;
+    }
     report = {
       ...report,
       ...ranked,

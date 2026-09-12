@@ -23,6 +23,11 @@ import {
   purchaseInputsSchema,
   validatePurchaseInputs,
 } from "@/domain/purchases/schema";
+import { getPurchaseCatalog } from "@/domain/purchases/catalog";
+import { PurchaseEnhancementError } from "@/domain/purchases/enhancements";
+import { preparePurchases } from "@/domain/purchases/candidates";
+import { createSearchBudget } from "@/domain/equipment/search-budget";
+import { purchaseInstanceId } from "@/domain/purchases/schema";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -308,6 +313,24 @@ export function validateRequest(input: unknown): TopGearRequest {
       (!ids.has(value) || !parsed.selection.selectedInstanceIds.includes(value))
     )
       throw new Error(`Locked ${key} must be selected and owned`);
+  const converted = new Set(
+    parsed.purchases
+      ? custom
+          .filter(
+            (item) =>
+              parsed.selection.selectedInstanceIds.includes(item.instanceId) &&
+              getPurchaseCatalog(itemVersionOf(snapshot)).byItemId.has(
+                item.itemId,
+              ),
+          )
+          .map((item) => item.instanceId)
+      : [],
+  );
+  // Preparation validates the effective inherited or explicit purchase override.
+  // Preserve the original custom draft so disabling purchases restores its intent.
+  const prepared = converted.size
+    ? preparePurchases(parsed, createSearchBudget(100000))
+    : undefined;
   for (const [instanceId, override] of Object.entries(
     snapshot.itemEnhancements ?? {},
   )) {
@@ -316,6 +339,7 @@ export function validateRequest(input: unknown): TopGearRequest {
     );
     if (!item)
       throw new Error("Enhancements must reference an owned item instance");
+    if (converted.has(instanceId)) continue;
     const errors = validateItemEnhancements(snapshot, item, override);
     if (errors.length) throw new Error(errors[0].message);
   }
@@ -337,7 +361,21 @@ export function validateRequest(input: unknown): TopGearRequest {
   )
     throw new Error("Equipped item mapping is inconsistent");
   for (const item of snapshot.inventory) {
-    const errors = validateItem(snapshot, item);
+    const effective = converted.has(item.instanceId)
+      ? prepared!.snapshot.inventory.find(
+          (candidate) =>
+            candidate.instanceId ===
+            purchaseInstanceId(itemVersionOf(snapshot), item.itemId),
+        )
+      : item;
+    // Ineligible customs are still rejected, even if preparation excluded them.
+    const errors = validateItem(snapshot, effective ?? item);
+    if (errors.length && converted.has(item.instanceId) && effective)
+      throw new PurchaseEnhancementError(
+        itemVersionOf(snapshot),
+        item.itemId,
+        errors,
+      );
     if (errors.length && item.source === "custom")
       throw new Error(`Custom item: ${errors[0].message}`);
     if (

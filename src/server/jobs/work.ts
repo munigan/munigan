@@ -12,6 +12,7 @@ import type {
   WorkPolicy,
   TopGearReport,
 } from "@/domain/top-gear/model";
+import { hydratePurchaseSnapshot } from "@/domain/purchases/frozen";
 import { planRun } from "@/domain/equipment/enumerate";
 import { evaluate } from "@/server/simulator/evaluate";
 import { encodeReport, projectReport } from "@/server/reports/projection";
@@ -274,6 +275,32 @@ export async function executeTopGear(
       return true;
     }
     const request = requestOf(job);
+    if (
+      request.purchases &&
+      (!job.plan?.purchases ||
+        job.plan.purchases.version !== 1 ||
+        !Array.isArray(job.plan.purchases.recipes) ||
+        !job.plan.purchases.inputs ||
+        !Array.isArray(job.plan.purchases.generatedItems) ||
+        !job.plan.purchases.effectiveEnhancements ||
+        !job.plan.purchases.plansByLoadoutKey ||
+        !Array.isArray(job.plan.simulations) ||
+        !Array.isArray(job.plan.candidateLoadouts) ||
+        !job.plan.simulations.length ||
+        !job.plan.candidateLoadouts.length ||
+        job.plan.simulations.some(
+          (work) => !job.plan!.purchases!.plansByLoadoutKey[work.key],
+        ))
+    )
+      throw new Error("Missing or malformed frozen purchase plan");
+    let snapshot = request.snapshot;
+    if (request.purchases) {
+      try {
+        snapshot = hydratePurchaseSnapshot(snapshot, job.plan!.purchases!);
+      } catch (cause) {
+        throw new Error("Malformed frozen purchase plan", { cause });
+      }
+    }
     const plan = await measure(
       "planning",
       () =>
@@ -328,7 +355,7 @@ export async function executeTopGear(
           attempts++;
           const result = await measure("evaluation", () =>
             evaluator(
-              request.snapshot,
+              snapshot,
               work.loadout,
               work.iterations,
               work.seed,

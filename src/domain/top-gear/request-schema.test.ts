@@ -190,11 +190,10 @@ it("reports stale purchase catalogs with a localized diagnostic identity", () =>
 });
 
 it.each(
-  ["purchase-original-51125", "purchase-classic-51125"].flatMap(
-    (generatedId) =>
-      ["inventory", "selected", "equipped", "locked", "override"].map(
-        (reference) => [generatedId, reference] as const,
-      ),
+  ["purchase-original-51125", "purchase-classic-51125"].flatMap((generatedId) =>
+    ["inventory", "selected", "equipped", "locked", "override"].map(
+      (reference) => [generatedId, reference] as const,
+    ),
   ),
 )(
   "rejects generated ID %s in submitted %s references",
@@ -235,4 +234,24 @@ it("rejects purchase-source inventory at the incoming request boundary", () => {
   const wire = encodeRequest(purchaseFixture({ frost: 1 }));
   wire.snapshot.inventory[0].source = "purchase" as "bag";
   expect(() => decodeDraft(wire)).toThrow();
+});
+
+it("validates the effective custom purchase override while retaining original intent", () => {
+  const request = purchaseFixture({ frost: 100 });
+  request.snapshot.inventory.push({
+    instanceId: "custom",
+    itemId: 50098,
+    source: "custom",
+    gemIds: [],
+    enchantId: 0,
+  });
+  request.selection.selectedInstanceIds.push("custom");
+  request.snapshot.itemEnhancements = { custom: { gemIds: [9999999] } };
+  expect(() => validateRequest(encodeRequest(request))).toThrow();
+  request.purchases!.itemEnhancements.original = { "50098": {} };
+  expect(
+    validateRequest(encodeRequest(request)).snapshot.itemEnhancements?.custom,
+  ).toEqual({ gemIds: [9999999] });
+  delete request.purchases;
+  expect(() => validateRequest(encodeRequest(request))).toThrow();
 });

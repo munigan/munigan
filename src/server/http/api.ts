@@ -78,7 +78,10 @@ export function failure(error: unknown) {
     );
   if (error instanceof AdmissionError)
     return NextResponse.json(
-      { error: error.message, ...diagnosticIdentity(error) },
+      {
+        error: error.message,
+        ...(error.diagnostic ?? diagnosticIdentity(error)),
+      },
       { status: error.status },
     );
   if (error instanceof ZodError)

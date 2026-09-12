@@ -67,7 +67,15 @@ export async function submitAttempt(
     if (
       !wasUncertain &&
       ((response.status === 422 &&
-        ["allowance", "invalidInput"].includes(data.code)) ||
+        [
+          "allowance",
+          "invalidInput",
+          "purchaseNoLegalSets",
+          "purchaseAllowanceExceeded",
+          "purchaseSearchLimit",
+          "purchaseCatalogChanged",
+          "purchaseEnhancementInvalid",
+        ].includes(data.code)) ||
         (response.status === 401 && data.code === "SIGN_IN_REQUIRED") ||
         (response.status === 503 &&
           ["AUTH_UNAVAILABLE", "SAVING_UNAVAILABLE"].includes(data.code)) ||
