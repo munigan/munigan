@@ -1,5 +1,14 @@
 # Production releases
 
+## Gear Lab purchases and state performance — 2026-09-13
+
+- Released source `149e887` from `codex/gear-lab-purchases`, including token/currency planning, Zustand state ownership and reusable purchase/loadout analysis.
+- Vercel `dpl_CgRfAHd7AuJ8FpvE6fc19nQdHc7w` remotely built successfully and was verified before promotion to https://munigan.app. Immutable URL: https://wow-droptimizer-jvhhhe9ii-diego-fernandes-projects.vercel.app.
+- Trigger Production `20260913.1` deployed successfully with the Linux simulator: https://cloud.trigger.dev/projects/v3/proj_tbzzdkaotlbspettqxxh/deployments/59ya120b.
+- Release verification: 976 unit/component tests, 28 focused integration tests, static checks and remote production build passed. Public Gear Lab rendered without console errors; production configuration and new purchase/status copy verified. No production simulation was submitted.
+- Existing production limits remain configured: 500 iterations, 600,000 work units, 100,000 search nodes and 900-second deadline. Local unlimited settings were not uploaded. No database migration was required.
+- Previous web deployment for rollback: `dpl_BBUedsv61CgL4jWE57fH9UB1AQTy`. Local port-3100 session was preserved.
+
 ## Current production — reliable Warmane import (2026-09-11)
 
 - Warmane imports now use an owned, authenticated Cloudflare relay with the shared parser, coordinated requests, a 60-second fresh cache and explicit saved-profile recovery for up to 24 hours. Review shows retrieval time/source and supports refresh in English and Portuguese.
