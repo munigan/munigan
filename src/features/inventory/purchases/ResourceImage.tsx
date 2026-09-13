@@ -58,8 +58,14 @@ export function ResourceImage({
   );
   const recipe = recipes.find((item) => item.slot === "chest");
   if (!recipe) return null;
+  const ownedIds = new Set(
+    request.snapshot.inventory
+      .filter((item) => item.source === "bag" || item.source === "equipped")
+      .map((item) => item.itemId),
+  );
+  const remaining = recipes.filter((item) => !ownedIds.has(item.itemId));
   const equipment = getCatalog(itemVersionOf(request.snapshot));
-  const label = t("representedItems", { count: recipes.length });
+  const label = t("representedItems", { count: remaining.length });
   return (
     <TooltipRoot>
       <TooltipTrigger
@@ -70,13 +76,13 @@ export function ResourceImage({
       >
         <ItemImage itemId={recipe.itemId} size={36} />
         <span className="resource-items-count" aria-hidden="true">
-          +{recipes.length}
+          +{remaining.length}
         </span>
       </TooltipTrigger>
       <TooltipContent role="tooltip">
         <strong>{label}</strong>
         <ul className="resource-items-list">
-          {recipes.map((item) => (
+          {remaining.map((item) => (
             <li key={item.id}>
               {equipment.items.get(item.itemId)?.name ?? String(item.itemId)}
             </li>

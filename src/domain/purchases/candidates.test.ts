@@ -266,3 +266,32 @@ it("keeps an explicitly selected other-specialization custom reward costed", () 
       .spent,
   ).toEqual({ frost: 60 });
 });
+
+it.each(["bag", "equipped"] as const)(
+  "does not generate an already owned %s reward, even when deselected, and keeps its upgrade",
+  (source) => {
+    const request = purchaseFixture({
+      frost: 100,
+      "mark:normal:vanquisher": 1,
+    });
+    request.snapshot.inventory.push({
+      instanceId: "existing-tier-head",
+      itemId: 50096,
+      source,
+      gemIds: [],
+      enchantId: 0,
+    });
+    const prepared = prepare(request);
+    expect(prepared.candidates.some((c) => c.instance.itemId === 50096)).toBe(
+      false,
+    );
+    expect(
+      prepared.snapshot.inventory.filter((i) => i.itemId === 50096),
+    ).toHaveLength(1);
+    const upgrade = prepared.candidates.find(
+      (c) => c.instance.itemId === 51127,
+    );
+    expect(upgrade?.available).toBe(true);
+    expect(upgrade?.paths[0].spent).toEqual({ "mark:normal:vanquisher": 1 });
+  },
+);

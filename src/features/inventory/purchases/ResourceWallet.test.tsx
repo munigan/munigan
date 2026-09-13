@@ -17,10 +17,21 @@ import type { PurchaseAnalysisState } from "./purchase-worker-contract";
 import ptInventory from "../../../../messages/pt-BR/inventory.json";
 import { ResourceWallet } from "./ResourceWallet";
 
-function renderWallet(balances: ResourceAmounts = { frost: 100, triumph: 30 }) {
+function renderWallet(
+  balances: ResourceAmounts = { frost: 100, triumph: 30 },
+  ownedItemId?: number,
+) {
   const onChange = vi.fn();
   const onReview = vi.fn();
   const request = purchaseFixture(balances);
+  if (ownedItemId)
+    request.snapshot.inventory.push({
+      instanceId: "owned-reward",
+      itemId: ownedItemId,
+      source: "bag",
+      gemIds: [],
+      enchantId: 0,
+    });
   render(
     <NextIntlClientProvider
       locale="en-US"
@@ -216,4 +227,14 @@ it("shows the token's five specialization rewards in the shared tooltip", async 
   expect(within(tooltip).getAllByRole("listitem")).toHaveLength(5);
   expect(tooltip).toHaveTextContent("Koltira's Battleplate of Triumph");
   expect(tooltip).not.toHaveTextContent("Chestguard");
+});
+
+it("omits an owned reward from the token badge and tooltip", async () => {
+  renderWallet({ "regalia:vanquisher": 1 }, 48493);
+  const trigger = screen.getByRole("button", { name: "4 tier items" });
+  expect(trigger).toHaveTextContent("+4");
+  await userEvent.hover(trigger);
+  const tooltip = await screen.findByRole("tooltip");
+  expect(within(tooltip).getAllByRole("listitem")).toHaveLength(4);
+  expect(tooltip).not.toHaveTextContent("Koltira's Helmet of Triumph");
 });

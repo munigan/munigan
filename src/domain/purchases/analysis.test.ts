@@ -222,9 +222,8 @@ it.each(["original", "classic"] as const)(
     if (result.status !== "complete") throw new Error(result.status);
     expect(previews).toHaveLength(1);
     expect(
-      previews[0].candidates.find((c) => c.instance.itemId === 50098)
-        ?.available,
-    ).toBe(true);
+      previews[0].candidates.find((c) => c.instance.itemId === 50098),
+    ).toBeUndefined();
     const shoulder = result.plan.simulations.find(
       (s) =>
         s.loadout.shoulder === "owned-shoulder" && s.loadout.hands === null,

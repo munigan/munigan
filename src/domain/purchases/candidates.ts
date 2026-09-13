@@ -90,6 +90,13 @@ export function preparePurchases(
   for (const recipe of catalog.recipes) {
     budget.visit();
     if (recipe.classId !== request.snapshot.settings.player!.class) continue;
+    // Physical copies remain selectable in inventory. Only an explicit custom
+    // comparison may request an additional, separately costed copy.
+    if (
+      ownedIds.has(recipe.itemId) &&
+      !replaced.some((item) => item.itemId === recipe.itemId)
+    )
+      continue;
     if (
       variant &&
       recipe.setVariant !== variant &&
