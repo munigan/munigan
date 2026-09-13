@@ -282,3 +282,55 @@ it.each([
   expect((await pool.query("SELECT * FROM tg_jobs")).rowCount).toBe(0);
   expect((await pool.query("SELECT * FROM tg_budgets")).rowCount).toBe(0);
 });
+
+it("admits local requests beyond backlog, account, owner, source and daily capacity caps", async () => {
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", "1");
+  vi.stubEnv("GLOBAL_DAILY_UNITS", "1");
+  const { seedAccount } = await import("../support/accounts");
+  const account = await seedAccount();
+  const ownerKey = randomUUID();
+  const request = encodeRequest(purchaseFixture({ frost: 0 }));
+  for (let i = 0; i < 41; i++) {
+    await admitJob({
+      request,
+      ownerKey,
+      idempotencyKey: randomUUID(),
+      sourceHash: "same-local-source",
+      identity: { account, ownerHash: digest(ownerKey) },
+    });
+  }
+  expect(
+    (await pool.query("SELECT count(*)::int count FROM tg_jobs")).rows[0].count,
+  ).toBe(41);
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", undefined);
+  await expect(
+    admitJob({ request, ownerKey, idempotencyKey: randomUUID() }),
+  ).rejects.toMatchObject({ status: 503 });
+});
+
+it("persists selected local iterations in the request and frozen execution plan and rejects production escalation", async () => {
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", "1");
+  const request = encodeRequest({
+    ...purchaseFixture({ frost: 0 }),
+    iterations: 6000,
+  });
+  const input = {
+    request,
+    ownerKey: randomUUID(),
+    idempotencyKey: randomUUID(),
+  };
+  const admitted = await admitJob(input);
+  const job = await stored(admitted.jobId);
+  expect(job.request.iterations).toBe(6000);
+  expect(job.policy.iterationsPerSet).toBe(6000);
+  expect(job.plan.simulations[0].iterations).toBe(6000);
+  await expect(
+    admitJob({ ...input, request: { ...request, iterations: 500 } }),
+  ).rejects.toMatchObject({ status: 409 });
+  vi.stubEnv("NODE_ENV", "production");
+  await expect(
+    admitJob({ ...input, idempotencyKey: randomUUID() }),
+  ).rejects.toThrow();
+});

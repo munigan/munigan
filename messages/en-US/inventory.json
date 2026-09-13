@@ -146,6 +146,7 @@
     }
   },
   "allowance": {
+    "local": "Local",
     "sets": "sets",
     "loading": "Loading allowance…",
     "free": "Free",
@@ -156,6 +157,7 @@
     "reduce": "Select fewer items to stay within the free set limit."
   },
   "iterations": {
+    "localLimit": "Local maximum",
     "label": "Iterations per set",
     "help": "More iterations reduce random variation but take longer to simulate.",
     "freeLimit": "Free plan limit",

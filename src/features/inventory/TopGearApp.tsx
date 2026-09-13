@@ -83,7 +83,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const td = useTranslations("diagnostics");
   const router = useRouter();
   const [request, setRequest] = useState<TopGearRequest | null>(null),
-    [policy, setPolicy] = useState<WorkPolicy | null>(null),
+    [serverPolicy, setPolicy] = useState<WorkPolicy | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
     [enhancementsOpen, setEnhancementsOpen] = useState(false),
     [error, setError] = useState<ErrorDescriptor | null>(null),
@@ -93,6 +93,13 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     [storageError, setStorageError] = useState<ErrorDescriptor | null>(null);
   const [purchasesOpen, setPurchasesOpen] = useState(false);
   const [catalogNotice, setCatalogNotice] = useState("");
+  const policy = useMemo(
+    () =>
+      serverPolicy?.selectableIterations && request?.iterations !== undefined
+        ? { ...serverPolicy, iterationsPerSet: request.iterations }
+        : serverPolicy,
+    [serverPolicy, request?.iterations],
+  );
   const purchaseAnalysis = usePurchaseAnalysis(request, policy);
   const purchasePreview =
     purchaseAnalysis.status === "ready" ? purchaseAnalysis.preview : null;

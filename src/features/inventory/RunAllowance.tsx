@@ -14,6 +14,7 @@ export function RunAllowance({
   pending,
   onRun,
   purchaseAnalysis,
+  onIterationsChange,
 }: {
   request: TopGearRequest;
   policy: WorkPolicy | null;
@@ -23,6 +24,7 @@ export function RunAllowance({
   pending: boolean;
   onRun: () => void;
   purchaseAnalysis?: PurchaseAnalysisState;
+  onIterationsChange?: (iterations: number) => void;
 }) {
   const t = useTranslations("inventory");
   const locale = useLocale();
@@ -46,6 +48,10 @@ export function RunAllowance({
         : null
     : allowance;
   allowance = currentAllowance;
+  const selectedIterations = policy?.selectableIterations
+    ? (request.iterations ?? policy.iterationsPerSet)
+    : (policy?.iterationsPerSet ?? null);
+  const unlimited = policy?.maxUnits === null;
   return (
     <div
       className="run-action"
@@ -64,39 +70,50 @@ export function RunAllowance({
                     {Math.min(allowance.count, 999999).toLocaleString(locale)}
                   </strong>{" "}
                   /{" "}
-                  {Math.floor(
-                    policy!.maxUnits / policy!.unitsPerSet,
-                  ).toLocaleString(locale)}{" "}
+                  {unlimited
+                    ? "∞"
+                    : Math.floor(
+                        policy!.maxUnits! / policy!.unitsPerSet,
+                      ).toLocaleString(locale)}{" "}
                   {t("allowance.sets")}
                 </>
               ) : (
                 purchaseMessage || t("allowance.loading")
               )}
             </span>
-            <span className="badge">{t("allowance.free")}</span>
+            <span className="badge">
+              {t(unlimited ? "allowance.local" : "allowance.free")}
+            </span>
           </div>
-          <progress
-            aria-label={t("allowance.label")}
-            max={policy?.maxUnits ?? 1}
-            value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
-          />
+          {!unlimited && (
+            <progress
+              aria-label={t("allowance.label")}
+              max={policy?.maxUnits ?? 1}
+              value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
+            />
+          )}
         </div>
         <details className="allowance-help">
           <summary>{t("allowance.about")}</summary>
           <p>
             {t("allowance.units", {
               used: allowance?.units.toLocaleString(locale) ?? "—",
-              max: policy?.maxUnits.toLocaleString(locale) ?? "—",
+              max: unlimited
+                ? "∞"
+                : (policy?.maxUnits?.toLocaleString(locale) ?? "—"),
             })}
           </p>
           <p>
             {t("allowance.help", {
-              iterations:
-                policy?.iterationsPerSet.toLocaleString(locale) ?? "—",
+              iterations: selectedIterations?.toLocaleString(locale) ?? "—",
             })}
           </p>
         </details>
-        <RunIterations iterations={policy?.iterationsPerSet ?? null} />
+        <RunIterations
+          iterations={selectedIterations}
+          range={policy?.selectableIterations}
+          onChange={onIterationsChange}
+        />
       </div>
       {(error || readinessError || (allowance && !allowance.allowed)) && (
         <AlertMessage className="run-feedback" tone="error">

@@ -107,7 +107,7 @@ export function* enumerateLoadouts(
   snapshot: Snapshot,
   selection: Selection,
   catalog: Catalog = getCatalog(snapshot.itemVersion),
-  maxNodes = 100000,
+  maxNodes: number | null = 100000,
   onExcluded?: (loadout: Loadout, diagnostics: Diagnostic[]) => void,
   options?: {
     budget?: SearchBudget;
@@ -126,7 +126,8 @@ export function* enumerateLoadouts(
   let visited = 0;
   function* visit(index: number): Generator<Loadout> {
     if (options?.budget) options.budget.visit();
-    else if (++visited > maxNodes) throw new Error("Search limit reached");
+    else if (maxNodes !== null && ++visited > maxNodes)
+      throw new Error("Search limit reached");
     if (index === slots.length) {
       const gemmed = withEnhancements(
         snapshot,
@@ -254,7 +255,9 @@ export function allowanceForCount(
     countKind,
     units: Number.isSafeInteger(units) ? units : Number.MAX_SAFE_INTEGER,
     allowed:
-      Number.isSafeInteger(units) && units <= policy.maxUnits && count > 0,
+      (policy.maxUnits === null ||
+        (Number.isSafeInteger(units) && units <= policy.maxUnits)) &&
+      count > 0,
     policyVersion: policy.version,
   };
 }
@@ -273,7 +276,7 @@ export function estimateAllowance(
       analyzeItemEnhancementSets(
         snapshot,
         selection,
-        Math.min(policy.maxSearchNodes, 10000),
+        Math.min(policy.maxSearchNodes ?? 10000, 10000),
       );
     if (analysis.complete) {
       const allowance = allowanceForCount(

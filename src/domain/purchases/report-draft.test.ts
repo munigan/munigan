@@ -26,7 +26,11 @@ it("restores inputs without making generated rewards owned", () => {
       recipes: frozen.recipes,
       originalSnapshot: request.snapshot,
     },
-    policy: purchasePolicy,
+    policy: {
+      ...purchasePolicy,
+      iterationsPerSet: 6000,
+      selectableIterations: { min: 500, max: 6000, step: 500 },
+    },
     rows: [],
     equippedId: "",
     highestId: null,
@@ -44,6 +48,8 @@ it("restores inputs without making generated rewards owned", () => {
 
   const draft = requestFromReport(report);
 
+  expect(draft.iterations).toBe(6000);
+  expect(decodeDraft(encodeRequest(draft)).iterations).toBe(6000);
   expect(draft.snapshot).toEqual(report.purchases!.originalSnapshot);
   expect(draft.purchases).toEqual(report.purchases!.inputs);
   expect(

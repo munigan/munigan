@@ -37,7 +37,7 @@ it("counts exactly 101 affordable sets instead of the 3125 raw combinations", ()
   expect(result.plan.simulations).toHaveLength(101);
   expect(new Set(result.plan.simulations.map((s) => s.key)).size).toBe(101);
   expect(result.plan.simulations.filter((s) => s.isReference)).toHaveLength(1);
-  expect(result.visitedNodes).toBeLessThanOrEqual(policy.maxSearchNodes);
+  expect(result.visitedNodes).toBeLessThanOrEqual(policy.maxSearchNodes!);
   const over = analyzePurchaseSelection(request, {
     ...policy,
     maxUnits: 100 * policy.unitsPerSet,
@@ -226,7 +226,8 @@ it.each(["original", "classic"] as const)(
         ?.available,
     ).toBe(true);
     const shoulder = result.plan.simulations.find(
-      (s) => s.loadout.shoulder === "owned-shoulder" && s.loadout.hands === null,
+      (s) =>
+        s.loadout.shoulder === "owned-shoulder" && s.loadout.hands === null,
     )!;
     expect(shoulder).toBeDefined();
     expect(
@@ -313,4 +314,22 @@ it("bounds many duplicate physical choices and completes at the exact measured n
     status: "search-limit",
     visitedNodes: complete.visitedNodes - 1,
   });
+});
+
+it("finishes an uncapped purchase search beyond the normal 120-set allowance", () => {
+  const result = analyzePurchaseSelection(
+    purchaseFixture({ frost: 1000, "regalia:vanquisher": 5 }),
+    {
+      ...purchasePolicy,
+      maxUnits: null,
+      maxSearchNodes: null,
+      iterationsPerSet: 6000,
+    },
+  );
+  if (result.status !== "complete") throw new Error(result.status);
+  expect(result.plan.simulations.length).toBeGreaterThan(120);
+  expect(result.plan.allowance.allowed).toBe(true);
+  expect(result.plan.simulations.every((s) => s.iterations === 6000)).toBe(
+    true,
+  );
 });

@@ -1,9 +1,17 @@
-import { beforeAll, afterAll, beforeEach, it, expect } from "vitest";
+import {
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  it,
+  expect,
+  vi,
+} from "vitest";
 import { randomUUID } from "node:crypto";
 import { pool } from "@/server/db/client";
 import { createTestDatabase, dropTestDatabase } from "../support/database";
 import { admitJob } from "@/server/jobs/admit";
-import { executeTopGear, retryJob } from "@/server/jobs/work";
+import { executeTopGear, retryJob, settleQueuedJobs } from "@/server/jobs/work";
 import {
   encodeRequest,
   decodeSnapshot,
@@ -233,3 +241,119 @@ it.each(["simulations", "duplicate-generated"])(
     });
   },
 );
+
+afterEach(() => vi.unstubAllEnvs());
+it("executes an old local queued job without a deadline and preserves explicit cancellation", async () => {
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", "1");
+  const submit = () =>
+    admitJob({
+      request: encodeRequest(purchaseFixture({ frost: 0 })),
+      ownerKey: randomUUID(),
+      idempotencyKey: randomUUID(),
+    });
+  const job = await submit();
+  await pool.query(
+    "UPDATE tg_jobs SET created_at=now()-interval '1 hour' WHERE id=$1",
+    [job.jobId],
+  );
+  await settleQueuedJobs();
+  expect(await executeTopGear(job.jobId, undefined, evaluator)).toBe(true);
+  expect(
+    (
+      await pool.query("SELECT status,deadline_at FROM tg_jobs WHERE id=$1", [
+        job.jobId,
+      ])
+    ).rows[0],
+  ).toEqual({ status: "complete", deadline_at: null });
+  const canceled = await submit();
+  await pool.query("UPDATE tg_jobs SET cancel_requested=true WHERE id=$1", [
+    canceled.jobId,
+  ]);
+  await executeTopGear(canceled.jobId, undefined, evaluator);
+  expect(
+    (
+      await pool.query("SELECT status FROM tg_jobs WHERE id=$1", [
+        canceled.jobId,
+      ])
+    ).rows[0].status,
+  ).toBe("canceled");
+});
+
+it("retains ordinary queued expiry when local admission is capped", async () => {
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", undefined);
+  const job = await admitJob({
+    request: encodeRequest(purchaseFixture({ frost: 0 })),
+    ownerKey: randomUUID(),
+    idempotencyKey: randomUUID(),
+  });
+  await pool.query(
+    "UPDATE tg_jobs SET created_at=now()-interval '1 hour' WHERE id=$1",
+    [job.jobId],
+  );
+  await settleQueuedJobs();
+  expect(
+    (await pool.query("SELECT status FROM tg_jobs WHERE id=$1", [job.jobId]))
+      .rows[0].status,
+  ).toBe("canceled");
+});
+
+it("retries local6000 results with6000 and does not reuse them for a500 edit", async () => {
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", "1");
+  const ownerKey = randomUUID(),
+    identity = { account: null, ownerHash: digest(ownerKey) };
+  const request = encodeRequest({
+    ...purchaseFixture({ frost: 60 }),
+    iterations: 6000,
+  });
+  const job = await admitJob({
+    request,
+    ownerKey,
+    idempotencyKey: randomUUID(),
+  });
+  let calls = 0;
+  await executeTopGear(job.jobId, undefined, async (...args) => {
+    expect(args[2]).toBe(6000);
+    if (++calls > 1) throw new Error("one successful reference only");
+    return evaluator(...args);
+  });
+  const retry = await retryJob(job.jobId, identity, randomUUID(), ownerKey);
+  expect(
+    (
+      await pool.query("SELECT policy,request FROM tg_jobs WHERE id=$1", [
+        retry.jobId,
+      ])
+    ).rows[0],
+  ).toMatchObject({
+    policy: { iterationsPerSet: 6000 },
+    request: { iterations: 6000 },
+  });
+  expect(
+    (
+      await pool.query(
+        "SELECT count(*)::int count FROM tg_work WHERE job_id=$1 AND result IS NOT NULL",
+        [retry.jobId],
+      )
+    ).rows[0].count,
+  ).toBe(1);
+  const edited = await admitJob({
+    request: { ...request, iterations: 500 },
+    ownerKey,
+    idempotencyKey: randomUUID(),
+    priorJob: job.jobId,
+  });
+  expect(
+    (
+      await pool.query(
+        "SELECT count(*)::int count FROM tg_work WHERE job_id=$1 AND result IS NOT NULL",
+        [edited.jobId],
+      )
+    ).rows[0].count,
+  ).toBe(0);
+  await executeTopGear(edited.jobId, undefined, async (...args) => {
+    expect(args[2]).toBe(500);
+    return evaluator(...args);
+  });
+});

@@ -1,5 +1,11 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  fireEvent,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { fixtureRequest } from "../../../tests/support/fixtures";
@@ -15,7 +21,8 @@ import type { TopGearRequest } from "@/domain/top-gear/model";
 import { TopGearApp } from "./TopGearApp";
 import { draftKey, saveDraft } from "../import/draft-store";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
-const { auth, push, purchaseState } = vi.hoisted(() => ({
+const { auth, push, purchaseState, controls } = vi.hoisted(() => ({
+  controls: { real: false },
   purchaseState: { current: { status: "loading" } as PurchaseAnalysisState },
   auth: { status: "authenticated", account: { id: "a" }, savingEnabled: true },
   push: vi.fn(),
@@ -70,13 +77,19 @@ vi.mock("./InventorySelector", () => ({
     </>
   ),
 }));
-vi.mock("./RunSetup", () => ({
-  RunSetup: ({ onRun, pending }: { onRun: () => void; pending: boolean }) => (
-    <button onClick={onRun} disabled={pending}>
-      Run fixture
-    </button>
-  ),
-}));
+vi.mock("./RunSetup", async (original) => {
+  const actual = await original<typeof import("./RunSetup")>();
+  return {
+    RunSetup: (props: Parameters<typeof actual.RunSetup>[0]) =>
+      controls.real ? (
+        <actual.RunSetup {...props} />
+      ) : (
+        <button onClick={props.onRun} disabled={props.pending}>
+          Run fixture
+        </button>
+      ),
+  };
+});
 vi.mock("../auth/SignInDialog", () => ({ SignInDialog: () => null }));
 function view() {
   render(
@@ -95,6 +108,7 @@ function view() {
   );
 }
 beforeEach(() => {
+  controls.real = false;
   sessionStorage.clear();
   localStorage.clear();
   push.mockReset();
@@ -408,4 +422,47 @@ it("recovers a persisted attempt even when the newer draft cannot be decoded", a
   await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/recovered"));
   expect(calls[0].body).toBe(attempt.body);
   expect(localStorage.getItem(draftKey)).toBe('{"broken":"new draft"}');
+});
+
+it("persists the local slider selection and submits its actual6000 iteration request", async () => {
+  controls.real = true;
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config"))
+        return {
+          json: async () => ({
+            policy: {
+              version: "unlimited-local-v1",
+              unitsPerSet: 5000,
+              maxUnits: null,
+              maxSearchNodes: null,
+              maxJobSeconds: null,
+              maxAttempts: 2,
+              iterationsPerSet: 500,
+              selectableIterations: { min: 500, max: 6000, step: 500 },
+            },
+          }),
+        };
+      calls.push(init);
+      return {
+        ok: true,
+        json: async () => ({ reportUrl: "/reports/selected-iterations" }),
+      };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const slider = await screen.findByRole("slider", {
+    name: "Iterations per set",
+  });
+  fireEvent.change(slider, { target: { value: "6000" } });
+  expect(slider).toHaveValue("6000");
+  expect(JSON.parse(localStorage.getItem(draftKey)!).iterations).toBe(6000);
+  await userEvent.click(screen.getByRole("button", { name: /Run Gear Lab/ }));
+  await waitFor(() =>
+    expect(push).toHaveBeenCalledWith("/reports/selected-iterations"),
+  );
+  expect(JSON.parse(calls[0].body as string).iterations).toBe(6000);
 });

@@ -73,7 +73,7 @@ export async function admitJob(args: {
   if (!/^[\w-]{8,100}$/.test(args.idempotencyKey))
     throw new AdmissionError("A valid Idempotency-Key is required", 400);
   let request = structuralRequest(args.request);
-  const policy = workPolicy();
+  const policy = workPolicy(request.iterations);
   const frozen = encodeRequest(request),
     requestHash = digest(JSON.stringify(frozen)),
     ownerHash = digest(args.ownerKey),
@@ -228,22 +228,23 @@ export async function admitJob(args: {
       "SELECT count(*) FILTER(WHERE status IN ('queued','running'))::int backlog, count(*) FILTER(WHERE owner_hash=$1 AND status IN ('queued','running'))::int active, count(*) FILTER(WHERE owner_hash=$1 AND created_at>=date_trunc('day',now()))::int daily, count(*) FILTER(WHERE account_id=$2 AND status IN ('queued','running'))::int account_active, count(*) FILTER(WHERE account_id=$2 AND created_at>=date_trunc('day',now()))::int account_daily FROM tg_jobs",
       [ownerHash, accountId],
     );
-    if (counts.rows[0].backlog >= caps.backlog)
+    if (!caps.unlimited && counts.rows[0].backlog >= caps.backlog)
       throw new AdmissionError(
         "The simulation queue is full. Try again shortly.",
         503,
       );
     if (
-      counts.rows[0].active >= caps.ownerActive ||
-      counts.rows[0].daily >= caps.ownerDaily ||
-      counts.rows[0].account_active >= caps.accountActive ||
-      counts.rows[0].account_daily >= caps.accountDaily
+      !caps.unlimited &&
+      (counts.rows[0].active >= caps.ownerActive ||
+        counts.rows[0].daily >= caps.ownerDaily ||
+        counts.rows[0].account_active >= caps.accountActive ||
+        counts.rows[0].account_daily >= caps.accountDaily)
     )
       throw new AdmissionError(
         "Your free simulation limit has been reached. Try again later.",
         429,
       );
-    if (args.sourceHash) {
+    if (args.sourceHash && !caps.unlimited) {
       const source = await c.query(
         "SELECT count(*) FILTER(WHERE status IN ('queued','running'))::int active,count(*) FILTER(WHERE created_at>=date_trunc('day',now()))::int daily FROM tg_jobs WHERE source_hash=$1",
         [args.sourceHash],
@@ -257,10 +258,11 @@ export async function admitJob(args: {
     await c.query(
       "INSERT INTO tg_budgets(day) VALUES(current_date) ON CONFLICT DO NOTHING",
     );
-    const reserve = allowance.units * policy.maxAttempts;
+    // Local uncapped work does not reserve or consume the production quota ledger.
+    const reserve = caps.unlimited ? 0 : allowance.units * policy.maxAttempts;
     const budget = await c.query(
-      "UPDATE tg_budgets SET reserved=reserved+$1 WHERE day=current_date AND reserved+spent+$1<=$2 RETURNING day",
-      [reserve, caps.dailyUnits],
+      "UPDATE tg_budgets SET reserved=reserved+$1 WHERE day=current_date AND ($3::boolean OR reserved+spent+$1<=$2) RETURNING day",
+      [reserve, caps.dailyUnits, caps.unlimited],
     );
     if (!budget.rowCount)
       throw new AdmissionError(

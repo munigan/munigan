@@ -146,6 +146,7 @@
     }
   },
   "allowance": {
+    "local": "Local",
     "sets": "conjuntos",
     "loading": "Carregando limite…",
     "free": "Grátis",
@@ -156,6 +157,7 @@
     "reduce": "Selecione menos itens para ficar dentro do limite gratuito de conjuntos."
   },
   "iterations": {
+    "localLimit": "Máximo local",
     "label": "Iterações por conjunto",
     "help": "Mais iterações reduzem a variação aleatória, mas aumentam o tempo de simulação.",
     "freeLimit": "Limite do plano grátis",

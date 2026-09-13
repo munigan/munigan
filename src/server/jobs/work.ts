@@ -60,7 +60,8 @@ async function claim(jobId?: string) {
       lease = randomUUID();
     const canceled =
       job.cancel_requested ||
-      Date.now() - job.created_at.getTime() > 30 * 60 * 1000;
+      (job.policy.maxJobSeconds !== null &&
+        Date.now() - job.created_at.getTime() > 30 * 60 * 1000);
     const updated = await c.query(
       "UPDATE tg_jobs SET status='running',lease=$2,lease_until=now()+interval '30 seconds',deadline_at=coalesce(deadline_at,now()+$3*interval '1 second'),cancel_requested=$4 WHERE id=$1 RETURNING deadline_at",
       [job.id, lease, job.policy.maxJobSeconds, canceled],
@@ -69,7 +70,7 @@ async function claim(jobId?: string) {
       ...job,
       status: "running" as const,
       lease,
-      deadline_at: updated.rows[0].deadline_at as Date,
+      deadline_at: updated.rows[0].deadline_at as Date | null,
       cancel_requested: canceled,
     };
   });
@@ -129,7 +130,10 @@ async function finish(
       "SELECT coalesce(sum(attempts),0)::int count FROM tg_work WHERE job_id=$1",
       [jobId],
     );
-    const spent = attempts.rows[0].count * job.policy.unitsPerSet;
+    const spent =
+      job.policy.maxUnits === null
+        ? 0
+        : attempts.rows[0].count * job.policy.unitsPerSet;
     await c.query(
       "UPDATE tg_budgets SET reserved=reserved-$1,spent=spent+$2 WHERE day=$3",
       [job.reserved, spent, job.budget_day],
@@ -235,13 +239,16 @@ export async function executeTopGear(
   if (signal.aborted) abort();
   let timeout = false,
     leaseLost = false;
-  const timer = setTimeout(
-    () => {
-      timeout = true;
-      controller.abort();
-    },
-    Math.max(1, job.deadline_at.getTime() - Date.now()),
-  );
+  const timer =
+    job.deadline_at === null
+      ? undefined
+      : setTimeout(
+          () => {
+            timeout = true;
+            controller.abort();
+          },
+          Math.max(1, job.deadline_at.getTime() - Date.now()),
+        );
   let checking = false;
   const heartbeat = setInterval(async () => {
     if (checking) return;
@@ -270,7 +277,7 @@ export async function executeTopGear(
       await finalize("canceled");
       return true;
     }
-    if (job.deadline_at.getTime() <= Date.now()) {
+    if (job.deadline_at && job.deadline_at.getTime() <= Date.now()) {
       await finalize("runtime-limit");
       return true;
     }
@@ -534,7 +541,7 @@ export async function rescheduleQueuedJob(jobId: string) {
 export async function settleQueuedJobs() {
   const jobs = await transaction(async (c) => {
     const r = await c.query(
-      "SELECT id FROM tg_jobs WHERE status='queued' AND (cancel_requested OR created_at<now()-interval '30 minutes') AND (lease_until IS NULL OR lease_until<now()) FOR UPDATE SKIP LOCKED LIMIT 100",
+      "SELECT id FROM tg_jobs WHERE status='queued' AND (cancel_requested OR (policy->'maxJobSeconds' IS DISTINCT FROM 'null'::jsonb AND created_at<now()-interval '30 minutes')) AND (lease_until IS NULL OR lease_until<now()) FOR UPDATE SKIP LOCKED LIMIT 100",
     );
     const leased: Array<{ id: string; lease: string }> = [];
     for (const j of r.rows) {

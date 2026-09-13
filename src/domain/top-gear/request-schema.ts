@@ -36,6 +36,7 @@ const shape = z
   .object({
     tool: z.literal("top-gear"),
     precision: z.literal("standard"),
+    iterations: z.number().int().min(500).max(6000).multipleOf(500).optional(),
     snapshot: z.object({
       id,
       specId: id,

@@ -7,8 +7,8 @@ export class SearchLimitError extends Error {
 export type SearchBudget = { readonly visitedNodes: number; visit(): void };
 
 /** One meter is shared by candidate, loadout, and acquisition exploration. */
-export function createSearchBudget(maxNodes: number): SearchBudget {
-  if (!Number.isSafeInteger(maxNodes) || maxNodes < 0)
+export function createSearchBudget(maxNodes: number | null): SearchBudget {
+  if (maxNodes !== null && (!Number.isSafeInteger(maxNodes) || maxNodes < 0))
     throw new Error("Search limit must be a nonnegative safe integer");
   let visitedNodes = 0;
   return {
@@ -16,7 +16,8 @@ export function createSearchBudget(maxNodes: number): SearchBudget {
       return visitedNodes;
     },
     visit() {
-      if (visitedNodes >= maxNodes) throw new SearchLimitError();
+      if (maxNodes !== null && visitedNodes >= maxNodes)
+        throw new SearchLimitError();
       visitedNodes++;
     },
   };

@@ -140,3 +140,40 @@ it("marks an early stopped purchase count as a lower bound rather than exact", a
   expect(document.querySelector(".set-count")).toHaveTextContent("≥2 / 1 sets");
   expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeDisabled();
 });
+
+it("shows uncapped local allowance and sends the chosen 6000 iterations to the draft", () => {
+  const request = fixtureRequest();
+  const localPolicy = {
+    ...policy,
+    maxUnits: null,
+    maxSearchNodes: null,
+    maxJobSeconds: null,
+    selectableIterations: { min: 500, max: 6000, step: 500 },
+  };
+  const onIterationsChange = vi.fn();
+  render(
+    <NextIntlClientProvider locale="en-US" messages={{ inventory }}>
+      <RunAllowance
+        request={request}
+        policy={localPolicy}
+        allowance={estimateAllowance(
+          request.snapshot,
+          request.selection,
+          localPolicy,
+        )}
+        error=""
+        readinessError=""
+        pending={false}
+        onRun={() => {}}
+        onIterationsChange={onIterationsChange}
+      />
+    </NextIntlClientProvider>,
+  );
+  expect(document.querySelector(".set-count")).toHaveTextContent("/ ∞");
+  expect(screen.queryByRole("progressbar")).toBeNull();
+  const slider = screen.getByRole("slider", { name: "Iterations per set" });
+  expect(slider).toHaveAttribute("max", "6000");
+  fireEvent.change(slider, { target: { value: "6000" } });
+  expect(onIterationsChange).toHaveBeenCalledWith(6000);
+  expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeEnabled();
+});

@@ -68,7 +68,10 @@ export function analyzePurchaseSelection(
       ]),
     );
     let acquisition: PurchasePlan | null = null;
-    const maxSets = Math.floor(policy.maxUnits / policy.unitsPerSet);
+    const maxSets =
+      policy.maxUnits === null
+        ? null
+        : Math.floor(policy.maxUnits / policy.unitsPerSet);
     for (const loadout of enumerateLoadouts(
       snapshot,
       selection,
@@ -130,7 +133,7 @@ export function analyzePurchaseSelection(
           comparePurchasePlans(acquisition!, previous.plan) < 0)
       )
         keyed.set(key, { loadout, plan: acquisition! });
-      if (keyed.size > maxSets)
+      if (maxSets !== null && keyed.size > maxSets)
         return {
           status: "over-limit",
           allowance: allowanceForCount(keyed.size, policy, "over-limit"),

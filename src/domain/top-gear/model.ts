@@ -80,6 +80,7 @@ export type TopGearRequest = {
   snapshot: Snapshot;
   selection: Selection;
   precision: "standard";
+  iterations?: number;
 };
 export type Diagnostic = {
   code: string;
@@ -102,10 +103,12 @@ export type SimulationResult = {
 export type WorkPolicy = {
   version: string;
   unitsPerSet: number;
-  maxUnits: number;
+  /** Null disables this admission cap for explicit local testing. */
+  maxUnits: number | null;
   iterationsPerSet: number;
-  maxSearchNodes: number;
-  maxJobSeconds: number;
+  maxSearchNodes: number | null;
+  maxJobSeconds: number | null;
+  selectableIterations?: { min: number; max: number; step: number };
   maxAttempts: number;
 };
 export type Allowance = {

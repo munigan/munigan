@@ -147,6 +147,7 @@ export function RunSetup({
         readinessError={readinessError}
         pending={pending}
         onRun={onRun}
+        onIterationsChange={(iterations) => change({ ...request, iterations })}
       />
     </aside>
   );
