@@ -1,4 +1,5 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+import { itemVersions } from "@/domain/top-gear/item-version";
 import {
   purchaseFixture,
   purchasePolicy,
@@ -80,4 +81,178 @@ it("normalizes replacement drafts and increments the epoch", () => {
   state.actions.replaceDraft(null);
   expect(store.getState().draft).toBeNull();
   expect(store.getState().epoch).toBe(2);
+});
+
+it("keeps a second physical copy when toggling the first", () => {
+  const request = purchaseFixture();
+  request.snapshot.inventory.push({
+    ...request.snapshot.inventory[0],
+    instanceId: "bag-legs",
+    source: "bag",
+    equippedSlot: undefined,
+  });
+  request.selection.selectedInstanceIds.push("bag-legs");
+  const store = createGearLabStore(request);
+  const snapshot = store.getState().draft!.snapshot;
+
+  store.getState().actions.toggleItem("owned-legs");
+
+  expect(store.getState().draft!.selection.selectedInstanceIds).toEqual([
+    "bag-legs",
+  ]);
+  expect(store.getState().draft!.snapshot).toBe(snapshot);
+});
+
+it("does not select an unknown or unsupported item instance", () => {
+  const request = purchaseFixture();
+  request.snapshot.inventory.push({
+    instanceId: "unsupported",
+    itemId: 999999,
+    source: "bag",
+    gemIds: [],
+    enchantId: 0,
+  });
+  const store = createGearLabStore(request);
+  const initial = store.getState();
+
+  store.getState().actions.toggleItem("unsupported");
+  store.getState().actions.toggleItem("missing");
+
+  expect(store.getState()).toBe(initial);
+});
+
+it("maps purchase inclusion without replacing the snapshot or selection", () => {
+  const store = createGearLabStore(purchaseFixture());
+  const before = store.getState().draft!;
+
+  store.getState().actions.setPurchaseIncluded(48505, false);
+
+  expect(store.getState().draft!.snapshot).toBe(before.snapshot);
+  expect(store.getState().draft!.selection).toBe(before.selection);
+  expect(store.getState().draft!.purchases!.excludedItemIds.original).toEqual([
+    48505,
+  ]);
+});
+
+it("rejects invalid resource quantities without publishing partial state", () => {
+  const store = createGearLabStore(purchaseFixture({ frost: 10 }));
+  const initial = store.getState();
+
+  expect(() =>
+    store.getState().actions.setResourceQuantity("frost", 1.5),
+  ).toThrow(/Invalid purchase resource quantity/);
+  expect(store.getState()).toBe(initial);
+});
+
+it("saves resource replacement and variant in one notification", () => {
+  const store = createGearLabStore(purchaseFixture({ frost: 10 }));
+  const listener = vi.fn();
+  store.subscribe(listener);
+
+  store.getState().actions.saveResource({
+    previousId: "frost",
+    id: "triumph",
+    quantity: 25,
+    gearVariant: "dk-dps",
+  });
+
+  expect(store.getState().draft!.purchases).toMatchObject({
+    balances: { triumph: 25 },
+    gearVariant: "dk-dps",
+  });
+  expect(listener).toHaveBeenCalledTimes(1);
+});
+
+it("rejects a gear variant for another class atomically", () => {
+  const store = createGearLabStore(purchaseFixture({ frost: 10 }));
+  const initial = store.getState();
+
+  expect(() =>
+    store.getState().actions.saveResource({
+      id: "triumph",
+      quantity: 25,
+      gearVariant: "mage-dps",
+    }),
+  ).toThrow(/variant/i);
+  expect(store.getState()).toBe(initial);
+});
+
+it("merges profile fields into the latest snapshot and revalidates bags", () => {
+  const request = purchaseFixture();
+  const staged = {
+    specId: request.snapshot.specId,
+    settings: request.snapshot.settings,
+    provenance: { profile: "preset" as const },
+    professionLevels: { 14: 450 },
+  };
+  const store = createGearLabStore(request);
+  store.getState().actions.addCustomItems("head", [50712]);
+
+  store.getState().actions.applySettings(staged);
+
+  expect(
+    store
+      .getState()
+      .draft!.snapshot.inventory.some(
+        (item) => item.instanceId === "custom-50712",
+      ),
+  ).toBe(true);
+  expect(store.getState().draft!.snapshot.provenance).toEqual({
+    profile: "preset",
+  });
+});
+
+it("removes custom item selection, locks, exclusions, and enhancements", () => {
+  const request = purchaseFixture();
+  const store = createGearLabStore(request);
+  store.getState().actions.addCustomItems("head", [50712]);
+  store.getState().actions.setItemEnhancements("custom-50712", {
+    enchantId: 0,
+  });
+  const edited = store.getState().draft!;
+  edited.selection.lockedSlots.head = "custom-50712";
+  edited.selection.acknowledgedExclusions.push("custom-50712");
+
+  store.getState().actions.removeCustomItem("custom-50712");
+
+  expect(store.getState().draft!.snapshot.inventory).toHaveLength(1);
+  expect(store.getState().draft!.snapshot.itemEnhancements).toBeUndefined();
+  expect(store.getState().draft!.selection.selectedInstanceIds).toEqual([
+    "owned-legs",
+  ]);
+  expect(store.getState().draft!.selection.lockedSlots).toEqual({});
+  expect(store.getState().draft!.selection.acknowledgedExclusions).toEqual([]);
+});
+
+it("updates item version metadata and revalidates purchase choices", () => {
+  const request = purchaseFixture();
+  request.purchases!.excludedItemIds.original = [48505];
+  const store = createGearLabStore(request);
+
+  store.getState().actions.setItemVersion("classic");
+
+  expect(store.getState().draft!.snapshot.itemVersion).toBe("classic");
+  expect(store.getState().draft!.snapshot.itemDataRevision).toBe(
+    itemVersions.classic.revision,
+  );
+  expect(store.getState().draft!.snapshot.provenance.itemVersion).toBe(
+    "edited",
+  );
+});
+
+it("does not notify subscribers for equal edits", () => {
+  const request = purchaseFixture({ frost: 10 });
+  request.purchases!.gearVariant = "dk-dps";
+  request.snapshot.autoEnchant = true;
+  const store = createGearLabStore(request);
+  const listener = vi.fn();
+  store.subscribe(listener);
+
+  store.getState().actions.setResourceQuantity("frost", 10);
+  store.getState().actions.setGearVariant("dk-dps");
+  store.getState().actions.setAutoEnchant(true);
+  store.getState().actions.setItemVersion("original");
+  store.getState().actions.setItemEnhancements("owned-legs", {});
+
+  expect(listener).not.toHaveBeenCalled();
 });
