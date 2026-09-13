@@ -5,7 +5,7 @@ import { BagPreview } from "@/features/import/BagPreview";
 import { SectionHeading } from "@/components/ui/layout";
 import { Button } from "@/components/ui/Button";
 import { memo, useCallback, useRef, useState } from "react";
-import type { Slot } from "@/domain/top-gear/model";
+import type { ItemInstance, Slot } from "@/domain/top-gear/model";
 import { slots } from "@/domain/top-gear/slots";
 import { validateItem } from "@/domain/equipment/validate";
 import { slotGroupLabel } from "./item-labels";
@@ -122,11 +122,50 @@ function EnhancementIssues({
     />
   );
 }
-export const InventorySelector = memo(function InventorySelector() {
+const InvalidItems = memo(function InvalidItems({
+  unsupported,
+  invalidCustom,
+}: {
+  unsupported: readonly ItemInstance[];
+  invalidCustom: readonly ItemInstance[];
+}) {
   const d = useTranslations("diagnostics"),
     t = useTranslations("inventory");
-  const runtime = useGearLabRuntime();
+  const snapshot = useInventoryView((v) => v.snapshot);
   const actions = useGearLabSelector((s) => s.actions);
+  return (
+    <>
+      {unsupported.length > 0 && (
+        <details className="unsupported-bag">
+          <summary>
+            {t("unsupportedCount", { count: unsupported.length })}
+          </summary>
+          <BagPreview
+            items={[...unsupported]}
+            label={t("unsupportedItems")}
+            describeItem={(item) =>
+              localizeDiagnostic(validateItem(snapshot, item)[0], d)
+            }
+          />
+        </details>
+      )}
+      {invalidCustom.map((item) => (
+        <div className="custom-item-unavailable" key={item.instanceId}>
+          <span>{localizeDiagnostic(validateItem(snapshot, item)[0], d)}</span>
+          <Button
+            variant="ghost"
+            onClick={() => actions.removeCustomItem(item.instanceId)}
+          >
+            {t("removeCustom")}
+          </Button>
+        </div>
+      ))}
+    </>
+  );
+});
+export const InventorySelector = memo(function InventorySelector() {
+  const t = useTranslations("inventory");
+  const runtime = useGearLabRuntime();
   const unsupported = useInventoryView((v) => v.unsupported);
   const invalidCustom = useInventoryView((v) => v.invalidCustom);
   const [filter, setFilter] = useState("All slots");
@@ -156,7 +195,6 @@ export const InventorySelector = memo(function InventorySelector() {
           ? s === "finger1" || s === "trinket1"
           : true,
   );
-  const snapshot = runtime.inventory()!.snapshot;
   return (
     <section className="inventory">
       <SectionHeading className="section-top items-start">
@@ -183,31 +221,9 @@ export const InventorySelector = memo(function InventorySelector() {
         </div>
       </div>
       <EnhancementIssues onEdit={onEdit} />
-      {unsupported.length > 0 && (
-        <details className="unsupported-bag">
-          <summary>
-            {t("unsupportedCount", { count: unsupported.length })}
-          </summary>
-          <BagPreview
-            items={[...unsupported]}
-            label={t("unsupportedItems")}
-            describeItem={(item) =>
-              localizeDiagnostic(validateItem(snapshot, item)[0], d)
-            }
-          />
-        </details>
+      {(unsupported.length > 0 || invalidCustom.length > 0) && (
+        <InvalidItems unsupported={unsupported} invalidCustom={invalidCustom} />
       )}
-      {invalidCustom.map((item) => (
-        <div className="custom-item-unavailable" key={item.instanceId}>
-          <span>{localizeDiagnostic(validateItem(snapshot, item)[0], d)}</span>
-          <Button
-            variant="ghost"
-            onClick={() => actions.removeCustomItem(item.instanceId)}
-          >
-            {t("removeCustom")}
-          </Button>
-        </div>
-      ))}
       {shown.map((slot) => (
         <SlotGroup key={slot} slot={slot} onEdit={onEdit} />
       ))}
