@@ -1,3 +1,4 @@
+import { testGearLabActions } from "../../../../tests/support/gear-lab-actions";
 import { render, screen, within, fireEvent } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { expect, it, vi } from "vitest";
@@ -24,7 +25,7 @@ function setup(
         preview={preview}
         open
         onOpenChange={vi.fn()}
-        onChange={onChange}
+        actions={testGearLabActions(request, onChange)}
       />
     </NextIntlClientProvider>,
   );
@@ -127,7 +128,7 @@ it("retains expanded review groups when a wallet edit invalidates the preview", 
         preview={value}
         open
         onOpenChange={vi.fn()}
-        onChange={vi.fn()}
+        actions={testGearLabActions(request, vi.fn())}
       />
     </NextIntlClientProvider>
   );
@@ -168,7 +169,7 @@ it("shows only the detected Feral purchase variant", async () => {
         preview={preview}
         open
         onOpenChange={vi.fn()}
-        onChange={vi.fn()}
+        actions={testGearLabActions(request, vi.fn())}
       />
     </NextIntlClientProvider>,
   );

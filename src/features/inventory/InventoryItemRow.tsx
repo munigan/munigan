@@ -1,3 +1,7 @@
+import { memo, useCallback, useMemo } from "react";
+import { useGearLabSelector } from "./state/GearLabProvider";
+import { useGearLabRuntime, useInventoryView } from "./state/GearLabRuntime";
+import { createRowPresentationSelector } from "./state/gear-lab-selectors";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { ItemSourceIcon } from "@/components/items/ItemSourceIcon";
@@ -160,3 +164,53 @@ export function InventoryItemRow({
     </div>
   );
 }
+
+export const ConnectedInventoryItemRow = memo(
+  function ConnectedInventoryItemRow({
+    id,
+    index,
+    onEdit,
+  }: {
+    id: string;
+    index: number;
+    onEdit: (id: string, field: EnhancementField) => void;
+  }) {
+    const runtime = useGearLabRuntime();
+    const actions = useGearLabSelector((state) => state.actions);
+    const row = useInventoryView((view) => view.byId.get(id));
+    const selectSnapshot = useMemo(
+      () => createRowPresentationSelector(id),
+      [id],
+    );
+    const snapshot = useInventoryView(selectSnapshot);
+    const onToggle = useCallback(() => {
+      if (!row) return;
+      if (row.item.source === "purchase")
+        actions.setPurchaseIncluded(row.item.itemId, !row.selected);
+      else actions.toggleItem(id);
+    }, [actions, row, id]);
+    if (!row) return null;
+    return (
+      <InventoryItemRow
+        {...row}
+        snapshot={snapshot}
+        index={index}
+        onToggle={onToggle}
+        onEdit={(field) => onEdit(id, field)}
+        onRemove={() => {
+          const original =
+            row.item.source === "purchase"
+              ? runtime.store
+                  .getState()
+                  .draft!.snapshot.inventory.find(
+                    (item) =>
+                      item.source === "custom" &&
+                      item.itemId === row.item.itemId,
+                  )?.instanceId
+              : id;
+          if (original) actions.removeCustomItem(original);
+        }}
+      />
+    );
+  },
+);

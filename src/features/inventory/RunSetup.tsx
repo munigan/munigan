@@ -1,5 +1,5 @@
 "use client";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Select, SelectOption } from "@/components/ui/Select";
 import type { TopGearRequest, WorkPolicy } from "@/domain/top-gear/model";
@@ -15,6 +15,7 @@ import { CharacterPortrait } from "./CharacterPortrait";
 import { RunSettingRow, RunSettingAction } from "./RunSettingRow";
 import { RunAllowance } from "./RunAllowance";
 import { Button } from "@/components/ui/Button";
+import type { GearLabActions } from "./state/gear-lab-store";
 import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 export function RunSetup({
   request,
@@ -23,7 +24,7 @@ export function RunSetup({
   error,
   readinessError,
   pending,
-  onChange: change,
+  actions,
   onImport,
   onSettings,
   onEnhancements,
@@ -39,7 +40,7 @@ export function RunSetup({
   error: string;
   readinessError: string;
   pending: boolean;
-  onChange: (request: TopGearRequest) => void;
+  actions: GearLabActions;
   onImport: () => void;
   onSettings: () => void;
   onEnhancements: () => void;
@@ -48,99 +49,18 @@ export function RunSetup({
   purchaseAnalysis?: PurchaseAnalysisState;
 }) {
   const t = useTranslations("inventory");
-  const locale = useLocale();
-  const spec = getSpec(request.snapshot.specId);
+
   return (
     <aside className="run-summary" aria-label={t("run.setup")}>
-      <div className="run-configuration">
-        <div className="run-character section-top">
-          <CharacterPortrait
-            className={spec.className}
-            snapshot={request.snapshot}
-          />
-          <div className="run-character-name">
-            <h2>
-              {request.snapshot.settings.player!.name || t("run.character")}
-            </h2>
-            <p className="muted small">
-              {spec.name} ·{" "}
-              {spec.className.replace("Deathknight", "Death Knight")} · 80
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            className="text-button !p-0 !min-h-9 !text-[13px]"
-            onClick={() => onImport()}
-          >
-            {t("run.edit")}
-          </Button>
-        </div>
-        <RunSettingRow icon="version">
-          <label className="run-version-field">
-            <span className="run-setting-title">{t("run.itemVersion")}</span>
-            <Select
-              aria-label={t("run.itemVersion")}
-              value={itemVersionOf(request.snapshot)}
-              onValueChange={(value) => {
-                const itemVersion = value as ItemVersion;
-                change({
-                  ...request,
-                  snapshot: {
-                    ...request.snapshot,
-                    itemVersion,
-                    itemDataRevision: itemVersions[itemVersion].revision,
-                    provenance: {
-                      ...request.snapshot.provenance,
-                      itemVersion: "edited",
-                    },
-                  },
-                });
-              }}
-            >
-              {Object.entries(itemVersions).map(([id, profile]) => (
-                <SelectOption
-                  key={id}
-                  value={id}
-                  description={t(`versions.${id}.description`)}
-                >
-                  {profile.label}
-                </SelectOption>
-              ))}
-            </Select>
-          </label>
-        </RunSettingRow>
-        <RunSettingRow icon="settings">
-          <RunSettingAction onClick={onSettings}>
-            {t("run.settings")}
-          </RunSettingAction>
-          <p className="run-setting-description">
-            {t("run.targets", {
-              count: request.snapshot.settings.encounter!.targets.length,
-            })}{" "}
-            ·{" "}
-            {request.snapshot.settings.encounter!.duration.toLocaleString(
-              locale,
-            )}
-            s
-          </p>
-        </RunSettingRow>
-        {request.purchases && (
-          <RunSettingRow icon="settings">
-            <RunSettingAction onClick={() => onPurchases?.()}>
-              {t("purchases.summary")}
-            </RunSettingAction>
-            <p className="run-setting-description">
-              {t("purchases.summaryCount", {
-                count: Object.keys(request.purchases.balances).length,
-              })}
-            </p>
-          </RunSettingRow>
-        )}
-        <EnhancementSummary
-          snapshot={request.snapshot}
-          onOpen={() => onEnhancements()}
-        />
-      </div>
+      <RunConfiguration
+        snapshot={request.snapshot}
+        resourceCount={Object.keys(request.purchases?.balances ?? {}).length}
+        actions={actions}
+        onImport={onImport}
+        onSettings={onSettings}
+        onEnhancements={onEnhancements}
+        onPurchases={onPurchases}
+      />
       <RunAllowance
         request={request}
         policy={policy}
@@ -150,9 +70,100 @@ export function RunSetup({
         readinessError={readinessError}
         pending={pending}
         onRun={onRun}
-        onIterationsChange={(iterations) => change({ ...request, iterations })}
+        onIterationsChange={(iterations) => {
+          if (policy) actions.setIterations(iterations, policy);
+        }}
       />
       {feedback}
     </aside>
   );
 }
+
+const RunConfiguration = memo(function RunConfiguration({
+  snapshot,
+  resourceCount,
+  actions,
+  onImport,
+  onSettings,
+  onEnhancements,
+  onPurchases,
+}: {
+  snapshot: TopGearRequest["snapshot"];
+  resourceCount: number;
+  actions: GearLabActions;
+  onImport: () => void;
+  onSettings: () => void;
+  onEnhancements: () => void;
+  onPurchases?: () => void;
+}) {
+  const t = useTranslations("inventory"),
+    locale = useLocale();
+  const spec = getSpec(snapshot.specId);
+  return (
+    <div className="run-configuration">
+      <div className="run-character section-top">
+        <CharacterPortrait className={spec.className} snapshot={snapshot} />
+        <div className="run-character-name">
+          <h2>{snapshot.settings.player!.name || t("run.character")}</h2>
+          <p className="muted small">
+            {spec.name} ·{" "}
+            {spec.className.replace("Deathknight", "Death Knight")} · 80
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          className="text-button !p-0 !min-h-9 !text-[13px]"
+          onClick={() => onImport()}
+        >
+          {t("run.edit")}
+        </Button>
+      </div>
+      <RunSettingRow icon="version">
+        <label className="run-version-field">
+          <span className="run-setting-title">{t("run.itemVersion")}</span>
+          <Select
+            aria-label={t("run.itemVersion")}
+            value={itemVersionOf(snapshot)}
+            onValueChange={(value) => {
+              actions.setItemVersion(value as ItemVersion);
+            }}
+          >
+            {Object.entries(itemVersions).map(([id, profile]) => (
+              <SelectOption
+                key={id}
+                value={id}
+                description={t(`versions.${id}.description`)}
+              >
+                {profile.label}
+              </SelectOption>
+            ))}
+          </Select>
+        </label>
+      </RunSettingRow>
+      <RunSettingRow icon="settings">
+        <RunSettingAction onClick={onSettings}>
+          {t("run.settings")}
+        </RunSettingAction>
+        <p className="run-setting-description">
+          {t("run.targets", {
+            count: snapshot.settings.encounter!.targets.length,
+          })}{" "}
+          · {snapshot.settings.encounter!.duration.toLocaleString(locale)}s
+        </p>
+      </RunSettingRow>
+      {resourceCount > 0 && (
+        <RunSettingRow icon="settings">
+          <RunSettingAction onClick={() => onPurchases?.()}>
+            {t("purchases.summary")}
+          </RunSettingAction>
+          <p className="run-setting-description">
+            {t("purchases.summaryCount", {
+              count: resourceCount,
+            })}
+          </p>
+        </RunSettingRow>
+      )}
+      <EnhancementSummary snapshot={snapshot} onOpen={() => onEnhancements()} />
+    </div>
+  );
+});

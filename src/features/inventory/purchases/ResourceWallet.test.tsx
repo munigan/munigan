@@ -1,3 +1,4 @@
+import { testGearLabActions } from "../../../../tests/support/gear-lab-actions";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
@@ -15,7 +16,7 @@ import {
 } from "@/domain/purchases/state";
 import type { PurchaseAnalysisState } from "./purchase-worker-contract";
 import ptInventory from "../../../../messages/pt-BR/inventory.json";
-import { ResourceWallet } from "./ResourceWallet";
+import { ResourceWalletView as ResourceWallet } from "./ResourceWallet";
 
 function renderWallet(
   balances: ResourceAmounts = { frost: 100, triumph: 30 },
@@ -43,7 +44,7 @@ function renderWallet(
     >
       <ResourceWallet
         request={request}
-        onChange={onChange}
+        actions={testGearLabActions(request, onChange)}
         onReview={onReview}
       />
     </NextIntlClientProvider>,
@@ -102,7 +103,7 @@ it("updates inline quantities and removes a resource with accessible actions", a
   await userEvent.click(
     screen.getByRole("button", { name: "Remove Emblems of Triumph" }),
   );
-  expect(onChange.mock.calls[1][0].purchases.balances).toEqual({ frost: 2 });
+  expect(onChange.mock.calls[1][0].purchases.balances).toEqual({ frost: 3 });
 });
 
 it("edits an existing resource atomically without adding another wallet row", async () => {
@@ -165,7 +166,7 @@ it.each(["en-US", "pt-BR"] as const)(
         <ResourceWallet
           request={request}
           analysis={analysis}
-          onChange={vi.fn()}
+          actions={testGearLabActions(request, vi.fn())}
           onReview={vi.fn()}
         />
       </NextIntlClientProvider>

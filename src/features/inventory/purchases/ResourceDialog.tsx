@@ -18,7 +18,7 @@ import {
 import { NumberInput } from "@/components/ui/NumberInput";
 import { tokenFamilyForClass } from "@/domain/purchases/catalog";
 import type { ResourceId } from "@/domain/purchases/model";
-import { removeResource, setResourceBalance } from "@/domain/purchases/state";
+import type { GearLabActions } from "../state/gear-lab-store";
 import type { TopGearRequest } from "@/domain/top-gear/model";
 import { getSpec } from "@/features/settings/registry";
 import {
@@ -33,7 +33,7 @@ type Props = {
   resourceId?: ResourceId;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onChange: (request: TopGearRequest) => void;
+  onSave: GearLabActions["saveResource"];
 };
 
 type Translator = (
@@ -46,7 +46,7 @@ export function ResourceDialog({
   resourceId,
   open,
   onOpenChange,
-  onChange,
+  onSave,
 }: Props) {
   const t = useTranslations("inventory.purchases") as unknown as Translator;
   const family = tokenFamilyForClass(request.snapshot.settings.player!.class);
@@ -105,16 +105,12 @@ export function ResourceDialog({
   }
 
   function save() {
-    const withSelected = setResourceBalance(
-      request,
-      selectedResource,
+    onSave({
+      previousId: resourceId,
+      id: selectedResource,
       quantity,
-    );
-    const next =
-      resourceId && resourceId !== selectedResource
-        ? removeResource(withSelected, resourceId)
-        : withSelected;
-    onChange({ ...next, purchases: { ...next.purchases!, gearVariant } });
+      gearVariant,
+    });
     onOpenChange(false);
   }
 

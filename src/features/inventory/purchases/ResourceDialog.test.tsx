@@ -1,3 +1,4 @@
+import { testGearLabActions } from "../../../../tests/support/gear-lab-actions";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
@@ -46,7 +47,7 @@ it("keeps an edited quantity local and replaces the existing balance on Save", a
         resourceId="frost"
         open
         onOpenChange={onOpenChange}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );
@@ -93,7 +94,7 @@ it("preserves persisted purchase metadata when replacing the sole balance", asyn
         resourceId="frost"
         open
         onOpenChange={vi.fn()}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );
@@ -125,7 +126,7 @@ it("discards unsaved edits on Cancel and Escape", async () => {
         resourceId="frost"
         open
         onOpenChange={onOpenChange}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );
@@ -143,7 +144,7 @@ it("discards unsaved edits on Cancel and Escape", async () => {
         resourceId="frost"
         open
         onOpenChange={onOpenChange}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );
@@ -159,7 +160,7 @@ it("shows the six tier qualities and only the character-compatible token family"
         request={purchaseFixture()}
         open
         onOpenChange={vi.fn()}
-        onChange={vi.fn()}
+        onSave={vi.fn()}
       />
     </Messages>,
   );
@@ -214,7 +215,7 @@ it("does not restore an incompatible family resource when opened for editing", (
         resourceId="mark:normal:protector"
         open
         onOpenChange={vi.fn()}
-        onChange={vi.fn()}
+        onSave={vi.fn()}
       />
     </Messages>,
   );
@@ -228,13 +229,14 @@ it("does not restore an incompatible family resource when opened for editing", (
 
 it("loads an already-present selected resource and saves zero as an explicit balance", async () => {
   const onChange = vi.fn();
+  const request = purchaseFixture({ frost: 25, "mark:normal:vanquisher": 3 });
   render(
     <Messages locale="en-US">
       <ResourceDialog
-        request={purchaseFixture({ frost: 25, "mark:normal:vanquisher": 3 })}
+        request={request}
         open
         onOpenChange={vi.fn()}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );
@@ -259,14 +261,15 @@ it("loads an already-present selected resource and saves zero as an explicit bal
 
 it("does not apply a fractional draft to the integer quantity", async () => {
   const onChange = vi.fn();
+  const request = purchaseFixture({ frost: 7 });
   render(
     <Messages locale="en-US">
       <ResourceDialog
-        request={purchaseFixture({ frost: 7 })}
+        request={request}
         resourceId="frost"
         open
         onOpenChange={vi.fn()}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );
@@ -290,7 +293,7 @@ it("preserves the open dialog selection and quantity across locale changes", asy
           request={request}
           open
           onOpenChange={vi.fn()}
-          onChange={onChange}
+          onSave={testGearLabActions(request, onChange).saveResource}
         />
       </Messages>
     );
@@ -325,7 +328,7 @@ it("defaults to detected DPS gear and persists an explicit tank choice", async (
         resourceId="frost"
         open
         onOpenChange={vi.fn()}
-        onChange={onChange}
+        onSave={testGearLabActions(request, onChange).saveResource}
       />
     </Messages>,
   );

@@ -12,7 +12,14 @@ import {
 } from "@/components/ui/Alert";
 import { PageHeading } from "@/components/ui/layout";
 import { Button } from "@/components/ui/Button";
-import { useEffect, useEffectEvent, useState, useRef, useMemo } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import type {
   Snapshot,
@@ -28,18 +35,12 @@ import { InventorySelector } from "./InventorySelector";
 import { PresetPanel } from "@/features/settings/PresetPanel";
 import { ItemVersionContext } from "./ItemVersionContext";
 import { GemmingPanel } from "./GemmingPanel";
-import { defaultGemming } from "@/domain/equipment/gemming";
 import { itemVersionOf } from "@/domain/top-gear/item-version";
 import { RunSetup } from "./RunSetup";
 import "./inventory-design.css";
 import { validateItem } from "@/domain/equipment/validate";
 import {
-  estimateAllowance,
-  analyzeItemEnhancementSets,
-} from "@/domain/equipment/enumerate";
-import {
   encodeRequest,
-  decodeDraft,
   validateRequest,
 } from "@/domain/top-gear/request-schema";
 import {
@@ -60,15 +61,42 @@ import {
   discardRejectedAttempt,
   type AdmissionAttempt,
 } from "./admission-attempt";
+import { createReadinessRequestSelector } from "./state/gear-lab-selectors";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
 
 import { enhancementDiagnosticText } from "./enhancements/enhancement-labels";
 import { ResourceWallet } from "./purchases/ResourceWallet";
 import { PurchasableItemsDialog } from "./purchases/PurchasableItemsDialog";
-import { usePurchaseAnalysis } from "./purchases/usePurchaseAnalysis";
-import { revalidatePurchaseInputs } from "@/domain/purchases/state";
-import { setPurchaseEnhancements } from "@/domain/purchases/enhancements";
+import {
+  GearLabProvider,
+  useGearLabSelector,
+  useGearLabStore,
+} from "./state/GearLabProvider";
+import {
+  GearLabRuntimeProvider,
+  useGearLabRuntime,
+  useAnalysisView,
+} from "./state/GearLabRuntime";
+import {
+  createDraftPersistence,
+  type DraftPersistence,
+} from "./state/gear-lab-persistence";
+
 export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
+  return (
+    <GearLabProvider>
+      <GearLabRuntimeProvider>
+        <TopGearShell autoRestore={autoRestore} />
+      </GearLabRuntimeProvider>
+    </GearLabProvider>
+  );
+}
+function TopGearShell({ autoRestore }: { autoRestore: boolean }) {
+  const store = useGearLabStore();
+  const actions = useGearLabSelector((state) => state.actions);
+  const request = useGearLabSelector((state) => state.draft);
+  const runtime = useGearLabRuntime();
+  const persistence = useRef<DraftPersistence | null>(null);
   const t = useTranslations("import");
   const ta = useTranslations("auth");
   const auth = useAccount();
@@ -78,12 +106,10 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const [signInOpen, setSignInOpen] = useState(false);
   const attempt = useRef<AdmissionAttempt | null>(null);
   const submitting = useRef(false);
-  const completedRequest = useRef<TopGearRequest | null>(null);
   const ti = useTranslations("inventory");
   const td = useTranslations("diagnostics");
   const router = useRouter();
-  const [request, setRequest] = useState<TopGearRequest | null>(null),
-    [serverPolicy, setPolicy] = useState<WorkPolicy | null>(null),
+  const [serverPolicy, setPolicy] = useState<WorkPolicy | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
     [enhancementsOpen, setEnhancementsOpen] = useState(false),
     [error, setError] = useState<ErrorDescriptor | null>(null),
@@ -93,16 +119,52 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     [storageError, setStorageError] = useState<ErrorDescriptor | null>(null);
   const [purchasesOpen, setPurchasesOpen] = useState(false);
   const [catalogNotice, setCatalogNotice] = useState("");
-  const policy = useMemo(
-    () =>
-      serverPolicy?.selectableIterations && request?.iterations !== undefined
-        ? { ...serverPolicy, iterationsPerSet: request.iterations }
-        : serverPolicy,
-    [serverPolicy, request?.iterations],
+  const policy = serverPolicy;
+  useEffect(
+    () => runtime.session.setPolicy(serverPolicy),
+    [runtime, serverPolicy],
   );
-  const purchaseAnalysis = usePurchaseAnalysis(request, policy);
-  const purchasePreview =
-    purchaseAnalysis.status === "ready" ? purchaseAnalysis.preview : null;
+  const analysisSession = useAnalysisView();
+  const purchaseAnalysis = analysisSession.view.state;
+  useEffect(() => {
+    const owner = createDraftPersistence(store, {
+      save: (draft) => {
+        saveDraft(draft);
+        setHasDraft(true);
+      },
+      clear: clearDraft,
+      clearMatching: (submitted) => {
+        const cleared = clearMatchingDraft(submitted);
+        if (cleared) setHasDraft(false);
+        return cleared;
+      },
+      onError: (error) => setStorageError(describeError(error)),
+    });
+    persistence.current = owner;
+    const unsubscribe = store.subscribe(() => {
+      setError(null);
+      if (attempt.current?.status === "rejected") {
+        try {
+          discardRejectedAttempt(attempt.current);
+          attempt.current = null;
+        } catch (error) {
+          setStorageError(describeError(error));
+        }
+      }
+    });
+    return () => {
+      unsubscribe();
+      try {
+        owner.dispose();
+      } catch (error) {
+        setStorageError(describeError(error));
+      }
+    };
+  }, [store]);
+  const openImport = useCallback(() => setReplace(true), []);
+  const openSettings = useCallback(() => setSettingsOpen(true), []);
+  const openEnhancements = useCallback(() => setEnhancementsOpen(true), []);
+  const openPurchases = useCallback(() => setPurchasesOpen(true), []);
   const importPanel = useRef<ImportPanelHandle>(null);
   const [importRevision, setImportRevision] = useState(0);
   const [selectionVisit, setSelectionVisit] = useState({
@@ -112,17 +174,17 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     setSelectionVisit((visit) => ({
       revision: visit.revision + 1,
     }));
-    change(draft);
+    actions.replaceDraft(draft);
   }
   const returnToStart = useEffectEvent((event: Event) => {
     try {
-      if (request && request !== completedRequest.current) saveDraft(request);
+      persistence.current?.flush();
       importPanel.current?.saveForLater();
       const saved = !!(
         localStorage.getItem(importFormDraftKey) ||
         localStorage.getItem(draftKey)
       );
-      setRequest(null);
+      actions.replaceDraft(null);
       setReplace(false);
       setSettingsOpen(false);
       setEnhancementsOpen(false);
@@ -210,55 +272,11 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         ),
       );
   }, []);
-  function change(next: TopGearRequest) {
-    const excluded = next.snapshot.inventory
-      .filter(
-        (i) => i.source === "bag" && validateItem(next.snapshot, i).length > 0,
-      )
-      .map((i) => i.instanceId);
-    next = {
-      ...next,
-      snapshot: {
-        ...next.snapshot,
-        gemming: next.snapshot.gemming ?? defaultGemming(next.snapshot),
-        autoEnchant: next.snapshot.autoEnchant ?? true,
-      },
-      selection: {
-        ...next.selection,
-        selectedInstanceIds: next.selection.selectedInstanceIds.filter(
-          (id) => !excluded.includes(id),
-        ),
-        acknowledgedExclusions: excluded,
-        // Retired slot locks must not constrain restored drafts.
-        lockedSlots: {},
-      },
-    };
-    setRequest(next);
-    if (attempt.current?.status === "rejected") {
-      try {
-        discardRejectedAttempt(attempt.current);
-        attempt.current = null;
-      } catch (e) {
-        setStorageError(describeError(e));
-      }
-    }
-    setError(null);
-    try {
-      saveDraft(next);
-      setHasDraft(true);
-    } catch {
-      setStorageError(
-        describeError(
-          "Your selection is kept on this page, but could not be saved in this browser.",
-        ),
-      );
-    }
-  }
   function resolved(snapshot: Snapshot) {
     setSelectionVisit((visit) => ({
       revision: visit.revision + 1,
     }));
-    change({
+    actions.replaceDraft({
       tool: "top-gear",
       precision: "standard",
       snapshot,
@@ -319,7 +337,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
           return;
         }
         validateRequest(encodeRequest(request));
-        saveDraft(request);
+        persistence.current?.flush();
         attempt.current = createAttempt(
           encodeRequest(request),
           withoutSaving || currentAuth.status === "anonymous"
@@ -330,14 +348,9 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
       const submitted = JSON.parse(attempt.current.body);
       delete submitted.authMode;
       const reportUrl = await submitAttempt(attempt.current);
-      completedRequest.current =
-        request &&
-        JSON.stringify(encodeRequest(request)) === JSON.stringify(submitted)
-          ? request
-          : decodeDraft(submitted);
       attempt.current = null;
       try {
-        if (clearMatchingDraft(submitted)) setHasDraft(false);
+        persistence.current?.complete(submitted);
       } catch (e) {
         // Admission already succeeded; local storage must not prevent opening its report.
         setStorageError(describeError(e));
@@ -358,44 +371,27 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   }
   function signInForRun() {
     try {
-      if (request) saveDraft(request);
+      persistence.current?.flush();
       sessionStorage.setItem("munigan.top-gear.signin-restore", "1");
       setSignInOpen(true);
     } catch (e) {
       setStorageError(describeError(e));
     }
   }
-  const enhancementAnalysis = useMemo(
-    () =>
-      request &&
-      !request.purchases &&
-      Object.keys(request.snapshot.itemEnhancements ?? {}).length
-        ? analyzeItemEnhancementSets(request.snapshot, request.selection)
-        : null,
-    [request],
-  );
-  const allowance = useMemo(
-    () =>
-      request && !request.purchases && policy
-        ? estimateAllowance(
-            request.snapshot,
-            request.selection,
-            policy,
-            undefined,
-            enhancementAnalysis ?? undefined,
-          )
-        : null,
-    [request, policy, enhancementAnalysis],
-  );
+  const enhancementAnalysis =
+    analysisSession.nonPurchase?.enhancementAnalysis ?? null;
+  const allowance = analysisSession.nonPurchase?.allowance ?? null;
+  const selectReadiness = useMemo(() => createReadinessRequestSelector(), []);
+  const readinessRequest = useGearLabSelector(selectReadiness);
   const readinessError = useMemo(() => {
-    if (!request) return null;
+    if (!readinessRequest) return null;
     try {
-      validateRequest(encodeRequest(request));
+      validateRequest(encodeRequest(readinessRequest));
       return null;
     } catch (error) {
       return describeError(error);
     }
-  }, [request]);
+  }, [readinessRequest]);
   // Avoid briefly showing the import form during an explicit report edit.
   if (restoring) return null;
   const admissionFeedback = admissionIssue && (
@@ -499,12 +495,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         ) : (
           <div className="gear-layout">
             <div className="inventory-with-wallet">
-              <ResourceWallet
-                request={request}
-                analysis={purchaseAnalysis}
-                onChange={change}
-                onReview={() => setPurchasesOpen(true)}
-              />
+              <ResourceWallet onReview={openPurchases} />
               {purchaseAnalysis.status === "error" && (
                 <div className="purchase-analysis-repair" role="alert">
                   <p>
@@ -512,6 +503,12 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                       ? ti("purchases.analysisError")
                       : localizeDiagnostic(purchaseAnalysis.diagnostic, td)}
                   </p>
+                  <Button
+                    variant="secondary"
+                    onClick={() => analysisSession.controller.retry()}
+                  >
+                    {ti("purchases.retry")}
+                  </Button>
                   {purchaseAnalysis.diagnostic.diagnostics?.map(
                     (diagnostic, index) => (
                       <p className="muted small" key={index}>
@@ -526,12 +523,9 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                       <Button
                         variant="secondary"
                         onClick={() =>
-                          change(
-                            setPurchaseEnhancements(
-                              request,
-                              purchaseAnalysis.diagnostic.params!.itemId,
-                              {},
-                            ),
+                          actions.setPurchaseEnhancements(
+                            purchaseAnalysis.diagnostic.params!.itemId,
+                            {},
                           )
                         }
                       >
@@ -549,15 +543,14 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                     <Button
                       variant="secondary"
                       onClick={() => {
-                        const result = revalidatePurchaseInputs(request);
+                        const removedItemIds = actions.revalidatePurchases();
                         setCatalogNotice(
-                          result.removedItemIds.length
+                          removedItemIds.length
                             ? ti("purchases.removedChoices", {
-                                items: result.removedItemIds.join(", "),
+                                items: removedItemIds.join(", "),
                               })
                             : ti("purchases.catalogReviewed"),
                         );
-                        change(result.request);
                       }}
                     >
                       {ti("purchases.revalidate")}
@@ -569,13 +562,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                   {catalogNotice}
                 </p>
               )}
-              <InventorySelector
-                key={selectionVisit.revision}
-                request={request}
-                onChange={change}
-                enhancementAnalysis={enhancementAnalysis}
-                purchasePreview={purchasePreview}
-              />
+              <InventorySelector key={selectionVisit.revision} />
             </div>
             <RunSetup
               request={request}
@@ -584,7 +571,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
               purchaseAnalysis={
                 request.purchases ? purchaseAnalysis : undefined
               }
-              onPurchases={() => setPurchasesOpen(true)}
+              onPurchases={openPurchases}
               error={error ? localizeDiagnostic(error, td) : ""}
               readinessError={
                 readinessError
@@ -596,10 +583,10 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
               }
               pending={pending}
               feedback={admissionFeedback}
-              onChange={change}
-              onImport={() => setReplace(true)}
-              onSettings={() => setSettingsOpen(true)}
-              onEnhancements={() => setEnhancementsOpen(true)}
+              actions={actions}
+              onImport={openImport}
+              onSettings={openSettings}
+              onEnhancements={openEnhancements}
               onRun={() => void run()}
             />
           </div>
@@ -613,10 +600,10 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         {request && (
           <PurchasableItemsDialog
             request={request}
-            preview={purchasePreview}
+            preview={analysisSession.view.preview}
             open={purchasesOpen}
             onOpenChange={setPurchasesOpen}
-            onChange={change}
+            actions={actions}
           />
         )}
         <SignInDialog
@@ -630,14 +617,21 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         {enhancementsOpen && request && (
           <GemmingPanel
             snapshot={request.snapshot}
-            onChange={(snapshot) => change({ ...request, snapshot })}
+            actions={actions}
             onClose={() => setEnhancementsOpen(false)}
           />
         )}
         {settingsOpen && request && (
           <PresetPanel
             snapshot={request.snapshot}
-            onChange={(snapshot) => change({ ...request, snapshot })}
+            onChange={({ specId, settings, provenance, professionLevels }) =>
+              actions.applySettings({
+                specId,
+                settings,
+                provenance,
+                professionLevels,
+              })
+            }
             onClose={() => setSettingsOpen(false)}
           />
         )}

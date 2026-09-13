@@ -26,7 +26,6 @@ import { eligibleSlots } from "@/domain/equipment/validate";
 import { compareSpecItems } from "@/domain/equipment/item-relevance";
 import {
   previewItemEnhancements,
-  setItemEnhancements,
   validateItemEnhancements,
 } from "@/domain/equipment/item-enhancements";
 import { GemColor, ItemType } from "@/generated/wotlk/common";
@@ -49,7 +48,7 @@ type Props = {
   request: TopGearRequest;
   item: ItemInstance;
   initialField: Field;
-  onApply: (request: TopGearRequest) => void;
+  onApply: (value: ItemEnhancementOverride) => void;
   onClose: () => void;
   returnFocus?: RefObject<HTMLElement | null>;
 };
@@ -666,7 +665,7 @@ export function ItemEnhancementEditor({
             <Button
               disabled={blocked}
               onClick={() => {
-                onApply(setItemEnhancements(request, item.instanceId, pending));
+                onApply(pending);
                 onClose();
               }}
             >

@@ -13,6 +13,7 @@
     "equippedCaption": "Apenas equipados · nenhuma bolsa importada"
   },
   "purchases": {
+    "retry": "Tentar novamente",
     "representedItems": "{count, plural, one {# item de conjunto} other {# itens de conjunto}}",
     "walletTitle": "Fichas e moedas",
     "walletDescription": "Adicione o que você tem. Compararemos os equipamentos de tier que você pode obter.",

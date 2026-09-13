@@ -1,4 +1,5 @@
 "use client";
+import type { GearLabActions } from "./state/gear-lab-store";
 import { useTranslations, useLocale } from "next-intl";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { gemDescription } from "./gem-labels";
@@ -22,11 +23,11 @@ import { ItemIcon, ItemImage } from "./Item";
 
 export function GemmingPanel({
   snapshot,
-  onChange,
+  actions,
   onClose,
 }: {
   snapshot: Snapshot;
-  onChange: (snapshot: Snapshot) => void;
+  actions: Pick<GearLabActions, "setGemming" | "setAutoEnchant">;
   onClose: () => void;
 }) {
   const t = useTranslations("inventory");
@@ -37,7 +38,7 @@ export function GemmingPanel({
     a.name.localeCompare(b.name),
   );
   function update(patch: Partial<GemmingSettings>) {
-    onChange({ ...snapshot, gemming: { ...config, ...patch } });
+    actions.setGemming({ ...config, ...patch });
   }
   const fields = [
     {
@@ -91,9 +92,7 @@ export function GemmingPanel({
               <input
                 type="checkbox"
                 checked={snapshot.autoEnchant ?? true}
-                onChange={(e) =>
-                  onChange({ ...snapshot, autoEnchant: e.target.checked })
-                }
+                onChange={(e) => actions.setAutoEnchant(e.target.checked)}
               />
               {t("gems.copy")}
             </label>

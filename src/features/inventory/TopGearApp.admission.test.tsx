@@ -15,9 +15,9 @@ import inventory from "../../../messages/en-US/inventory.json";
 import common from "../../../messages/en-US/common.json";
 import { purchaseFixture } from "../../../tests/support/purchase-fixtures";
 import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
-import { setResourceBalance } from "@/domain/purchases/state";
+import { useGearLabSelector } from "./state/GearLabProvider";
 import diagnostics from "../../../messages/en-US/diagnostics.json";
-import type { TopGearRequest } from "@/domain/top-gear/model";
+
 import { TopGearApp } from "./TopGearApp";
 import { draftKey, saveDraft } from "../import/draft-store";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
@@ -32,10 +32,23 @@ const { auth, push, purchaseState, controls } = vi.hoisted(() => ({
   },
   push: vi.fn(),
 }));
-vi.mock("./purchases/usePurchaseAnalysis", () => ({
-  usePurchaseAnalysis: (request: TopGearRequest | null) =>
-    request?.purchases ? purchaseState.current : { status: "idle" },
-}));
+vi.mock("./state/GearLabRuntime", async (original) => {
+  const actual = await original<typeof import("./state/GearLabRuntime")>();
+  return {
+    ...actual,
+    useAnalysisView: () => {
+      const value = actual.useAnalysisView();
+      const purchases = useGearLabSelector((s) => s.draft?.purchases);
+      return {
+        ...value,
+        view: {
+          ...value.view,
+          state: purchases ? purchaseState.current : value.view.state,
+        },
+      };
+    },
+  };
+});
 vi.mock("../auth/AuthProvider", () => ({ useAccount: () => auth }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("../import/ImportPanel", () => ({
@@ -46,41 +59,26 @@ vi.mock("../import/ImportPanel", () => ({
   ),
 }));
 vi.mock("./InventorySelector", () => ({
-  InventorySelector: ({
-    request,
-    onChange,
-  }: {
-    request: TopGearRequest;
-    onChange: (request: TopGearRequest) => void;
-  }) => (
-    <>
-      <button
-        onClick={() => {
-          const next = setResourceBalance(request, "frost", 80);
-          next.purchases!.recipeRevision = "retired";
-          onChange(next);
-        }}
-      >
-        Edit wallet draft
-      </button>
-      <button
-        onClick={() =>
-          onChange({
-            ...request,
-            selection: {
-              ...request.selection,
-              selectedInstanceIds: request.selection.selectedInstanceIds.slice(
-                0,
-                -1,
-              ),
-            },
-          })
-        }
-      >
-        Reduce selection
-      </button>
-    </>
-  ),
+  InventorySelector: () => {
+    const actions = useGearLabSelector((s) => s.actions);
+    const lastId = useGearLabSelector((s) =>
+      s.draft?.selection.selectedInstanceIds.at(-1),
+    );
+    return (
+      <>
+        <button onClick={() => actions.setResourceQuantity("frost", 80)}>
+          Edit wallet draft
+        </button>
+        <button
+          onClick={() => {
+            if (lastId) actions.toggleItem(lastId);
+          }}
+        >
+          Reduce selection
+        </button>
+      </>
+    );
+  },
 }));
 vi.mock("./RunSetup", async (original) => {
   const actual = await original<typeof import("./RunSetup")>();
@@ -144,7 +142,7 @@ it("offers an explicit anonymous run after a known account rejection, with a new
   view();
   await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
   await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
-  expect(localStorage.getItem(draftKey)).not.toBeNull();
+  await waitFor(() => expect(localStorage.getItem(draftKey)).not.toBeNull());
   await userEvent.click(
     await screen.findByRole("button", { name: "Run without saving" }),
   );
@@ -170,7 +168,7 @@ it("disables mode switching through network uncertainty and retries the same bod
   expect(
     await screen.findByRole("button", { name: "Run without saving" }),
   ).toBeDisabled();
-  expect(localStorage.getItem(draftKey)).not.toBeNull();
+  await waitFor(() => expect(localStorage.getItem(draftKey)).not.toBeNull());
   await userEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(push).toHaveBeenCalled());
   expect(calls[0]).toEqual(calls[1]);
@@ -282,7 +280,7 @@ it("removes the submitted draft when admission succeeds and the report opens", a
   );
   view();
   await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
-  expect(localStorage.getItem(draftKey)).not.toBeNull();
+  await waitFor(() => expect(localStorage.getItem(draftKey)).not.toBeNull());
   await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
   await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/finished"));
   expect(localStorage.getItem(draftKey)).toBeNull();
@@ -316,7 +314,7 @@ it("preserves a newer draft saved while an older run is being admitted", async (
   );
 });
 
-it("recovers the immutable uncertain payload while a newer wallet draft is stale", async () => {
+it("recovers the immutable uncertain payload while a newer wallet draft is still awaiting analysis", async () => {
   const calls: RequestInit[] = [];
   vi.stubGlobal(
     "fetch",
@@ -335,6 +333,11 @@ it("recovers the immutable uncertain payload while a newer wallet draft is stale
   await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
   await userEvent.click(
     screen.getByRole("button", { name: "Edit wallet draft" }),
+  );
+  await waitFor(() =>
+    expect(
+      JSON.parse(localStorage.getItem(draftKey)!).purchases?.balances.frost,
+    ).toBe(80),
   );
   const newerDraft = localStorage.getItem(draftKey);
   await userEvent.click(
@@ -393,6 +396,12 @@ it("repairs a profession-invalid override without preview and preserves unrelate
     await screen.findByRole("button", {
       name: "Reset enhancements for item #50098",
     }),
+  );
+  await waitFor(() =>
+    expect(
+      JSON.parse(localStorage.getItem(draftKey)!).purchases.itemEnhancements
+        .original["50098"],
+    ).toBeUndefined(),
   );
   const saved = JSON.parse(localStorage.getItem(draftKey)!);
   expect(saved.purchases.itemEnhancements.original["50098"]).toBeUndefined();
@@ -469,7 +478,9 @@ it("persists the local slider selection and submits its actual6000 iteration req
   });
   fireEvent.change(slider, { target: { value: "6000" } });
   expect(slider).toHaveValue("6000");
-  expect(JSON.parse(localStorage.getItem(draftKey)!).iterations).toBe(6000);
+  await waitFor(() =>
+    expect(JSON.parse(localStorage.getItem(draftKey)!).iterations).toBe(6000),
+  );
   await userEvent.click(screen.getByRole("button", { name: /Run Gear Lab/ }));
   await waitFor(() =>
     expect(push).toHaveBeenCalledWith("/reports/selected-iterations"),
@@ -512,4 +523,37 @@ it("refreshes an unavailable session and submits a 4000-iteration local run usin
     iterations: 4000,
     authMode: "anonymous",
   });
+});
+
+it("recovers an immutable persisted attempt despite a restored retired purchase catalog", async () => {
+  const { createAttempt } = await import("./admission-attempt");
+  const { encodeRequest } = await import("@/domain/top-gear/request-schema");
+  const attempt = createAttempt(encodeRequest(fixtureRequest()), "anonymous");
+  attempt.status = "uncertain";
+  sessionStorage.setItem("munigan.top-gear.admission", JSON.stringify(attempt));
+  const newer = purchaseFixture({ frost: 80 });
+  newer.purchases!.recipeRevision = "retired";
+  saveDraft(newer);
+  const posted: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      posted.push(init);
+      return {
+        ok: true,
+        json: async () => ({ reportUrl: "/reports/recovered" }),
+      };
+    }),
+  );
+  view();
+  await screen.findByRole("button", { name: "Run fixture" });
+  await userEvent.click(
+    await screen.findByRole("button", { name: authMessages.retryReturn }),
+  );
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/recovered"));
+  expect(posted[0].body).toBe(attempt.body);
+  expect(
+    JSON.parse(localStorage.getItem(draftKey)!).purchases.recipeRevision,
+  ).toBe("retired");
 });

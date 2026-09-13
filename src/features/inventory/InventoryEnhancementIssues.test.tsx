@@ -1,3 +1,4 @@
+import { testGearLabActions } from "../../../tests/support/gear-lab-actions";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
@@ -40,7 +41,9 @@ it("explains a real JC conflict and explicitly resets an affected item without c
       <InventoryEnhancementIssues
         request={request}
         analysis={analysis}
-        onChange={onChange}
+        onReset={(id) =>
+          testGearLabActions(request, onChange).setItemEnhancements(id, {})
+        }
         onEdit={onEdit}
       />
     </NextIntlClientProvider>,
@@ -48,13 +51,9 @@ it("explains a real JC conflict and explicitly resets an affected item without c
   expect(screen.getByText(/0 valid sets · 1 combinations/)).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Review conflicts" }));
   expect(screen.getByText(/At most three Jewelcrafting gems/)).toBeVisible();
-  fireEvent.click(
-    screen.getAllByRole("button", { name: "Edit item" })[0],
-  );
+  fireEvent.click(screen.getAllByRole("button", { name: "Edit item" })[0]);
   expect(onEdit).toHaveBeenCalled();
-  fireEvent.click(
-    screen.getAllByRole("button", { name: "Reset item" })[0],
-  );
+  fireEvent.click(screen.getAllByRole("button", { name: "Reset item" })[0]);
   const updated = onChange.mock.calls[0][0];
   expect(updated.snapshot.inventory).toEqual(s.inventory);
   expect(updated.selection).toEqual(request.selection);

@@ -1,3 +1,12 @@
+import { useEffect, useMemo } from "react";
+import { GearLabProvider } from "./state/GearLabProvider";
+import {
+  GearLabRuntimeProvider,
+  createGearLabRuntime,
+} from "./state/GearLabRuntime";
+import { createGearLabStore } from "./state/gear-lab-store";
+import type { TopGearRequest } from "@/domain/top-gear/model";
+import type { PurchasePreview } from "./purchases/purchase-worker-contract";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
@@ -5,7 +14,7 @@ import inventory from "../../../messages/en-US/inventory.json";
 import common from "../../../messages/en-US/common.json";
 import diagnostics from "../../../messages/en-US/diagnostics.json";
 import { fixtureRequest } from "../../../tests/support/fixtures";
-import { InventorySelector } from "./InventorySelector";
+import { InventorySelector as ConnectedInventorySelector } from "./InventorySelector";
 
 vi.mock("./custom-items/CustomItemPicker", () => ({
   AddCustomItem: () => <button>Add custom item</button>,
@@ -254,3 +263,43 @@ it("shows only the detected Feral purchase variant", async () => {
     original,
   );
 });
+
+function InventorySelector({
+  request,
+  purchasePreview = null,
+  onChange,
+}: {
+  request: TopGearRequest;
+  purchasePreview?: PurchasePreview | null;
+  onChange: (request: TopGearRequest) => void;
+}) {
+  const store = useMemo(() => {
+    const store = createGearLabStore();
+    store.setState({ draft: request });
+    return store;
+  }, [request]);
+  const runtime = useMemo(() => {
+    const runtime = createGearLabRuntime(store);
+    const value = runtime.session.getSnapshot();
+    const snapshot = {
+      ...value,
+      view: { ...value.view, preview: purchasePreview },
+    };
+    runtime.session.getSnapshot = () => snapshot;
+    return runtime;
+  }, [store, purchasePreview]);
+  useEffect(
+    () =>
+      store.subscribe((s) => {
+        if (s.draft) onChange(s.draft);
+      }),
+    [store, onChange],
+  );
+  return (
+    <GearLabProvider store={store}>
+      <GearLabRuntimeProvider runtime={runtime}>
+        <ConnectedInventorySelector />
+      </GearLabRuntimeProvider>
+    </GearLabProvider>
+  );
+}

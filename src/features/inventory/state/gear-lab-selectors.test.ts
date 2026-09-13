@@ -17,6 +17,9 @@ import {
   createAnalysisInputSelector,
   createInventorySelector,
   createNonPurchaseSelector,
+  createReadinessRequestSelector,
+  createRowPresentationSelector,
+  createWalletRequestSelector,
 } from "./gear-lab-selectors";
 
 function fixture() {
@@ -285,11 +288,9 @@ it("uses the latest purchase override before a newer worker result arrives", () 
   )!;
   const select = createInventorySelector();
   select(store.getState().draft!, preview);
-  store
-    .getState()
-    .actions.setPurchaseEnhancements(candidate.instance.itemId, {
-      gemIds: [0, 0],
-    });
+  store.getState().actions.setPurchaseEnhancements(candidate.instance.itemId, {
+    gemIds: [0, 0],
+  });
   const next = select(store.getState().draft!, preview);
   expect(next.byId.get(candidate.instance.instanceId)?.preview.gemIds).toEqual([
     0, 0,
@@ -310,12 +311,39 @@ it("does not rebuild candidate membership for precision-only edits", () => {
   const select = createInventorySelector();
   const first = select(store.getState().draft!, preview);
   const before = reads;
+  store.getState().actions.setIterations(4000, {
+    ...purchasePolicy,
+    selectableIterations: { min: 500, max: 6000, step: 500 },
+  });
+  expect(select(store.getState().draft!, preview)).toBe(first);
+  expect(reads).toBe(before);
+});
+
+it("keeps readiness and wallet projections stable across precision while preserving row manual badges", () => {
+  const store = createGearLabStore(fixture());
+  const readiness = createReadinessRequestSelector();
+  const wallet = createWalletRequestSelector();
+  const inventory = createInventorySelector();
+  const present = createRowPresentationSelector("bag-legs");
+  const initial = store.getState();
+  const validationRequest = readiness(initial);
+  const walletRequest = wallet(initial);
+  const rowSnapshot = present(inventory(initial.draft!, null));
   store
     .getState()
-    .actions.setIterations(4000, {
+    .actions.setIterations(500, {
       ...purchasePolicy,
       selectableIterations: { min: 500, max: 6000, step: 500 },
     });
-  expect(select(store.getState().draft!, preview)).toBe(first);
-  expect(reads).toBe(before);
+  expect(readiness(store.getState())).toBe(validationRequest);
+  expect(wallet(store.getState())).toBe(walletRequest);
+  store.getState().actions.setPurchaseIncluded(50098, false);
+  expect(wallet(store.getState())).toBe(walletRequest);
+  expect(readiness(store.getState())).not.toBe(validationRequest);
+  store.getState().actions.setItemEnhancements("owned-legs", { enchantId: 0 });
+  expect(present(inventory(store.getState().draft!, null))).toBe(rowSnapshot);
+  store.getState().actions.setItemEnhancements("bag-legs", { enchantId: 0 });
+  const next = present(inventory(store.getState().draft!, null));
+  expect(next).not.toBe(rowSnapshot);
+  expect(next.itemEnhancements?.["bag-legs"]).toEqual({ enchantId: 0 });
 });

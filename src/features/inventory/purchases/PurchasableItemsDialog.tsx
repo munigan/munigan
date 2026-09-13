@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { ItemEnhancementEditor } from "../enhancements/ItemEnhancementEditor";
-import { setPurchaseEnhancements } from "@/domain/purchases/enhancements";
+import type { GearLabActions } from "../state/gear-lab-store";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import {
@@ -21,7 +21,7 @@ import {
   getPurchaseCatalog,
   tokenFamilyForClass,
 } from "@/domain/purchases/catalog";
-import { setPurchaseExcluded } from "@/domain/purchases/state";
+
 import { itemVersionOf } from "@/domain/top-gear/item-version";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { ItemIcon, ItemName } from "../Item";
@@ -34,13 +34,13 @@ export function PurchasableItemsDialog({
   preview,
   open,
   onOpenChange,
-  onChange,
+  actions,
 }: {
   request: TopGearRequest;
   preview: PurchasePreview | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onChange: (request: TopGearRequest) => void;
+  actions: GearLabActions;
 }) {
   const t = useTranslations("inventory.purchases");
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
@@ -168,12 +168,9 @@ export function PurchasableItemsDialog({
                                   type="checkbox"
                                   checked={included}
                                   onChange={() =>
-                                    onChange(
-                                      setPurchaseExcluded(
-                                        request,
-                                        itemId,
-                                        included,
-                                      ),
+                                    actions.setPurchaseIncluded(
+                                      itemId,
+                                      !included,
                                     )
                                   }
                                   aria-label={t("includeItem", {
@@ -314,14 +311,8 @@ export function PurchasableItemsDialog({
             selection: preview.selection,
           }}
           initialField={0}
-          onApply={(edited) =>
-            onChange(
-              setPurchaseEnhancements(
-                request,
-                editedItem.itemId,
-                edited.snapshot.itemEnhancements?.[editedItem.instanceId] ?? {},
-              ),
-            )
+          onApply={(value) =>
+            actions.setPurchaseEnhancements(editedItem.itemId, value)
           }
           onClose={() => setEditing(null)}
           returnFocus={returnFocus}

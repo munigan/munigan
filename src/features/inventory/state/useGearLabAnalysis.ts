@@ -28,7 +28,7 @@ type SessionView = {
 
 /** The effect owns each controller's lifetime; the external subscription survives
  * Strict Mode's setup/cleanup replay without reviving a disposed controller. */
-function createAnalysisSession(store: GearLabStore) {
+export function createAnalysisSession(store: GearLabStore) {
   const selectInput = createAnalysisInputSelector();
   const selectNonPurchase = createNonPurchaseSelector();
   const listeners = new Set<() => void>();

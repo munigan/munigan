@@ -32,7 +32,7 @@ it("preserves an open picker, filters and selected candidates across locale chan
     return (
       <NextIntlClientProvider locale={locale} messages={messages}>
         <ToastProvider>
-          <AddCustomItem request={request} slot="head" onChange={onChange} />
+          <AddCustomItem request={request} slot="head" onAdd={onChange} />
         </ToastProvider>
       </NextIntlClientProvider>
     );
@@ -74,7 +74,5 @@ it("preserves an open picker, filters and selected candidates across locale chan
     screen.getByRole("button", { name: "Adicionar 1 item" }),
   );
   expect(onChange).toHaveBeenCalledTimes(1);
-  expect(onChange.mock.calls[0][0].selection.selectedInstanceIds).toContain(
-    `custom-${id}`,
-  );
+  expect(onChange).toHaveBeenCalledWith("head", [Number(id)]);
 });
