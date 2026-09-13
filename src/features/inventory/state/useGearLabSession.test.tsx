@@ -2,7 +2,10 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { StrictMode, type PropsWithChildren } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { fixtureRequest } from "../../../../tests/support/fixtures";
-import { purchasePolicy } from "../../../../tests/support/purchase-fixtures";
+import {
+  purchaseFixture,
+  purchasePolicy,
+} from "../../../../tests/support/purchase-fixtures";
 import { createGearLabStore } from "./gear-lab-store";
 import { GearLabProvider } from "./GearLabProvider";
 import { GearLabRuntimeProvider } from "./GearLabRuntime";
@@ -150,3 +153,85 @@ it("finishes cleanup for an already pending admission after its component unmoun
   persistence.complete(submitted);
   expect(localStorage.getItem(draftKey)).toBeNull();
 });
+
+function customRewardDraft(repaired: boolean) {
+  const request = purchaseFixture({ frost: 100 });
+  request.snapshot.inventory.push({
+    instanceId: "custom",
+    itemId: 50098,
+    source: "custom",
+    gemIds: [],
+    enchantId: 0,
+  });
+  request.selection.selectedInstanceIds.push("custom");
+  request.snapshot.itemEnhancements = { custom: { gemIds: [9999999] } };
+  if (repaired) request.purchases!.itemEnhancements.original = { "50098": {} };
+  return request;
+}
+
+it("restores effective purchase repairs without rejecting retained custom enhancement intent", async () => {
+  saveDraft(customRewardDraft(true));
+  const test = setup(false, true);
+  await waitFor(() => expect(test.store.getState().draft).not.toBeNull());
+  expect(test.result.current.readinessError).toBeNull();
+  expect(
+    test.store.getState().draft!.snapshot.itemEnhancements?.custom,
+  ).toEqual({ gemIds: [9999999] });
+  test.unmount();
+});
+
+it("invalidates effective custom eligibility when an override repairs a restored draft or conversion changes", async () => {
+  saveDraft(customRewardDraft(false));
+  const test = setup(false, true);
+  await waitFor(() => expect(test.store.getState().draft).not.toBeNull());
+  expect(test.result.current.readinessError).not.toBeNull();
+  act(() => test.store.getState().actions.setPurchaseEnhancements(50098, {}));
+  expect(test.result.current.readinessError).toBeNull();
+  act(() => test.store.getState().actions.toggleItem("custom"));
+  expect(test.result.current.readinessError).not.toBeNull();
+  act(() => test.store.getState().actions.toggleItem("custom"));
+  expect(test.result.current.readinessError).toBeNull();
+  act(() => test.store.getState().actions.removeResource("frost"));
+  expect(test.result.current.readinessError).not.toBeNull();
+  act(() => test.store.getState().actions.setResourceQuantity("frost", 100));
+  expect(test.result.current.readinessError).not.toBeNull();
+  act(() => test.store.getState().actions.setPurchaseEnhancements(50098, {}));
+  expect(test.result.current.readinessError).toBeNull();
+  test.unmount();
+});
+
+it("keeps repaired custom eligibility cached during precision, owned selection and wallet edits", async () => {
+  saveDraft(customRewardDraft(true));
+  const test = setup(false, true);
+  await waitFor(() => expect(test.store.getState().draft).not.toBeNull());
+  const schema = await import("@/domain/top-gear/request-schema");
+  const validate = vi.spyOn(schema, "validateRequest");
+  act(() => {
+    test.store.getState().actions.setIterations(6000, {
+      ...purchasePolicy,
+      selectableIterations: { min: 500, max: 6000, step: 500 },
+    });
+    test.store.getState().actions.toggleItem("owned-legs");
+    test.store.getState().actions.setResourceQuantity("frost", 120);
+    test.store.getState().actions.setPurchaseIncluded(50098, false);
+  });
+  expect(validate).not.toHaveBeenCalled();
+  expect(test.result.current.readinessError).toBeNull();
+  test.unmount();
+});
+
+it.each(["revision", "exclusion"])(
+  "clears cached purchase eligibility after repairing a restored catalog %s",
+  async (fault) => {
+    const request = customRewardDraft(true);
+    if (fault === "revision") request.purchases!.recipeRevision = "retired";
+    else request.purchases!.excludedItemIds.original = [9999999];
+    saveDraft(request);
+    const test = setup(false, true);
+    await waitFor(() => expect(test.store.getState().draft).not.toBeNull());
+    expect(test.result.current.readinessError).not.toBeNull();
+    act(() => test.store.getState().actions.revalidatePurchases());
+    expect(test.result.current.readinessError).toBeNull();
+    test.unmount();
+  },
+);

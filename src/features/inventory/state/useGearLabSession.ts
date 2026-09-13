@@ -19,6 +19,8 @@ import {
   encodeRequest,
   validateRequest,
 } from "@/domain/top-gear/request-schema";
+import { getPurchaseCatalog } from "@/domain/purchases/catalog";
+import { itemVersionOf } from "@/domain/top-gear/item-version";
 import { validateItem } from "@/domain/equipment/validate";
 import {
   draftKey,
@@ -113,22 +115,55 @@ export function useGearLabSession({
     };
   }, [store, reportStorageError]);
   useEffect(() => {
-    let previousSnapshot: Snapshot | null | undefined;
-    let previousEpoch = -1;
+    let previousKey: readonly unknown[] = [];
+    let previousExclusions:
+      NonNullable<TopGearRequest["purchases"]>["excludedItemIds"] | undefined;
+    let failed = false;
     const validateEligibility = () => {
       const { draft, epoch } = store.getState();
-      if (draft?.snapshot === previousSnapshot && epoch === previousEpoch)
-        return;
-      previousSnapshot = draft?.snapshot;
-      previousEpoch = epoch;
+      const purchases = draft?.purchases;
+      const overrides = purchases?.itemEnhancements;
+      const key = [
+        draft?.snapshot,
+        epoch,
+        overrides && Object.keys(overrides).length ? overrides : undefined,
+        // Adding an ordinary wallet does not change snapshot eligibility.
+        purchases?.recipeRevision ??
+          (draft
+            ? getPurchaseCatalog(itemVersionOf(draft.snapshot)).revision
+            : undefined),
+        // Selected custom rewards use purchase overrides instead of raw intent.
+        // Their conversion can change without changing the snapshot itself.
+        ...(purchases
+          ? draft.snapshot.inventory
+              .filter(
+                (item) =>
+                  item.source === "custom" &&
+                  draft.selection.selectedInstanceIds.includes(item.instanceId),
+              )
+              .map((item) => item.instanceId)
+          : []),
+      ];
+      const unchanged =
+        key.length === previousKey.length &&
+        key.every((value, index) => value === previousKey[index]);
+      // Valid inclusion commands cannot add unknown IDs. A failed restored input
+      // must still be rechecked when catalog repair removes invalid exclusions.
+      const exclusionsUnchanged =
+        !failed || previousExclusions === purchases?.excludedItemIds;
+      previousKey = key;
+      previousExclusions = purchases?.excludedItemIds;
+      if (unchanged && exclusionsUnchanged) return;
       setError(null);
       try {
-        // Imports and settings/equipment eligibility changes establish this cache.
-        // Purchase validity belongs to the current analysis; admission validates all fields.
-        if (draft)
-          validateRequest(encodeRequest({ ...draft, purchases: undefined }));
+        // Preserve effective purchase/custom enhancement semantics at this boundary.
+        // Precision, owned selection, balances and valid purchase exclusions use
+        // the cached result; admission always validates the complete current draft.
+        if (draft) validateRequest(encodeRequest(draft));
+        failed = false;
         setReadinessError(null);
       } catch (error) {
+        failed = true;
         setReadinessError(describeError(error));
       }
     };
