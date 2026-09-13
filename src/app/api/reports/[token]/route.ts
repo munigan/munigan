@@ -12,10 +12,14 @@ export async function GET(
       await getIdentity(request),
     );
     const rows = data.report.rows;
-    const offset = Math.max(
-      0,
-      Math.min(100000, Number(request.nextUrl.searchParams.get("cursor")) || 0),
-    );
+    const cursor = Number(request.nextUrl.searchParams.get("cursor"));
+    // Uncapped reports must advance past the former admission-era ceiling.
+    const maximumOffset =
+      data.report.policy.maxUnits === null ? rows.length : 100000;
+    const offset =
+      Number.isSafeInteger(cursor) && cursor >= 0
+        ? Math.min(cursor, maximumOffset)
+        : 0;
     const size = 20;
     const pinnedRows = rows.filter((r) =>
       [
