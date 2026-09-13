@@ -75,6 +75,7 @@ export const purchaseInputsSchema = z
     version: z.literal(1),
     recipeRevision: z.string().min(1).max(100),
     balances: z.partialRecord(resourceIdSchema, quantitySchema),
+    gearVariant: z.string().min(1).max(60).optional(),
     excludedItemIds: z.partialRecord(profileSchema, exclusionsSchema),
     itemEnhancements: z.partialRecord(profileSchema, enhancementsSchema),
   })

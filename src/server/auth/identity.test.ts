@@ -115,3 +115,28 @@ it("derives only a valid anonymous owner cookie using the existing digest", asyn
     ).ownerHash,
   ).toBeNull();
 });
+
+it("expires stale auth cookies only in explicitly unlimited local anonymous mode", async () => {
+  disabled();
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("LOCAL_UNLIMITED_ADMISSION", "1");
+  const { GET } = await import("@/app/api/account/session/route");
+  const request = new Request("http://localhost/api/account/session", {
+    headers: { cookie: "better-auth.session_token=stale" },
+  });
+  const response = await GET(request);
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({
+    account: null,
+    savingEnabled: false,
+  });
+  expect(response.headers.get("set-cookie")).toContain(
+    "better-auth.session_token=; Max-Age=0",
+  );
+  vi.stubEnv("NODE_ENV", "production");
+  expect((await GET(request)).status).toBe(503);
+  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("REPORT_SAVING_ENABLED", "true");
+  expect((await GET(request)).status).toBe(503);
+});

@@ -290,10 +290,16 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         setAdmissionIssue("uncertain");
         return;
       }
-      if (
+      const currentAuth =
         !attempt.current &&
         !withoutSaving &&
         ["loading", "unavailable"].includes(auth.status)
+          ? ((await auth.refresh()) ?? auth)
+          : auth;
+      if (
+        !attempt.current &&
+        !withoutSaving &&
+        ["loading", "unavailable"].includes(currentAuth.status)
       ) {
         setAdmissionIssue("account");
         return;
@@ -304,6 +310,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
           request.purchases &&
           !(
             purchaseAnalysis.status === "ready" &&
+            !purchaseAnalysis.refreshing &&
             purchaseAnalysis.analysis.status === "complete" &&
             purchaseAnalysis.analysis.plan.allowance.allowed
           )
@@ -315,7 +322,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         saveDraft(request);
         attempt.current = createAttempt(
           encodeRequest(request),
-          withoutSaving || auth.status === "anonymous"
+          withoutSaving || currentAuth.status === "anonymous"
             ? "anonymous"
             : "account",
         );
@@ -391,6 +398,34 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   }, [request]);
   // Avoid briefly showing the import form during an explicit report edit.
   if (restoring) return null;
+  const admissionFeedback = admissionIssue && (
+    <div className="report-save-notice" role="alert">
+      <div>
+        <p>
+          {ta(
+            admissionIssue === "uncertain"
+              ? "admissionUncertain"
+              : "admissionAccount",
+          )}
+        </p>
+        <div className="actions">
+          <Button disabled={pending} onClick={() => void run()}>
+            {ta("retryReturn")}
+          </Button>
+          <Button variant="secondary" disabled={pending} onClick={signInForRun}>
+            {ta("signIn")}
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={pending || admissionIssue === "uncertain" || !request}
+            onClick={() => void run(true)}
+          >
+            {ta("runWithoutSaving")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
   return (
     <ItemVersionContext.Provider
       value={request ? itemVersionOf(request.snapshot) : "original"}
@@ -560,6 +595,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
                     : ""
               }
               pending={pending}
+              feedback={admissionFeedback}
               onChange={change}
               onImport={() => setReplace(true)}
               onSettings={() => setSettingsOpen(true)}
@@ -573,40 +609,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
             {localizeDiagnostic(error, td)}
           </AlertMessage>
         )}
-        {admissionIssue && (
-          <div className="report-save-notice" role="alert">
-            <div>
-              <p>
-                {ta(
-                  admissionIssue === "uncertain"
-                    ? "admissionUncertain"
-                    : "admissionAccount",
-                )}
-              </p>
-              <div className="actions">
-                <Button disabled={pending} onClick={() => void run()}>
-                  {ta("retryReturn")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={pending}
-                  onClick={signInForRun}
-                >
-                  {ta("signIn")}
-                </Button>
-                <Button
-                  variant="ghost"
-                  disabled={
-                    pending || admissionIssue === "uncertain" || !request
-                  }
-                  onClick={() => void run(true)}
-                >
-                  {ta("runWithoutSaving")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {(!request || replace) && admissionFeedback}
         {request && (
           <PurchasableItemsDialog
             request={request}

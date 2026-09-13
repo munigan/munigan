@@ -67,7 +67,7 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   await add(page, "1", 9, "Heroic");
   await ready(page);
   await expect(page.locator(".resource-wallet-review")).toContainText(
-    "20 compatible purchases included",
+    "10 compatible purchases included",
   );
   // These verified Alliance Warrior DPS rewards require Protector Regalia,
   // so Frost-derived rows alone cannot satisfy the mixed-tier acceptance case.
@@ -95,7 +95,7 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   await ready(page);
   for (const row of regaliaRows) await expect(row).toHaveCount(0);
   await expect(page.locator(".resource-wallet-review")).toContainText(
-    "10 compatible purchases included",
+    "5 compatible purchases included",
   );
   await expect(frostShoulder.getByRole("checkbox")).toBeChecked();
   await regaliaQuantity.fill("1");
@@ -166,7 +166,7 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
     page.getByRole("button", { name: "Review purchases", exact: true }),
   ).toBeFocused();
   await expect(page.locator(".resource-wallet-review")).toContainText(
-    "19 compatible purchases included",
+    "9 compatible purchases included",
   );
   const excluded = await draft(page);
   expect(excluded.purchases.excludedItemIds.original).toContain(50082);
@@ -200,6 +200,7 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   ).toEqual([
     "balances",
     "excludedItemIds",
+    "gearVariant",
     "itemEnhancements",
     "recipeRevision",
     "version",

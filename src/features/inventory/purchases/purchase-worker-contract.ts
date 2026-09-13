@@ -25,6 +25,7 @@ export type PurchaseAnalysisState =
   | { status: "idle" | "loading" }
   | {
       status: "ready";
+      refreshing?: boolean;
       analysis: PurchaseAnalysis;
       preview: PurchasePreview | null;
     }

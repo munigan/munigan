@@ -16,41 +16,41 @@ import { itemVersions } from "@/domain/top-gear/item-version";
 import { getPurchaseCatalog } from "./catalog";
 import type { PreparedPurchases } from "./model";
 
-it("counts exactly 101 affordable sets instead of the 3125 raw combinations", () => {
+it("counts exactly 31 affordable sets instead of the 243 raw combinations", () => {
   const request = purchaseFixture({ frost: 100, "regalia:vanquisher": 1 });
   const policy = {
     ...purchasePolicy,
-    maxUnits: 101 * purchasePolicy.unitsPerSet,
+    maxUnits: 31 * purchasePolicy.unitsPerSet,
   };
   const prepared = preparePurchases(request, createSearchBudget(100000));
   expect(
     estimateAllowance(prepared.snapshot, prepared.selection, policy).count,
-  ).toBe(3125);
+  ).toBe(243);
   const result = analyzePurchaseSelection(request, policy);
   expect(result.status).toBe("complete");
   if (result.status !== "complete") throw new Error(result.status);
   expect(result.plan.allowance).toMatchObject({
-    count: 101,
+    count: 31,
     allowed: true,
     countKind: "exact",
   });
-  expect(result.plan.simulations).toHaveLength(101);
-  expect(new Set(result.plan.simulations.map((s) => s.key)).size).toBe(101);
+  expect(result.plan.simulations).toHaveLength(31);
+  expect(new Set(result.plan.simulations.map((s) => s.key)).size).toBe(31);
   expect(result.plan.simulations.filter((s) => s.isReference)).toHaveLength(1);
   expect(result.visitedNodes).toBeLessThanOrEqual(policy.maxSearchNodes!);
   const over = analyzePurchaseSelection(request, {
     ...policy,
-    maxUnits: 100 * policy.unitsPerSet,
+    maxUnits: 30 * policy.unitsPerSet,
   });
   expect(over).toMatchObject({
     status: "over-limit",
-    allowance: { count: 101, countKind: "over-limit", allowed: false },
+    allowance: { count: 31, countKind: "over-limit", allowed: false },
   });
 });
 
 it.each([
-  [100, 11, false],
-  [120, 15, true],
+  [100, 6, false],
+  [120, 7, true],
 ] as const)(
   "respects a %s Frost wallet across both 60-Frost slots",
   (frost, count, pair) => {

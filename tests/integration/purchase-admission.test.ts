@@ -36,12 +36,12 @@ const args = () => ({
 async function stored(id: string) {
   return (await pool.query("SELECT * FROM tg_jobs WHERE id=$1", [id])).rows[0];
 }
-it("freezes the 101 affordable simulations and costs before reserving", async () => {
-  vi.stubEnv("TOP_GEAR_MAX_UNITS", String(101 * 5000));
+it("freezes the 31 affordable simulations and costs before reserving", async () => {
+  vi.stubEnv("TOP_GEAR_MAX_UNITS", String(31 * 5000));
   const admitted = await admitJob(args());
   const job = await stored(admitted.jobId);
-  expect(job.plan?.simulations).toHaveLength(101);
-  expect(job.plan.allowance.count).toBe(101);
+  expect(job.plan?.simulations).toHaveLength(31);
+  expect(job.plan.allowance.count).toBe(31);
   expect(job.plan.purchases.inputs.balances).toEqual({
     frost: 100,
     "regalia:vanquisher": 1,
@@ -51,7 +51,7 @@ it("freezes the 101 affordable simulations and costs before reserving", async ()
       (i: { source: string }) => i.source === "purchase",
     ),
   ).toBe(false);
-  expect(Number(job.reserved)).toBe(101 * 5000 * workPolicy().maxAttempts);
+  expect(Number(job.reserved)).toBe(31 * 5000 * workPolicy().maxAttempts);
 });
 it("returns an exact intent after a recipe revision changes, but rejects a changed wallet", async () => {
   const input = args();
@@ -98,7 +98,7 @@ it("reuses authorized frozen retries while enforcing the current allowance and s
     iterations: 200,
     seed: "100201",
   });
-  expect(job.plan.allowance.count).toBe(101);
+  expect(job.plan.allowance.count).toBe(31);
   await expect(
     admitJob({
       ...input,
@@ -253,7 +253,7 @@ it("replans changed-wallet retries and serializes identical purchase intents", a
     priorJob: a.jobId,
   });
   const job = await stored(retry.jobId);
-  expect(job.plan.simulations).toHaveLength(15);
+  expect(job.plan.simulations).toHaveLength(7);
   expect(job.plan.purchases.inputs.balances).toEqual({ frost: 120 });
   expect((await stored(a.jobId)).plan.purchases.inputs.balances).toEqual({
     frost: 100,

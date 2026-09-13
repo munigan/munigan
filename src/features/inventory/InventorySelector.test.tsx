@@ -208,7 +208,7 @@ it("cannot edit the original custom enhancements while its costed preview is abs
   expect(JSON.stringify(request)).toBe(before);
 });
 
-it("puts Feral purchase variants first while keeping every legal alternative", async () => {
+it("shows only the detected Feral purchase variant", async () => {
   const { purchaseFixture } =
     await import("../../../tests/support/purchase-fixtures");
   const { listSpecs, defaultSettings } =
@@ -249,11 +249,7 @@ it("puts Feral purchase variants first while keeping every legal alternative", a
         "purchase-original-50827",
       ].includes(id!),
     ),
-  ).toEqual([
-    "purchase-original-50827",
-    "purchase-original-50107",
-    "purchase-original-50822",
-  ]);
+  ).toEqual(["purchase-original-50827"]);
   expect(preview.candidates.map((c) => c.instance.instanceId)).toEqual(
     original,
   );

@@ -135,7 +135,29 @@
     "availableIncludedCount": "{count} disponíveis · Incluídos",
     "includeWhenAvailable": "Incluir quando disponível",
     "fullChain": "Caminho completo caso você não possua um pré-requisito:",
-    "editEnhancementsShort": "Editar gemas e encantamento"
+    "editEnhancementsShort": "Editar gemas e encantamento",
+    "gearSpecialization": "Especialização do equipamento",
+    "variants": {
+      "dk-dps": "Cavaleiro da Morte · DPS",
+      "dk-tank": "Cavaleiro da Morte · Tanque",
+      "warrior-dps": "Guerreiro · DPS",
+      "warrior-tank": "Guerreiro · Tanque",
+      "druid-balance": "Druida · Equilíbrio",
+      "druid-feral": "Druida · Feral",
+      "druid-restoration": "Druida · Restauração",
+      "paladin-retribution": "Paladino · Retribuição",
+      "paladin-protection": "Paladino · Proteção",
+      "paladin-holy": "Paladino · Sagrado",
+      "priest-shadow": "Sacerdote · Sombra",
+      "priest-healing": "Sacerdote · Cura",
+      "shaman-elemental": "Xamã · Elemental",
+      "shaman-enhancement": "Xamã · Aperfeiçoamento",
+      "shaman-restoration": "Xamã · Restauração",
+      "hunter-dps": "Caçador",
+      "mage-dps": "Mago",
+      "rogue-dps": "Ladino",
+      "warlock-dps": "Bruxo"
+    }
   },
   "versions": {
     "original": {

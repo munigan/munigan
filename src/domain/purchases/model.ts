@@ -21,6 +21,7 @@ export type PurchaseInputs = {
   version: 1;
   recipeRevision: string;
   balances: ResourceAmounts;
+  gearVariant?: string;
   excludedItemIds: Partial<Record<ItemVersion, number[]>>;
   itemEnhancements: Partial<
     Record<ItemVersion, Record<string, ItemEnhancementOverride>>

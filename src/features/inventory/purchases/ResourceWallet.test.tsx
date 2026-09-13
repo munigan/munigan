@@ -163,8 +163,8 @@ it.each(["en-US", "pt-BR"] as const)(
     const summary = () => document.querySelector(".resource-wallet-review")!;
     expect(summary()).toHaveTextContent(
       locale === "en-US"
-        ? "4 compatible purchases included"
-        : "4 compras compatíveis incluídas",
+        ? "2 compatible purchases included"
+        : "2 compras compatíveis incluídas",
     );
     request = setPurchaseExcluded(request, 50098, true);
     rerender(view({ status: "loading" }));
@@ -175,10 +175,10 @@ it.each(["en-US", "pt-BR"] as const)(
     rerender(view(state()));
     expect(summary()).toHaveTextContent(
       locale === "en-US"
-        ? "3 compatible purchases included"
-        : "3 compras compatíveis incluídas",
+        ? "1 compatible purchase included"
+        : "1 compra compatível incluída",
     );
-    for (const itemId of [50095, 50853])
+    for (const itemId of [50853])
       request = setPurchaseExcluded(request, itemId, true);
     rerender(view(state()));
     expect(summary()).toHaveTextContent(

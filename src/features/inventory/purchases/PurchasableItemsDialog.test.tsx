@@ -140,7 +140,7 @@ it("retains expanded review groups when a wallet edit invalidates the preview", 
   expect(document.querySelector("details")).toHaveAttribute("open");
 });
 
-it("puts Feral purchase variants first while keeping every legal alternative", async () => {
+it("shows only the detected Feral purchase variant", async () => {
   const { purchaseFixture } =
     await import("../../../../tests/support/purchase-fixtures");
   const { listSpecs, defaultSettings } =
@@ -176,7 +176,7 @@ it("puts Feral purchase variants first while keeping every legal alternative", a
     (row) => row.getAttribute("data-purchase-id"),
   );
   expect(ids.filter((id) => ["50107", "50822", "50827"].includes(id!))).toEqual(
-    ["50827", "50107", "50822"],
+    ["50827"],
   );
   expect(preview.candidates.map((c) => c.instance.instanceId)).toEqual(
     original,

@@ -6,13 +6,13 @@ import { Race } from "@/generated/wotlk/common";
 import { encodeRequest } from "@/domain/top-gear/request-schema";
 const prepare = (request = purchaseFixture({ frost: 60 })) =>
   preparePurchases(request, createSearchBudget(100000));
-it("reviews compatible unavailable variants but selects only available included rewards", () => {
+it("reviews specialization rewards and selects only available included rewards", () => {
   const request = purchaseFixture({ frost: 60 });
   request.purchases!.excludedItemIds.original = [50098];
   const prepared = prepare(request);
   expect(
-    prepared.candidates.find((c) => c.instance.itemId === 50853)?.available,
-  ).toBe(true);
+    prepared.candidates.find((c) => c.instance.itemId === 50853),
+  ).toBeUndefined();
   expect(
     prepared.candidates.find((c) => c.instance.itemId === 51125),
   ).toMatchObject({
@@ -27,7 +27,7 @@ it("reviews compatible unavailable variants but selects only available included 
   expect(prepared.selection.selectedInstanceIds).not.toContain(
     "purchase-original-51125",
   );
-  expect(prepared.selection.selectedInstanceIds).toContain(
+  expect(prepared.selection.selectedInstanceIds).not.toContain(
     "purchase-original-50853",
   );
   expect(
@@ -61,7 +61,7 @@ it("explains the missing normal Mark and 264 predecessor while leaving unrelated
     prepared.candidates.find((c) => c.instance.itemId === 48505)?.available,
   ).toBe(true);
 });
-it("filters faction, class and profile while retaining both DK variants", () => {
+it("filters faction, class and profile and defaults to the Frost DK DPS variant", () => {
   for (const profile of ["original", "classic"] as const) {
     const request = purchaseFixture({ "regalia:vanquisher": 1 });
     request.snapshot.itemVersion = profile;
@@ -71,7 +71,7 @@ it("filters faction, class and profile while retaining both DK variants", () => 
       true,
     );
     expect(prepared.candidates.some((c) => c.instance.itemId === 48543)).toBe(
-      true,
+      false,
     );
     expect(prepared.candidates.some((c) => c.instance.itemId === 48495)).toBe(
       false,
@@ -221,3 +221,48 @@ for (const automatic of [false, true]) {
     },
   );
 }
+
+it("supports explicit specialization choice without changing owned gear or exclusions", () => {
+  const request = purchaseFixture({ frost: 100 });
+  request.purchases!.gearVariant = "dk-tank";
+  request.purchases!.excludedItemIds.original = [50853];
+  const prepared = prepare(request);
+  expect(
+    prepared.candidates.every(
+      (c) =>
+        prepared.catalog.byItemId.get(c.instance.itemId)!.setVariant ===
+        "dk-tank",
+    ),
+  ).toBe(true);
+  expect(
+    prepared.candidates.find((c) => c.instance.itemId === 50853)?.included,
+  ).toBe(false);
+  expect(prepared.snapshot.inventory).toContainEqual(
+    request.snapshot.inventory[0],
+  );
+  request.purchases!.gearVariant = "mage-dps";
+  expect(() => prepare(request)).toThrow(
+    "Invalid purchase gear specialization",
+  );
+});
+
+it("keeps an explicitly selected other-specialization custom reward costed", () => {
+  const request = purchaseFixture({ frost: 60 });
+  request.snapshot.inventory.push({
+    instanceId: "custom-tank",
+    itemId: 50853,
+    source: "custom",
+    gemIds: [],
+    enchantId: 0,
+  });
+  request.selection.selectedInstanceIds.push("custom-tank");
+  const prepared = prepare(request);
+  expect(prepared.selection.selectedInstanceIds).not.toContain("custom-tank");
+  expect(prepared.selection.selectedInstanceIds).toContain(
+    "purchase-original-50853",
+  );
+  expect(
+    prepared.candidates.find((c) => c.instance.itemId === 50853)?.paths[0]
+      .spent,
+  ).toEqual({ frost: 60 });
+});

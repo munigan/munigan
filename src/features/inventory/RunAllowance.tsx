@@ -125,6 +125,8 @@ export function RunAllowance({
         className="primary run-button"
         disabled={
           pending ||
+          (purchaseAnalysis?.status === "ready" &&
+            !!purchaseAnalysis.refreshing) ||
           !allowance?.allowed ||
           !!readinessError ||
           (!!purchaseAnalysis && purchaseStatus !== "complete")

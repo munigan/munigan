@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Select, SelectOption } from "@/components/ui/Select";
+import {
+  defaultPurchaseVariant,
+  purchaseVariants,
+} from "@/domain/purchases/variants";
 import { Button } from "@/components/ui/Button";
 import {
   DialogContent,
@@ -51,6 +56,12 @@ export function ResourceDialog({
   const initialId =
     (initialOption && resourceId) ??
     optionsForTier(initialTier, family)[0].resourceId;
+  const variants = purchaseVariants(request.snapshot);
+  const initialVariant =
+    request.purchases?.gearVariant ??
+    defaultPurchaseVariant(request.snapshot) ??
+    variants[0];
+  const [gearVariant, setGearVariant] = useState(initialVariant);
   const [tier, setTier] = useState<ResourceTier>(initialTier);
   const [selectedResource, setSelectedResource] =
     useState<ResourceId>(initialId);
@@ -66,12 +77,13 @@ export function ResourceDialog({
       const nextId =
         (nextOption && resourceId) ??
         optionsForTier(nextTier, family)[0].resourceId;
+      setGearVariant(initialVariant);
       setTier(nextTier);
       setSelectedResource(nextId);
       setQuantity(request.purchases?.balances[nextId] ?? 1);
     }
     wasOpen.current = open;
-  }, [family, open, request, resourceId]);
+  }, [family, open, request, resourceId, initialVariant]);
 
   const familyLabel = t(`families.${family}`);
   const localizedClass = t(`classes.${className}`);
@@ -102,7 +114,7 @@ export function ResourceDialog({
       resourceId && resourceId !== selectedResource
         ? removeResource(withSelected, resourceId)
         : withSelected;
-    onChange(next);
+    onChange({ ...next, purchases: { ...next.purchases!, gearVariant } });
     onOpenChange(false);
   }
 
@@ -124,6 +136,20 @@ export function ResourceDialog({
             </header>
 
             <div className="resource-dialog-body">
+              <label className="resource-specialization">
+                <span>{t("gearSpecialization")}</span>
+                <Select
+                  aria-label={t("gearSpecialization")}
+                  value={gearVariant}
+                  onValueChange={(value) => setGearVariant(String(value))}
+                >
+                  {variants.map((variant) => (
+                    <SelectOption key={variant} value={variant}>
+                      {t(`variants.${variant}`)}
+                    </SelectOption>
+                  ))}
+                </Select>
+              </label>
               <fieldset className="resource-tier-fieldset">
                 <legend>{t("tier")}</legend>
                 <div className="resource-tier-buttons">
@@ -189,6 +215,7 @@ export function ResourceDialog({
                   min={0}
                   max={1_000_000}
                   step={1}
+                  minDigits={3}
                 />
               </div>
 

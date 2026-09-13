@@ -108,6 +108,7 @@ it("preserves persisted purchase metadata when replacing the sole balance", asyn
   expect(onChange).toHaveBeenCalledTimes(1);
   expect(onChange.mock.calls[0][0].purchases).toEqual({
     ...original.purchases,
+    gearVariant: "dk-dps",
     balances: { "mark:normal:vanquisher": 1 },
   });
   expect(request).toEqual(original);
@@ -312,4 +313,33 @@ it("preserves the open dialog selection and quantity across locale changes", asy
     within(dialog).getByText(/Aniquilador.*Cavaleiro da Morte/i),
   ).toBeInTheDocument();
   expect(onChange).not.toHaveBeenCalled();
+});
+
+it("defaults to detected DPS gear and persists an explicit tank choice", async () => {
+  const request = purchaseFixture({ frost: 100 });
+  const onChange = vi.fn();
+  render(
+    <Messages locale="en-US">
+      <ResourceDialog
+        request={request}
+        resourceId="frost"
+        open
+        onOpenChange={vi.fn()}
+        onChange={onChange}
+      />
+    </Messages>,
+  );
+  const selector = screen.getByRole("combobox", {
+    name: "Gear specialization",
+  });
+  expect(selector).toHaveTextContent("Death Knight · DPS");
+  await userEvent.click(selector);
+  await userEvent.click(
+    await screen.findByRole("option", { name: "Death Knight · Tank" }),
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Save resource" }));
+  expect(onChange.mock.calls[0][0].purchases).toMatchObject({
+    gearVariant: "dk-tank",
+    balances: { frost: 100 },
+  });
 });

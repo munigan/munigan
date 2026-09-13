@@ -15,6 +15,11 @@ class MockWorker {
   static instances: MockWorker[] = [];
   onmessage: ((event: { data: PurchaseWorkerReply }) => void) | null = null;
   onerror: (() => void) | null = null;
+  addEventListener(type: string, callback: unknown) {
+    if (type === "message") this.onmessage = callback as typeof this.onmessage;
+    if (type === "error") this.onerror = callback as typeof this.onerror;
+  }
+  removeEventListener = vi.fn();
   terminate = vi.fn();
   message!: PurchaseWorkerRequest;
   constructor() {
@@ -174,5 +179,31 @@ it("keeps the encoded prepared preview when enumeration later reaches its search
   );
   expect(reply.preview.snapshot.settings).toEqual(
     encodeRequest(request).snapshot.settings,
+  );
+});
+
+it("keeps tier rows and their checkbox state immediately while reusing the worker", async () => {
+  vi.stubGlobal("Worker", MockWorker);
+  const { setPurchaseExcluded } = await import("@/domain/purchases/state");
+  const first = purchaseFixture({ frost: 100 });
+  const { result, rerender } = renderHook(
+    ({ request }) => usePurchaseAnalysis(request, purchasePolicy),
+    { initialProps: { request: first } },
+  );
+  const worker = MockWorker.instances[0];
+  act(() =>
+    worker.onmessage?.({ data: reply(first, worker.message.revision) }),
+  );
+  rerender({ request: setPurchaseExcluded(first, 50098, true) });
+  expect(MockWorker.instances).toHaveLength(1);
+  expect(result.current.status).toBe("ready");
+  if (result.current.status !== "ready") throw new Error("Preview disappeared");
+  expect(result.current.refreshing).toBe(true);
+  expect(
+    result.current.preview?.candidates.find((c) => c.instance.itemId === 50098)
+      ?.included,
+  ).toBe(false);
+  expect(result.current.preview?.selection.selectedInstanceIds).not.toContain(
+    "purchase-original-50098",
   );
 });

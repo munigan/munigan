@@ -1,4 +1,5 @@
 "use client";
+import { itemVersionOf } from "@/domain/top-gear/item-version";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TopGearRequest, WorkPolicy } from "@/domain/top-gear/model";
 import {
@@ -24,20 +25,44 @@ export function usePurchaseAnalysis(
         : null,
     [request, policy],
   );
+  const baseKey = useMemo(() => {
+    if (!key) return null;
+    const value = JSON.parse(key);
+    delete value.request.purchases.excludedItemIds;
+    return JSON.stringify(value);
+  }, [key]);
+  const workerRef = useRef<{ baseKey: string; worker: Worker } | null>(null);
+  useEffect(
+    () => () => {
+      workerRef.current?.worker.terminate();
+      workerRef.current = null;
+    },
+    [],
+  );
   const generation = useRef(0);
   const [result, setResult] = useState<{
     key: string;
+    baseKey: string;
     state: PurchaseAnalysisState;
   } | null>(null);
   useEffect(() => {
     const revision = ++generation.current;
-    if (!key) return;
+    if (!key || !baseKey) {
+      workerRef.current?.worker.terminate();
+      workerRef.current = null;
+      return;
+    }
     let worker: Worker | undefined;
     let active = true;
     const fail = () => {
+      if (active && generation.current === revision) {
+        workerRef.current?.worker.terminate();
+        workerRef.current = null;
+      }
       if (active && generation.current === revision)
         setResult({
           key,
+          baseKey,
           state: {
             status: "error",
             diagnostic: {
@@ -50,51 +75,97 @@ export function usePurchaseAnalysis(
           },
         });
     };
+    const receive = (event: MessageEvent<PurchaseWorkerReply>) => {
+      if (
+        !active ||
+        event.data.revision !== generation.current ||
+        event.data.revision !== revision
+      )
+        return;
+      try {
+        const reply = event.data;
+        setResult({
+          key,
+          baseKey,
+          state:
+            reply.status === "error"
+              ? reply
+              : {
+                  status: "ready",
+                  analysis: reply.analysis,
+                  preview: reply.preview
+                    ? {
+                        ...reply.preview,
+                        snapshot: decodeSnapshot(reply.preview.snapshot),
+                      }
+                    : null,
+                },
+        });
+      } catch {
+        fail();
+      }
+    };
     try {
-      worker = new Worker(
-        new URL("./purchase-analysis.worker.ts", import.meta.url),
-        { type: "module" },
-      );
-      worker.onmessage = (event: MessageEvent<PurchaseWorkerReply>) => {
-        if (
-          !active ||
-          event.data.revision !== generation.current ||
-          event.data.revision !== revision
-        )
-          return;
-        try {
-          const reply = event.data;
-          setResult({
-            key,
-            state:
-              reply.status === "error"
-                ? reply
-                : {
-                    status: "ready",
-                    analysis: reply.analysis,
-                    preview: reply.preview
-                      ? {
-                          ...reply.preview,
-                          snapshot: decodeSnapshot(reply.preview.snapshot),
-                        }
-                      : null,
-                  },
-          });
-        } catch {
-          fail();
-        }
-      };
-      worker.onerror = fail;
-      worker.onmessageerror = fail;
+      if (workerRef.current?.baseKey !== baseKey) {
+        workerRef.current?.worker.terminate();
+        workerRef.current = null;
+      }
+      worker =
+        workerRef.current?.worker ??
+        new Worker(new URL("./purchase-analysis.worker.ts", import.meta.url), {
+          type: "module",
+        });
+      worker.addEventListener("message", receive);
+      worker.addEventListener("error", fail);
+      worker.addEventListener("messageerror", fail);
       worker.postMessage({ ...JSON.parse(key), revision });
+      workerRef.current = { baseKey, worker };
     } catch {
       fail();
     }
     return () => {
       active = false;
-      worker?.terminate();
+      worker?.removeEventListener("message", receive);
+      worker?.removeEventListener("error", fail);
+      worker?.removeEventListener("messageerror", fail);
     };
-  }, [key]);
+  }, [key, baseKey]);
   if (!key) return { status: "idle" };
-  return result?.key === key ? result.state : { status: "loading" };
+  if (result?.key === key) return result.state;
+  if (
+    result?.baseKey === baseKey &&
+    result.state.status === "ready" &&
+    result.state.preview &&
+    request?.purchases
+  ) {
+    const previous = result.state.preview;
+    const excluded = new Set(
+      request.purchases.excludedItemIds[itemVersionOf(request.snapshot)] ?? [],
+    );
+    const candidates = previous.candidates.map((candidate) => ({
+      ...candidate,
+      included: !excluded.has(candidate.instance.itemId),
+    }));
+    const generatedIds = new Set(candidates.map((c) => c.instance.instanceId));
+    return {
+      ...result.state,
+      refreshing: true,
+      preview: {
+        ...previous,
+        candidates,
+        selection: {
+          ...previous.selection,
+          selectedInstanceIds: [
+            ...previous.selection.selectedInstanceIds.filter(
+              (id) => !generatedIds.has(id),
+            ),
+            ...candidates
+              .filter((c) => c.available && c.included)
+              .map((c) => c.instance.instanceId),
+          ],
+        },
+      },
+    };
+  }
+  return { status: "loading" };
 }

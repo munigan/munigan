@@ -3,20 +3,7 @@ import { listSpecs } from "@/features/settings/registry";
 
 // Exact catalog counterparts for the supported DPS modules. Smite has no
 // corresponding tier variant; it and unregistered specs retain source order.
-const variantByModule: Readonly<Record<string, string>> = {
-  balance_druid: "druid-balance",
-  feral_druid: "druid-feral",
-  elemental_shaman: "shaman-elemental",
-  enhancement_shaman: "shaman-enhancement",
-  hunter: "hunter-dps",
-  mage: "mage-dps",
-  rogue: "rogue-dps",
-  retribution_paladin: "paladin-retribution",
-  shadow_priest: "priest-shadow",
-  warlock: "warlock-dps",
-  warrior: "warrior-dps",
-  deathknight: "dk-dps",
-};
+import { variantByModule } from "@/domain/purchases/variants";
 
 /** Presentation only: stable priority within slot/quality, preserving other rows. */
 export function orderPurchaseVariants<T>(

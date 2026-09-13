@@ -135,7 +135,29 @@
     "availableIncludedCount": "{count} available · Included",
     "includeWhenAvailable": "Include when available",
     "fullChain": "Full path if you do not own a prerequisite:",
-    "editEnhancementsShort": "Edit gems & enchant"
+    "editEnhancementsShort": "Edit gems & enchant",
+    "gearSpecialization": "Gear specialization",
+    "variants": {
+      "dk-dps": "Death Knight · DPS",
+      "dk-tank": "Death Knight · Tank",
+      "warrior-dps": "Warrior · DPS",
+      "warrior-tank": "Warrior · Tank",
+      "druid-balance": "Druid · Balance",
+      "druid-feral": "Druid · Feral",
+      "druid-restoration": "Druid · Restoration",
+      "paladin-retribution": "Paladin · Retribution",
+      "paladin-protection": "Paladin · Protection",
+      "paladin-holy": "Paladin · Holy",
+      "priest-shadow": "Priest · Shadow",
+      "priest-healing": "Priest · Healing",
+      "shaman-elemental": "Shaman · Elemental",
+      "shaman-enhancement": "Shaman · Enhancement",
+      "shaman-restoration": "Shaman · Restoration",
+      "hunter-dps": "Hunter",
+      "mage-dps": "Mage",
+      "rogue-dps": "Rogue",
+      "warlock-dps": "Warlock"
+    }
   },
   "versions": {
     "original": {

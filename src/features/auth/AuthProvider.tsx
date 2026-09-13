@@ -19,7 +19,7 @@ export type AuthState = {
   enrollmentEnabled: boolean;
 };
 type AuthContextValue = AuthState & {
-  refresh(): Promise<void>;
+  refresh(): Promise<AuthState | undefined>;
   signOut(): Promise<void>;
   accountDeleted(expectedUserId: string): void;
 };
@@ -74,10 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isSessionPayload(payload))
         throw new Error("invalid session response");
       if (generation.current !== requestGeneration) return;
-      setState({
+      const next: AuthState = {
         ...payload,
         status: payload.account ? "authenticated" : "anonymous",
-      });
+      };
+      setState(next);
+      return next;
     } catch {
       if (
         nextController.signal.aborted ||

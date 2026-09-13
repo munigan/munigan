@@ -9,6 +9,8 @@ import type { ResourceId } from "@/domain/purchases/model";
 import { removeResource, setResourceBalance } from "@/domain/purchases/state";
 import type { TopGearRequest } from "@/domain/top-gear/model";
 import type { PurchaseAnalysisState } from "./purchase-worker-contract";
+import { PickerIcon } from "../custom-items/PickerIcon";
+import { ResourceImage } from "./ResourceImage";
 import { ResourceDialog } from "./ResourceDialog";
 import {
   isResourceForFamily,
@@ -77,6 +79,7 @@ export function ResourceWallet({
           <p>{t("walletDescription")}</p>
         </div>
         <Button type="button" variant="secondary" onClick={() => show()}>
+          <PickerIcon name="plus" />
           {t("addResource")}
         </Button>
       </div>
@@ -86,7 +89,7 @@ export function ResourceWallet({
         const name = t(option.labelKey, { family: familyLabel });
         return (
           <div className="resource-wallet-row" key={id}>
-            <ResourceIcon token={!id.includes("frost") && id !== "triumph"} />
+            <ResourceImage request={request} resourceId={id} />
             <div className="resource-wallet-copy">
               <strong>{name}</strong>
               <span>{t(option.walletDescriptionKey)}</span>
@@ -100,11 +103,12 @@ export function ResourceWallet({
               min={0}
               max={1_000_000}
               step={1}
+              minDigits={3}
             />
             <div className="resource-wallet-actions">
               <Button
                 type="button"
-                variant="ghost"
+                variant="secondary"
                 aria-label={t("editResource", { name })}
                 onClick={() => show(id)}
               >
@@ -113,11 +117,11 @@ export function ResourceWallet({
               <Button
                 type="button"
                 variant="ghost"
-                className="resource-remove"
+                className="item-remove size-8 min-h-8 p-0 text-muted"
                 aria-label={t("removeResource", { name })}
                 onClick={() => onChange(removeResource(request, id))}
               >
-                <span aria-hidden="true">×</span>
+                <PickerIcon name="trash" />
               </Button>
             </div>
           </div>
@@ -136,7 +140,7 @@ export function ResourceWallet({
                 )}
           </strong>
           <span>{t("reviewDescription")}</span>
-          <Button type="button" variant="ghost" onClick={onReview}>
+          <Button type="button" variant="secondary" onClick={onReview}>
             {t("reviewPurchases")}
           </Button>
         </div>
@@ -150,33 +154,5 @@ export function ResourceWallet({
         onChange={onChange}
       />
     </section>
-  );
-}
-
-function ResourceIcon({ token }: { token: boolean }) {
-  return (
-    <svg
-      className="resource-wallet-icon"
-      data-token={token}
-      width="36"
-      height="36"
-      viewBox="0 0 36 36"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden="true"
-    >
-      {token ? (
-        <>
-          <path d="M10 4h16v19l-8 9-8-9Z" />
-          <path d="m18 9 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8Z" />
-        </>
-      ) : (
-        <>
-          <path d="m18 3 11 6v18l-11 6-11-6V9Z" />
-          <path d="M18 10v16m-7-12 14 8m0-8-14 8" />
-        </>
-      )}
-    </svg>
   );
 }

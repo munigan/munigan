@@ -60,19 +60,8 @@
     display: flex;
     align-items: center;
   }
-  .resource-wallet-actions button {
-    min-width: 44px;
-    padding-inline: 8px;
-    color: var(--color-action);
-    font-size: 14px;
-    font-weight: 400;
-  }
-  .resource-wallet-actions .resource-remove {
-    color: var(--color-muted);
-    font-size: 22px;
-  }
-  .resource-wallet-actions .resource-remove:hover {
-    color: var(--color-danger);
+  .resource-wallet-actions {
+    gap: 8px;
   }
   .resource-wallet-review {
     display: flex;
@@ -87,11 +76,6 @@
   }
   .resource-wallet-review button {
     width: fit-content;
-    min-height: 44px;
-    padding: 0;
-    color: var(--color-action);
-    font-size: 14px;
-    font-weight: 400;
   }
 
   .resource-dialog {
@@ -539,5 +523,17 @@
     .resource-wallet-actions {
       grid-row: 3;
     }
+  }
+}
+
+@layer components {
+  .resource-specialization {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .resource-specialization > span {
+    color: var(--color-muted);
+    font-size: 12px;
   }
 }

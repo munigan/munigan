@@ -24,7 +24,12 @@ import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
 const { auth, push, purchaseState, controls } = vi.hoisted(() => ({
   controls: { real: false },
   purchaseState: { current: { status: "loading" } as PurchaseAnalysisState },
-  auth: { status: "authenticated", account: { id: "a" }, savingEnabled: true },
+  auth: {
+    refresh: vi.fn(),
+    status: "authenticated",
+    account: { id: "a" },
+    savingEnabled: true,
+  },
   push: vi.fn(),
 }));
 vi.mock("./purchases/usePurchaseAnalysis", () => ({
@@ -84,9 +89,12 @@ vi.mock("./RunSetup", async (original) => {
       controls.real ? (
         <actual.RunSetup {...props} />
       ) : (
-        <button onClick={props.onRun} disabled={props.pending}>
-          Run fixture
-        </button>
+        <>
+          <button onClick={props.onRun} disabled={props.pending}>
+            Run fixture
+          </button>
+          {props.feedback}
+        </>
       ),
   };
 });
@@ -108,6 +116,8 @@ function view() {
   );
 }
 beforeEach(() => {
+  auth.status = "authenticated";
+  auth.refresh.mockReset();
   controls.real = false;
   sessionStorage.clear();
   localStorage.clear();
@@ -465,4 +475,41 @@ it("persists the local slider selection and submits its actual6000 iteration req
     expect(push).toHaveBeenCalledWith("/reports/selected-iterations"),
   );
   expect(JSON.parse(calls[0].body as string).iterations).toBe(6000);
+});
+
+it("refreshes an unavailable session and submits a 4000-iteration local run using the recovered anonymous identity", async () => {
+  auth.status = "unavailable";
+  auth.refresh.mockResolvedValue({
+    status: "anonymous",
+    account: null,
+    savingEnabled: false,
+    enrollmentEnabled: false,
+  });
+  const request = { ...fixtureRequest(), iterations: 4000 };
+  saveDraft(request);
+  sessionStorage.setItem("munigan.top-gear.signin-restore", "1");
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config")) return { json: async () => ({}) };
+      calls.push(init);
+      return {
+        ok: true,
+        json: async () => ({ reportUrl: "/reports/recovered-local" }),
+      };
+    }),
+  );
+  view();
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Run fixture" }),
+  );
+  await waitFor(() =>
+    expect(push).toHaveBeenCalledWith("/reports/recovered-local"),
+  );
+  expect(auth.refresh).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(calls[0].body as string)).toMatchObject({
+    iterations: 4000,
+    authMode: "anonymous",
+  });
 });

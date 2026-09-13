@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Select, SelectOption } from "@/components/ui/Select";
 import type { TopGearRequest, WorkPolicy } from "@/domain/top-gear/model";
@@ -29,7 +30,9 @@ export function RunSetup({
   onRun,
   onPurchases,
   purchaseAnalysis,
+  feedback,
 }: {
+  feedback?: ReactNode;
   request: TopGearRequest;
   policy: WorkPolicy | null;
   allowance: ReturnType<typeof estimateAllowance> | null;
@@ -149,6 +152,7 @@ export function RunSetup({
         onRun={onRun}
         onIterationsChange={(iterations) => change({ ...request, iterations })}
       />
+      {feedback}
     </aside>
   );
 }

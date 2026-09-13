@@ -100,7 +100,7 @@ it("hydrates frozen candidates, retains partial costs and resumes with the basel
   });
   const final = await readReport(retry.reportToken, identity);
   expect(final.report.status).toBe("complete");
-  expect(final.report.coverage.planned).toBe(11);
+  expect(final.report.coverage.planned).toBe(6);
   expect(final.report.rows.every((r) => r.purchasePlan !== undefined)).toBe(
     true,
   );
@@ -151,8 +151,8 @@ it("keeps purchase metadata in selected pages and pinned report rows", async () 
   );
   expect(response.status).toBe(200);
   const data = await response.json();
-  expect(data.report.rows).toHaveLength(20);
-  expect(data.totalRows).toBe(101);
+  expect(data.report.rows).toHaveLength(11);
+  expect(data.totalRows).toBe(31);
   expect(data.pinnedRows.length).toBeGreaterThan(0);
   expect(
     [...data.report.rows, ...data.pinnedRows].every(
@@ -198,7 +198,7 @@ it("resumes a lease-expired frozen job without re-running its durable reference"
     count++;
     return evaluator(...args);
   });
-  expect(count).toBe(10);
+  expect(count).toBe(5);
   expect((await readReport(admitted.reportToken)).report.status).toBe(
     "complete",
   );

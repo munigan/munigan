@@ -15,6 +15,7 @@ import type {
   PurchaseRecipe,
   ResourceId,
 } from "./model";
+import { defaultPurchaseVariant, purchaseVariants } from "./variants";
 import { validatePurchaseInputs } from "./schema";
 
 export function preparePurchases(
@@ -26,6 +27,10 @@ export function preparePurchases(
   validatePurchaseInputs(request.purchases, profile);
   const catalog = getPurchaseCatalog(profile),
     equipment = getCatalog(profile);
+  const variant =
+    request.purchases.gearVariant ?? defaultPurchaseVariant(request.snapshot);
+  if (variant && !purchaseVariants(request.snapshot).includes(variant))
+    throw new Error("Invalid purchase gear specialization for this class");
   const selected = new Set(request.selection.selectedInstanceIds);
   const replaced = request.snapshot.inventory.filter(
     (i) =>
@@ -85,6 +90,12 @@ export function preparePurchases(
   for (const recipe of catalog.recipes) {
     budget.visit();
     if (recipe.classId !== request.snapshot.settings.player!.class) continue;
+    if (
+      variant &&
+      recipe.setVariant !== variant &&
+      !replaced.some((item) => item.itemId === recipe.itemId)
+    )
+      continue;
     const instance = purchaseItem(request.snapshot, recipe.itemId);
     if (validateItem(request.snapshot, instance, equipment).length) continue;
     const { instance: effectiveInstance, override } = effectivePurchaseItem(
