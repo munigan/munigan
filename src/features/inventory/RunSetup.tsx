@@ -19,6 +19,7 @@ import type { GearLabActions } from "./state/gear-lab-store";
 import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 export function RunSetup({
   request,
+  resourceCount,
   policy,
   allowance,
   error,
@@ -34,7 +35,8 @@ export function RunSetup({
   feedback,
 }: {
   feedback?: ReactNode;
-  request: TopGearRequest;
+  request: Pick<TopGearRequest, "snapshot" | "iterations">;
+  resourceCount: number;
   policy: WorkPolicy | null;
   allowance: ReturnType<typeof estimateAllowance> | null;
   error: string;
@@ -54,7 +56,7 @@ export function RunSetup({
     <aside className="run-summary" aria-label={t("run.setup")}>
       <RunConfiguration
         snapshot={request.snapshot}
-        resourceCount={Object.keys(request.purchases?.balances ?? {}).length}
+        resourceCount={resourceCount}
         actions={actions}
         onImport={onImport}
         onSettings={onSettings}

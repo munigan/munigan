@@ -50,6 +50,26 @@ vi.mock("./purchases/ResourceWallet", async (original) => {
     )),
   };
 });
+vi.mock("./purchases/PurchasableItemsDialog", async (original) => {
+  const real =
+    await original<typeof import("./purchases/PurchasableItemsDialog")>();
+  const { Profiler } = await import("react");
+  return {
+    ...real,
+    PurchasableItemsDialog: (
+      props: Parameters<typeof real.PurchasableItemsDialog>[0],
+    ) => (
+      <Profiler
+        id="purchase-dialog"
+        onRender={(id, phase, ms) => {
+          if (phase !== "mount") metrics.commits.push({ id, ms });
+        }}
+      >
+        <real.PurchasableItemsDialog {...props} />
+      </Profiler>
+    ),
+  };
+});
 vi.mock("./InventorySelector", async (original) => {
   const real = await original<typeof import("./InventorySelector")>();
   const { Profiler, memo } = await import("react");
@@ -315,4 +335,42 @@ it("keeps visible rewards on worker error and retries through the shared seconda
     ).not.toBeInTheDocument(),
   );
   expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeEnabled();
+});
+
+it("keeps the purchase dialog isolated from precision changes", async () => {
+  await setup();
+  const slider = screen.getByRole("slider");
+  fireEvent.click(screen.getByRole("button", { name: "Purchase resources" }));
+  await screen.findByRole("dialog");
+  // Let the dialog opening/focus effects settle before measuring precision work.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  });
+  metrics.commits = [];
+  fireEvent.change(slider, { target: { value: "3500" } });
+  expect(metrics.commits.filter((c) => c.id === "purchase-dialog")).toEqual([]);
+});
+
+it("updates tier counts from current exclusions while analysis is held or fails", async () => {
+  await setup();
+  fireEvent.click(screen.getByRole("button", { name: "Purchase resources" }));
+  await screen.findByRole("dialog");
+  const row = document.querySelector<HTMLElement>(
+    '[data-purchase-id="50096"]',
+  )!;
+  const group = row.closest("details")!;
+  expect(group.querySelector("summary")).toHaveTextContent(
+    "5 available · Included",
+  );
+  WorkerDouble.hold = true;
+  const checkbox = within(row).getByRole("checkbox", { hidden: true });
+  fireEvent.click(checkbox);
+  expect(checkbox).not.toBeChecked();
+  expect(group.querySelector("summary")).toHaveTextContent(
+    "4 available · Included",
+  );
+  act(() => WorkerDouble.instances.at(-1)!.fail());
+  expect(group.querySelector("summary")).toHaveTextContent(
+    "4 available · Included",
+  );
 });

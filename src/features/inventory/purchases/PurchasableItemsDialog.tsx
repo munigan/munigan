@@ -36,7 +36,7 @@ export function PurchasableItemsDialog({
   onOpenChange,
   actions,
 }: {
-  request: TopGearRequest;
+  request: Pick<TopGearRequest, "snapshot" | "purchases">;
   preview: PurchasePreview | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -132,7 +132,11 @@ export function PurchasableItemsDialog({
                         <span>
                           {t("availableIncludedCount", {
                             count: candidates.filter(
-                              (c) => c.included && c.available,
+                              (c) =>
+                                c.available &&
+                                !request.purchases?.excludedItemIds[
+                                  profile
+                                ]?.includes(c.instance.itemId),
                             ).length,
                           })}
                         </span>
@@ -308,7 +312,6 @@ export function PurchasableItemsDialog({
           request={{
             ...request,
             snapshot: preview.snapshot,
-            selection: preview.selection,
           }}
           initialField={0}
           onApply={(value) =>

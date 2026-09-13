@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/Alert";
 import { PageHeading } from "@/components/ui/layout";
 import { Button } from "@/components/ui/Button";
-import { useState, useCallback, type ComponentProps } from "react";
+import { useState, useCallback, useMemo, type ComponentProps } from "react";
 import { ImportPanel } from "@/features/import/ImportPanel";
 import { SavedDraftNotice } from "@/features/import/SavedDraftNotice";
 import { InventorySelector } from "./InventorySelector";
@@ -309,10 +309,24 @@ function PurchaseRepair() {
 function ConnectedRunSetup(
   props: Omit<
     ComponentProps<typeof RunSetup>,
-    "request" | "actions" | "allowance" | "purchaseAnalysis" | "readinessError"
+    | "request"
+    | "resourceCount"
+    | "actions"
+    | "allowance"
+    | "purchaseAnalysis"
+    | "readinessError"
   > & { eligibilityError: ErrorDescriptor | null },
 ) {
-  const request = useGearLabSelector((state) => state.draft)!;
+  const snapshot = useGearLabSelector((state) => state.draft!.snapshot);
+  const iterations = useGearLabSelector((state) => state.draft!.iterations);
+  const resourceCount = useGearLabSelector(
+    (state) => Object.keys(state.draft!.purchases?.balances ?? {}).length,
+  );
+  const hasPurchases = useGearLabSelector((state) => !!state.draft!.purchases);
+  const request = useMemo(
+    () => ({ snapshot, iterations }),
+    [snapshot, iterations],
+  );
   const actions = useGearLabSelector((state) => state.actions);
   const analysisSession = useAnalysisView();
   const ti = useTranslations("inventory"),
@@ -323,11 +337,10 @@ function ConnectedRunSetup(
     <RunSetup
       {...props}
       request={request}
+      resourceCount={resourceCount}
       actions={actions}
       allowance={analysisSession.nonPurchase?.allowance ?? null}
-      purchaseAnalysis={
-        request.purchases ? analysisSession.view.state : undefined
-      }
+      purchaseAnalysis={hasPurchases ? analysisSession.view.state : undefined}
       readinessError={
         readinessError
           ? localizeDiagnostic(readinessError, td)
@@ -345,7 +358,12 @@ function ConnectedPurchases(
     "open" | "onOpenChange"
   >,
 ) {
-  const request = useGearLabSelector((state) => state.draft)!;
+  const snapshot = useGearLabSelector((state) => state.draft!.snapshot);
+  const purchases = useGearLabSelector((state) => state.draft!.purchases);
+  const request = useMemo(
+    () => ({ snapshot, purchases }),
+    [snapshot, purchases],
+  );
   const actions = useGearLabSelector((state) => state.actions);
   const analysis = useAnalysisView();
   return (

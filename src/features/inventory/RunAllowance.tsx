@@ -16,7 +16,7 @@ export function RunAllowance({
   purchaseAnalysis,
   onIterationsChange,
 }: {
-  request: TopGearRequest;
+  request: Pick<TopGearRequest, "snapshot" | "iterations">;
   policy: WorkPolicy | null;
   allowance: ReturnType<typeof estimateAllowance> | null;
   error: string;

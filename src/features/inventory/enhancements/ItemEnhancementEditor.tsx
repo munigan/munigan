@@ -45,7 +45,7 @@ import "./enhancements.css";
 
 type Field = number | "enchant";
 type Props = {
-  request: TopGearRequest;
+  request: Pick<TopGearRequest, "snapshot">;
   item: ItemInstance;
   initialField: Field;
   onApply: (value: ItemEnhancementOverride) => void;
