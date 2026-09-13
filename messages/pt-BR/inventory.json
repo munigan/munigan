@@ -121,7 +121,7 @@
     "exclusionHelp": "Itens excluídos ainda podem ser usados como pré-requisitos de melhorias. As exclusões são preservadas quando os recursos estão indisponíveis.",
     "done": "Concluir",
     "usesResources": "Usa recursos",
-    "calculating": "Calculando conjuntos acessíveis…",
+    "calculating": "Atualizando combinações…",
     "searchLimit": "Busca incompleta. Reduza os itens selecionados ou recursos para concluir o cálculo.",
     "noLegalSets": "Nenhum conjunto válido cabe nestas seleções e recursos.",
     "catalogChanged": "O catálogo de compras mudou. Revise as escolhas salvas para continuar.",

@@ -103,6 +103,86 @@ function choices(snapshot: Snapshot, selection: Selection, catalog: Catalog) {
     return values;
   });
 }
+function completeLoadoutDiagnostics(
+  snapshot: Snapshot,
+  loadout: Loadout,
+  catalog: Catalog,
+): Diagnostic[] {
+  const gemmed = withEnhancements(
+    snapshot,
+    prepareGems(snapshot, loadout, catalog).overrides,
+    prepareEnchants(snapshot, loadout, catalog).overrides,
+  );
+  const diagnostics = validateLoadout(gemmed, loadout, catalog);
+  const selected = new Set(Object.values(loadout));
+  for (const item of snapshot.inventory)
+    if (
+      selected.has(item.instanceId) &&
+      snapshot.itemEnhancements?.[item.instanceId]
+    )
+      diagnostics.push(
+        ...validateItemEnhancements(
+          snapshot,
+          item,
+          snapshot.itemEnhancements[item.instanceId],
+        ),
+      );
+  return diagnostics;
+}
+
+/** Bound to one immutable snapshot. Ordered physical IDs preserve hand, socket,
+ * profession and paired-slot semantics; a changed snapshot needs a new evaluator.
+ */
+export function createLoadoutEvaluator(
+  snapshot: Snapshot,
+  catalog = getCatalog(snapshot.itemVersion),
+) {
+  type Evaluation = {
+    diagnostics?: Diagnostic[];
+    key?: string;
+    referenceKey?: string;
+  };
+  const entries = new Map<string, Evaluation>();
+  // Intern physical IDs once: large local drafts can have several ordered
+  // evaluations per displayed set. Compact keys keep their retention affordable.
+  const instanceIndices = new Map(
+    snapshot.inventory.map((item, index) => [item.instanceId, index + 1]),
+  );
+  function entry(loadout: Loadout) {
+    const id = JSON.stringify(
+      slots.map((slot) => {
+        const instanceId = loadout[slot];
+        return instanceId === null
+          ? 0
+          : (instanceIndices.get(instanceId) ?? instanceId);
+      }),
+    );
+    let value = entries.get(id);
+    if (!value) {
+      if (entries.size >= 250000) entries.delete(entries.keys().next().value!);
+      value = {};
+      entries.set(id, value);
+    }
+    return value;
+  }
+  return {
+    diagnostics(loadout: Loadout) {
+      const value = entry(loadout);
+      return (value.diagnostics ??= completeLoadoutDiagnostics(
+        snapshot,
+        loadout,
+        catalog,
+      ));
+    },
+    key(loadout: Loadout, reference = false) {
+      const value = entry(loadout);
+      return reference
+        ? (value.referenceKey ??= loadoutKey(snapshot, loadout, true))
+        : (value.key ??= loadoutKey(snapshot, loadout));
+    },
+  };
+}
+
 export function* enumerateLoadouts(
   snapshot: Snapshot,
   selection: Selection,
@@ -112,6 +192,7 @@ export function* enumerateLoadouts(
   options?: {
     budget?: SearchBudget;
     deduplicate?: boolean;
+    evaluator?: ReturnType<typeof createLoadoutEvaluator>;
     acceptPartial?: (
       loadout: Loadout,
       assignedSlots: readonly Slot[],
@@ -129,29 +210,19 @@ export function* enumerateLoadouts(
     else if (maxNodes !== null && ++visited > maxNodes)
       throw new Error("Search limit reached");
     if (index === slots.length) {
-      const gemmed = withEnhancements(
-        snapshot,
-        prepareGems(snapshot, loadout, catalog).overrides,
-        prepareEnchants(snapshot, loadout, catalog).overrides,
-      );
-      const diagnostics = validateLoadout(gemmed, loadout, catalog);
-      for (const item of snapshot.inventory)
-        if (
-          Object.values(loadout).includes(item.instanceId) &&
-          snapshot.itemEnhancements?.[item.instanceId]
-        )
-          diagnostics.push(
-            ...validateItemEnhancements(
-              snapshot,
-              item,
-              snapshot.itemEnhancements[item.instanceId],
-            ),
-          );
+      const diagnostics = options?.evaluator
+        ? options.evaluator.diagnostics(loadout)
+        : completeLoadoutDiagnostics(snapshot, loadout, catalog);
       if (diagnostics.length === 0) {
         if (options?.acceptComplete && !options.acceptComplete(loadout)) return;
-        const key = loadoutKey(snapshot, loadout);
-        if (options?.deduplicate === false || !seen.has(key)) {
-          if (options?.deduplicate !== false) seen.add(key);
+        const key =
+          options?.deduplicate === false
+            ? undefined
+            : options?.evaluator
+              ? options.evaluator.key(loadout)
+              : loadoutKey(snapshot, loadout);
+        if (key === undefined || !seen.has(key)) {
+          if (key !== undefined) seen.add(key);
           yield alignPairedSlots(
             snapshot,
             loadout,

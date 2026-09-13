@@ -1,7 +1,7 @@
 import {
   allowanceForCount,
   enumerateLoadouts,
-  loadoutKey,
+  createLoadoutEvaluator,
 } from "@/domain/equipment/enumerate";
 import {
   createSearchBudget,
@@ -14,7 +14,7 @@ import type {
   TopGearRequest,
   WorkPolicy,
 } from "@/domain/top-gear/model";
-import { comparePurchasePlans, solveAcquisition } from "./acquisition";
+import { comparePurchasePlans, createAcquisitionSolver } from "./acquisition";
 import { preparePurchases } from "./candidates";
 import { getPurchaseCatalog } from "./catalog";
 import type {
@@ -25,10 +25,18 @@ import type {
   ResourceId,
 } from "./model";
 
-export function analyzePurchaseSelection(
+function analyzeSelection(
   request: TopGearRequest,
   policy: WorkPolicy,
-  onPrepared?: (prepared: PreparedPurchases) => void,
+  onPrepared: ((prepared: PreparedPurchases) => void) | undefined,
+  prepare: (
+    request: TopGearRequest,
+    budget: ReturnType<typeof createSearchBudget>,
+  ) => {
+    prepared: PreparedPurchases;
+    solve: ReturnType<typeof createAcquisitionSolver>;
+    evaluator: ReturnType<typeof createLoadoutEvaluator>;
+  },
 ): PurchaseAnalysis {
   if (!request.purchases) throw new Error("Purchase inputs are required");
   const catalog = getPurchaseCatalog(itemVersionOf(request.snapshot));
@@ -36,10 +44,10 @@ export function analyzePurchaseSelection(
     return { status: "catalog-changed", currentRevision: catalog.revision };
   const budget = createSearchBudget(policy.maxSearchNodes);
   try {
-    const prepared = preparePurchases(request, budget);
+    const { prepared, solve, evaluator } = prepare(request, budget);
     onPrepared?.(prepared);
     const { snapshot, selection } = prepared;
-    const referenceKey = loadoutKey(snapshot, snapshot.equipped, true);
+    const referenceKey = evaluator.key(snapshot.equipped, true);
     const keyed = new Map<string, { loadout: Loadout; plan: PurchasePlan }>([
       [
         referenceKey,
@@ -78,7 +86,7 @@ export function analyzePurchaseSelection(
       undefined,
       policy.maxSearchNodes,
       (excluded, errors) => {
-        excludedKeys.add(loadoutKey(snapshot, excluded));
+        excludedKeys.add(evaluator.key(excluded));
         for (const diagnostic of errors) {
           const key = JSON.stringify(diagnostic);
           if (!diagnosticKeys.has(key)) {
@@ -89,6 +97,7 @@ export function analyzePurchaseSelection(
       },
       {
         budget,
+        evaluator,
         deduplicate: false,
         acceptPartial: (partial, assignedSlots) => {
           // Every final reward pays its own recipe cost, regardless of which
@@ -112,12 +121,12 @@ export function analyzePurchaseSelection(
           return true;
         },
         acceptComplete: (complete) => {
-          acquisition = solveAcquisition(prepared, complete, budget);
+          acquisition = solve(complete, budget);
           return acquisition !== null;
         },
       },
     )) {
-      const key = loadoutKey(snapshot, loadout);
+      const key = evaluator.key(loadout);
       const previousCandidate = candidates.get(key);
       if (
         !previousCandidate ||
@@ -191,4 +200,88 @@ export function analyzePurchaseSelection(
       return { status: "search-limit", visitedNodes: budget.visitedNodes };
     throw error;
   }
+}
+
+/** A fresh analyzer preserves the standalone/server entry point. */
+export function analyzePurchaseSelection(
+  request: TopGearRequest,
+  policy: WorkPolicy,
+  onPrepared?: (prepared: PreparedPurchases) => void,
+): PurchaseAnalysis {
+  return createPurchaseAnalyzer()(request, policy, onPrepared);
+}
+
+/** Worker-local cache of purchase inputs, independent of ordinary item selection.
+ * Full gear legality is still enumerated against the current selection each time.
+ */
+export function createPurchaseAnalyzer() {
+  let previous:
+    | {
+        key: string;
+        preparationNodes: number;
+        prepared: PreparedPurchases;
+        solve: ReturnType<typeof createAcquisitionSolver>;
+        evaluator: ReturnType<typeof createLoadoutEvaluator>;
+      }
+    | undefined;
+  return (
+    request: TopGearRequest,
+    policy: WorkPolicy,
+    onPrepared?: (prepared: PreparedPurchases) => void,
+  ): PurchaseAnalysis =>
+    analyzeSelection(request, policy, onPrepared, (current, budget) => {
+      const catalog = getPurchaseCatalog(itemVersionOf(current.snapshot));
+      const selected = new Set(current.selection.selectedInstanceIds);
+      const converted = current.snapshot.inventory
+        .filter(
+          (item) =>
+            item.source === "custom" &&
+            selected.has(item.instanceId) &&
+            catalog.byItemId.has(item.itemId),
+        )
+        .map((item) => item.instanceId);
+      // Requests are decoded afresh at the worker boundary: compare values here,
+      // once per dispatch, rather than relying on React/store object identity.
+      const key = JSON.stringify([
+        current.snapshot,
+        current.purchases,
+        current.selection.lockedSlots,
+        converted,
+        policy.maxSearchNodes,
+      ]);
+      if (!previous || previous.key !== key) {
+        // Never retain partial preparation after a budget/validation failure.
+        previous = undefined;
+        const before = budget.visitedNodes;
+        const prepared = preparePurchases(current, budget);
+        previous = {
+          key,
+          preparationNodes: budget.visitedNodes - before,
+          prepared,
+          solve: createAcquisitionSolver(prepared),
+          evaluator: createLoadoutEvaluator(prepared.snapshot),
+        };
+      } else {
+        // Cache warmth must not change whether cold server admission accepts a run.
+        for (let node = 0; node < previous.preparationNodes; node++)
+          budget.visit();
+      }
+      const removed = new Set(converted);
+      const prepared: PreparedPurchases = {
+        ...previous.prepared,
+        selection: {
+          ...current.selection,
+          lockedSlots: previous.prepared.selection.lockedSlots,
+          selectedInstanceIds: [
+            ...current.selection.selectedInstanceIds.filter(
+              (id) => !removed.has(id),
+            ),
+            ...previous.prepared.candidates
+              .filter((c) => c.available && c.included)
+              .map((c) => c.instance.instanceId),
+          ],
+        },
+      };
+      return { prepared, solve: previous.solve, evaluator: previous.evaluator };
+    });
 }

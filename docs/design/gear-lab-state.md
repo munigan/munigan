@@ -59,6 +59,19 @@ Serialization with `encodeRequest` happens only when dispatching that input;
 there are no per-render JSON worker keys. Precision is omitted from analysis
 inputs because it affects simulation work, not legal combinations.
 
+Each worker owns a `createPurchaseAnalyzer` instance. Across ordinary selection
+changes it retains prepared purchase candidates, acquisition decisions, and
+loadout validation/enhancement results. Snapshot, purchase intent, locks, selected
+custom rewards, and search-budget changes invalidate preparation. Value comparison
+happens at worker dispatch because decoded requests have fresh object identities.
+Acquisition decisions retain purchase rewards and physical upgrade prerequisites
+in their keys. Loadout keys preserve slot order and physical item identity.
+Caches are bounded (4,096 acquisition decisions and 250,000 loadout evaluations)
+and disappear with the worker; eviction affects performance, never eligibility.
+Cached work charges the same logical search-node cost as fresh work so preview
+and server admission agree. Selection changes still enumerate current combinations;
+iterations do not trigger analysis.
+
 Every changed analysis input increments `revision`; only the active worker's
 matching revision can publish, and only the current revision can become ready.
 Selection/exclusion changes retain compatible availability previews. Changed

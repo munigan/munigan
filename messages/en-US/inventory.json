@@ -121,7 +121,7 @@
     "exclusionHelp": "Excluded items can still be used as upgrade prerequisites. Exclusions stay saved when resources are unavailable.",
     "done": "Done",
     "usesResources": "Uses resources",
-    "calculating": "Calculating affordable sets…",
+    "calculating": "Updating combinations…",
     "searchLimit": "Search incomplete. Reduce selected items or resources to finish calculating.",
     "noLegalSets": "No legal sets fit these selections and resources.",
     "catalogChanged": "The purchase catalog changed. Review saved choices to continue.",

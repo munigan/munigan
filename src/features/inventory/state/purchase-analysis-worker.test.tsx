@@ -86,3 +86,55 @@ it("keeps the encoded prepared preview when enumeration later reaches its search
     encodeRequest(request).snapshot.settings,
   );
 });
+
+it("reuses automatic gem evaluation across ordinary selection edits at the real worker boundary", async () => {
+  const { createGearLabStore } = await import("./gear-lab-store");
+  const gems = await import("@/domain/equipment/gemming");
+  const { encodeRequest } = await import("@/domain/top-gear/request-schema");
+  const request = purchaseFixture({ frost: 134, "regalia:vanquisher": 1 });
+  request.snapshot.inventory.push({
+    instanceId: "ordinary-trinket",
+    itemId: 49487,
+    source: "bag",
+    gemIds: [],
+    enchantId: 0,
+  });
+  request.selection.selectedInstanceIds.push("ordinary-trinket");
+  const draft = createGearLabStore(request).getState().draft!;
+  const post = vi.fn();
+  vi.stubGlobal("postMessage", post);
+  const prepare = vi.spyOn(gems, "prepareGems");
+  await import("../purchases/purchase-analysis.worker");
+  const policy = { ...purchasePolicy, maxUnits: null, maxSearchNodes: null };
+  const send = (revision: number) =>
+    self.onmessage!(
+      new MessageEvent("message", {
+        data: { revision, request: encodeRequest(draft), policy },
+      }),
+    );
+  try {
+    send(101);
+    const before = post.mock.calls.at(-1)![0];
+    expect(before.analysis.status).toBe("complete");
+    expect(prepare).toHaveBeenCalled();
+    prepare.mockClear();
+    post.mockClear();
+    draft.selection.selectedInstanceIds =
+      draft.selection.selectedInstanceIds.filter(
+        (id) => id !== "ordinary-trinket",
+      );
+    send(102);
+    expect(prepare).not.toHaveBeenCalled();
+    const after = post.mock.calls.at(-1)![0];
+    expect(after).toMatchObject({
+      revision: 102,
+      status: "ready",
+      analysis: { status: "complete" },
+    });
+    expect(after.analysis.plan.simulations.length).toBeLessThan(
+      before.analysis.plan.simulations.length,
+    );
+  } finally {
+    prepare.mockRestore();
+  }
+});

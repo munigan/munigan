@@ -215,3 +215,50 @@ export function solveAcquisition(
   }
   return acquisitionPaths(prepared, rewards, reserved, budget)[0] ?? null;
 }
+
+/** Reuse acquisition decisions within one unchanged purchase context. Ordinary
+ * gear cannot affect recipe costs, but equipped prerequisites must stay reserved.
+ * The cache is bounded and belongs to its caller, never to a global session.
+ */
+export function createAcquisitionSolver(prepared: PreparedPurchases) {
+  const inventory = new Map(
+    prepared.snapshot.inventory.map((i) => [i.instanceId, i]),
+  );
+  const prerequisites = new Set(
+    prepared.catalog.recipes.map((r) => r.prerequisiteItemId),
+  );
+  const plans = new Map<string, { plan: PurchasePlan | null; nodes: number }>();
+  return (loadout: Loadout, budget: SearchBudget): PurchasePlan | null => {
+    const ids = Object.values(loadout).filter(
+      (id): id is string => id !== null,
+    );
+    // These invalid inputs must not alias a valid cached gear set.
+    if (
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !inventory.has(id))
+    ) {
+      budget.visit();
+      return null;
+    }
+    const relevant = ids.filter((id) => {
+      const item = inventory.get(id)!;
+      return (
+        item.source === "purchase" ||
+        prerequisites.has(item.itemId) ||
+        (item.source === "custom" && prepared.catalog.byItemId.has(item.itemId))
+      );
+    });
+    const key = JSON.stringify(relevant.sort());
+    const cached = plans.get(key);
+    if (cached) {
+      // Preserve the cold server's logical budget even when computation is reused.
+      for (let node = 0; node < cached.nodes; node++) budget.visit();
+      return cached.plan;
+    }
+    const before = budget.visitedNodes;
+    const plan = solveAcquisition(prepared, loadout, budget);
+    if (plans.size >= 4096) plans.clear();
+    plans.set(key, { plan, nodes: budget.visitedNodes - before });
+    return plan;
+  };
+}
