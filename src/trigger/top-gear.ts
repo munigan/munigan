@@ -1,6 +1,7 @@
 import { logger, task } from "@trigger.dev/sdk";
 import { executeTargetedJob, rescheduleQueuedJob } from "@/server/jobs/work";
 import { simulationQueue } from "./queues";
+import { simulationConcurrency } from "@/server/jobs/policy";
 export const topGearTask = task({
   id: "top-gear",
   queue: simulationQueue,
@@ -14,7 +15,7 @@ export const topGearTask = task({
     if (!/^[a-f0-9-]{36}$/.test(payload.jobId))
       throw new Error("Invalid job ID");
     await executeTargetedJob(payload.jobId, signal, {
-      concurrency: Math.max(1, Math.min(2, Math.floor(ctx.machine.cpu))),
+      concurrency: simulationConcurrency(ctx.machine.cpu),
       onPerformance: (measurement) => {
         logger.info("Top Gear performance", {
           ...measurement,

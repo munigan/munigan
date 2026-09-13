@@ -23,9 +23,11 @@ afterAll(async () => {
   await pool.end();
 });
 
-async function createJob() {
+async function createJob(candidateCount = 3) {
   const request = fixtureRequest();
-  for (const [index, gem] of [39996, 40112, 40022].entries()) {
+  for (const [index, gem] of [39996, 40112, 40022, 40111]
+    .slice(0, candidateCount)
+    .entries()) {
     const instanceId = `bag-head-${index}`;
     request.snapshot.inventory.push({
       instanceId,
@@ -390,4 +392,32 @@ it("keeps parallel retries within each set's frozen attempt cap", async () => {
   expect(measurements[0].phaseMs.admission).toBeGreaterThan(0);
   expect(measurements[0].phaseMs.persistence).toBeGreaterThan(0);
   expect(measurements[0].elapsedMs).toBeGreaterThan(0);
+});
+
+it("fills four local simulation slots without exceeding the configured concurrency", async () => {
+  const job = await createJob(4);
+  const gate = Promise.withResolvers<void>();
+  let active = 0;
+  let peak = 0;
+  const execution = executeTopGear(
+    job.jobId,
+    new AbortController().signal,
+    async (...args) => {
+      if (!args[5]) {
+        active++;
+        peak = Math.max(peak, active);
+        await gate.promise;
+        active--;
+      }
+      return result(...args);
+    },
+    { concurrency: 4 },
+  );
+  try {
+    await expect.poll(() => active, { timeout: 2000 }).toBe(4);
+  } finally {
+    gate.resolve();
+    await execution;
+  }
+  expect(peak).toBe(4);
 });

@@ -60,3 +60,14 @@ it("accepts selected iterations only locally and bounds the actual finite worklo
   vi.stubEnv("TOP_GEAR_ITERATIONS", "1500");
   expect(workPolicy().iterationsPerSet).toBe(1500);
 });
+
+it("uses more simulation slots only in local development", async () => {
+  const { simulationConcurrency } = await import("./policy");
+  vi.stubEnv("APP_ENV", "local");
+  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("LOCAL_SIMULATION_CONCURRENCY", "4");
+  expect(simulationConcurrency()).toBe(4);
+  vi.stubEnv("NODE_ENV", "production");
+  expect(simulationConcurrency()).toBe(1);
+  expect(simulationConcurrency(8)).toBe(2);
+});

@@ -1,4 +1,23 @@
 import type { WorkPolicy } from "@/domain/top-gear/model";
+import { availableParallelism } from "node:os";
+
+/** Share local CPU capacity between two admitted runs, leaving room for the UI. */
+export function simulationConcurrency(machineCpu = 1) {
+  if (
+    process.env.APP_ENV === "local" &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    const automatic = Math.max(
+      1,
+      Math.min(4, Math.floor((availableParallelism() - 2) / 2)),
+    );
+    const configured = integer("LOCAL_SIMULATION_CONCURRENCY", automatic);
+    if (configured > 4)
+      throw new Error("LOCAL_SIMULATION_CONCURRENCY must be between 1 and 4");
+    return configured;
+  }
+  return Math.max(1, Math.min(2, Math.floor(machineCpu)));
+}
 function integer(name: string, fallback: number) {
   const n = Number(process.env[name] ?? fallback);
   if (!Number.isSafeInteger(n) || n < 1) throw new Error(`Invalid ${name}`);
