@@ -460,19 +460,6 @@ export function createNonPurchaseSelector(): (
   };
 }
 
-/** Keep precision out of expensive readiness validation; admission validates its
- * complete captured payload again immediately before creating an attempt. */
-export function createReadinessRequestSelector() {
-  let previous: TopGearRequest | null = null;
-  return ({ draft }: GearLabState) => {
-    if (!draft) return (previous = null);
-    const content = { ...draft };
-    delete content.iterations;
-    if (previous && sameRecord(previous, content)) return previous;
-    return (previous = content);
-  };
-}
-
 /** Existing item helpers receive a stable presentation snapshot. Only eligibility
  * and this row's override can change their sockets, enchant choices or manual badges. */
 export function createRowPresentationSelector(id: string) {

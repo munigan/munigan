@@ -17,7 +17,6 @@ import {
   createAnalysisInputSelector,
   createInventorySelector,
   createNonPurchaseSelector,
-  createReadinessRequestSelector,
   createRowPresentationSelector,
   createWalletRequestSelector,
 } from "./gear-lab-selectors";
@@ -319,27 +318,21 @@ it("does not rebuild candidate membership for precision-only edits", () => {
   expect(reads).toBe(before);
 });
 
-it("keeps readiness and wallet projections stable across precision while preserving row manual badges", () => {
+it("keeps wallet projections stable across precision while preserving row manual badges", () => {
   const store = createGearLabStore(fixture());
-  const readiness = createReadinessRequestSelector();
   const wallet = createWalletRequestSelector();
   const inventory = createInventorySelector();
   const present = createRowPresentationSelector("bag-legs");
   const initial = store.getState();
-  const validationRequest = readiness(initial);
   const walletRequest = wallet(initial);
   const rowSnapshot = present(inventory(initial.draft!, null));
-  store
-    .getState()
-    .actions.setIterations(500, {
-      ...purchasePolicy,
-      selectableIterations: { min: 500, max: 6000, step: 500 },
-    });
-  expect(readiness(store.getState())).toBe(validationRequest);
+  store.getState().actions.setIterations(500, {
+    ...purchasePolicy,
+    selectableIterations: { min: 500, max: 6000, step: 500 },
+  });
   expect(wallet(store.getState())).toBe(walletRequest);
   store.getState().actions.setPurchaseIncluded(50098, false);
   expect(wallet(store.getState())).toBe(walletRequest);
-  expect(readiness(store.getState())).not.toBe(validationRequest);
   store.getState().actions.setItemEnhancements("owned-legs", { enchantId: 0 });
   expect(present(inventory(store.getState().draft!, null))).toBe(rowSnapshot);
   store.getState().actions.setItemEnhancements("bag-legs", { enchantId: 0 });

@@ -129,3 +129,30 @@ it("does not create workers during server rendering", () => {
   ).toBe("<span>idle</span>");
   expect(ControlledWorker.instances).toHaveLength(0);
 });
+
+it("publishes search limits with preview then recovers on a new edit", () => {
+  const { result, store, unmount } = setup();
+  const worker = ControlledWorker.instances[0];
+  const ready = purchaseReply(worker.message);
+  act(() =>
+    worker.emit({
+      ...ready,
+      analysis: { status: "search-limit", visitedNodes: 10 },
+    }),
+  );
+  expect(result.current.view.state).toMatchObject({
+    status: "ready",
+    analysis: { status: "search-limit", visitedNodes: 10 },
+  });
+  expect(result.current.view.preview?.candidates.length).toBeGreaterThan(0);
+  act(() => store.getState().actions.setResourceQuantity("frost", 120));
+  expect(result.current.view.revision).not.toBe(
+    result.current.view.completedRevision,
+  );
+  act(() => worker.emit(purchaseReply(worker.message)));
+  expect(result.current.view.state).toMatchObject({
+    status: "ready",
+    analysis: { status: "complete" },
+  });
+  unmount();
+});

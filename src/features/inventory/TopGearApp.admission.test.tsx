@@ -13,7 +13,10 @@ import authMessages from "../../../messages/en-US/auth.json";
 import importMessages from "../../../messages/en-US/import.json";
 import inventory from "../../../messages/en-US/inventory.json";
 import common from "../../../messages/en-US/common.json";
-import { purchaseFixture } from "../../../tests/support/purchase-fixtures";
+import {
+  purchaseFixture,
+  purchasePolicy,
+} from "../../../tests/support/purchase-fixtures";
 import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 import { useGearLabSelector } from "./state/GearLabProvider";
 import diagnostics from "../../../messages/en-US/diagnostics.json";
@@ -98,7 +101,7 @@ vi.mock("./RunSetup", async (original) => {
 });
 vi.mock("../auth/SignInDialog", () => ({ SignInDialog: () => null }));
 function view() {
-  render(
+  return render(
     <NextIntlClientProvider
       locale="en-US"
       messages={{
@@ -128,7 +131,8 @@ it("offers an explicit anonymous run after a known account rejection, with a new
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       return calls.length === 1
         ? {
@@ -156,7 +160,8 @@ it("disables mode switching through network uncertainty and retries the same bod
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       if (calls.length === 1) throw new Error("network");
       return { ok: true, json: async () => ({ reportUrl: "/reports/abc" }) };
@@ -179,7 +184,12 @@ it("restores the sign-in draft through Strict Mode effect replay", async () => {
   const { saveDraft } = await import("../import/draft-store");
   saveDraft(fixtureRequest());
   sessionStorage.setItem("munigan.top-gear.signin-restore", "1");
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({}) }));
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue({ json: async () => ({ policy: purchasePolicy }) }),
+  );
   const { StrictMode } = await import("react");
   render(
     <StrictMode>
@@ -207,7 +217,8 @@ it("submits a corrected smaller selection with a new key after a definitive firs
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       return calls.length === 1
         ? {
@@ -242,7 +253,8 @@ it("keeps the original attempt locked when allowance rejection follows network u
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       if (calls.length === 1) throw new Error("network");
       return {
@@ -274,7 +286,7 @@ it("removes the submitted draft when admission succeeds and the report opens", a
     "fetch",
     vi.fn(async (url: string) =>
       url.endsWith("config")
-        ? { json: async () => ({}) }
+        ? { json: async () => ({ policy: purchasePolicy }) }
         : { ok: true, json: async () => ({ reportUrl: "/reports/finished" }) },
     ),
   );
@@ -300,7 +312,8 @@ it("preserves a newer draft saved while an older run is being admitted", async (
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       saveDraft(newer);
       return { ok: true, json: async () => ({ reportUrl: "/reports/older" }) };
     }),
@@ -319,7 +332,8 @@ it("recovers the immutable uncertain payload while a newer wallet draft is still
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       if (calls.length === 1) throw new Error("lost response");
       return {
@@ -355,7 +369,8 @@ it("guards new purchase submission even when a caller bypasses the disabled butt
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       post();
       return {
         ok: true,
@@ -389,7 +404,7 @@ it("repairs a profession-invalid override without preview and preserves unrelate
   };
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => ({ json: async () => ({}) })),
+    vi.fn(async () => ({ json: async () => ({ policy: purchasePolicy }) })),
   );
   view();
   await userEvent.click(
@@ -424,7 +439,8 @@ it("recovers a persisted attempt even when the newer draft cannot be decoded", a
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       return {
         ok: true,
@@ -503,7 +519,8 @@ it("refreshes an unavailable session and submits a 4000-iteration local run usin
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       calls.push(init);
       return {
         ok: true,
@@ -538,7 +555,8 @@ it("recovers an immutable persisted attempt despite a restored retired purchase 
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
-      if (url.endsWith("config")) return { json: async () => ({}) };
+      if (url.endsWith("config"))
+        return { json: async () => ({ policy: purchasePolicy }) };
       posted.push(init);
       return {
         ok: true,
@@ -556,4 +574,124 @@ it("recovers an immutable persisted attempt despite a restored retired purchase 
   expect(
     JSON.parse(localStorage.getItem(draftKey)!).purchases.recipeRevision,
   ).toBe("retired");
+});
+
+it("reads precision edited while account refresh awaits and blocks duplicate clicks", async () => {
+  controls.real = true;
+  auth.status = "unavailable";
+  let recover!: (value: unknown) => void;
+  auth.refresh.mockReturnValue(
+    new Promise((resolve) => {
+      recover = resolve;
+    }),
+  );
+  const calls: RequestInit[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith("config"))
+        return {
+          json: async () => ({
+            policy: {
+              ...purchasePolicy,
+              iterationsPerSet: 500,
+              selectableIterations: { min: 500, max: 6000, step: 500 },
+            },
+          }),
+        };
+      calls.push(init);
+      return {
+        ok: true,
+        json: async () => ({ reportUrl: "/reports/current" }),
+      };
+    }),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const run = await screen.findByRole("button", { name: /Run Gear Lab/ });
+  await waitFor(() => expect(run).toBeEnabled());
+  fireEvent.click(run);
+  fireEvent.click(run);
+  fireEvent.change(screen.getByRole("slider", { name: "Iterations per set" }), {
+    target: { value: "6000" },
+  });
+  await act(async () => recover({ status: "anonymous" }));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/reports/current"));
+  expect(calls).toHaveLength(1);
+  expect(JSON.parse(calls[0].body as string)).toMatchObject({
+    iterations: 6000,
+    authMode: "anonymous",
+  });
+});
+
+it.each(["pagehide", "visibilitychange"])(
+  "flushes pending edits on %s",
+  async (eventName) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ json: async () => ({ policy: purchasePolicy }) })),
+    );
+    view();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Import fixture" }),
+    );
+    await waitFor(() => expect(localStorage.getItem(draftKey)).not.toBeNull());
+    fireEvent.click(screen.getByRole("button", { name: "Reduce selection" }));
+    act(() => {
+      (eventName === "pagehide" ? window : document).dispatchEvent(
+        new Event(eventName),
+      );
+    });
+    expect(
+      JSON.parse(localStorage.getItem(draftKey)!).selection.selectedInstanceIds,
+    ).toHaveLength(fixtureRequest().selection.selectedInstanceIds.length - 1);
+  },
+);
+
+it("navigates after successful admission even when draft cleanup fails", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) =>
+      url.endsWith("config")
+        ? { json: async () => ({ policy: purchasePolicy }) }
+        : {
+            ok: true,
+            json: async () => ({ reportUrl: "/reports/storage-error" }),
+          },
+    ),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const original = Storage.prototype.removeItem;
+  const remove = vi.spyOn(Storage.prototype, "removeItem");
+  remove.mockImplementation(function (this: Storage, key: string) {
+    if (key === draftKey) throw new Error("Storage blocked");
+    return original.call(this, key);
+  });
+  try {
+    await userEvent.click(screen.getByRole("button", { name: "Run fixture" }));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/reports/storage-error"),
+    );
+  } finally {
+    remove.mockRestore();
+  }
+});
+
+it("does not repeat full request validation for ordinary selection or wallet edits", async () => {
+  const schema = await import("@/domain/top-gear/request-schema");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({ json: async () => ({ policy: purchasePolicy }) })),
+  );
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const validate = vi.spyOn(schema, "validateRequest");
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Reduce selection" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit wallet draft" }));
+    expect(validate).not.toHaveBeenCalled();
+  } finally {
+    validate.mockRestore();
+  }
 });
