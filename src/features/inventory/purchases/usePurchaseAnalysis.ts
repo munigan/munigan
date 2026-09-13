@@ -18,13 +18,17 @@ export function usePurchaseAnalysis(
   request: TopGearRequest | null,
   policy: WorkPolicy | null,
 ): PurchaseAnalysisState {
-  const key = useMemo(
-    () =>
-      request?.purchases && policy
-        ? JSON.stringify({ request: encodeRequest(request), policy })
-        : null,
-    [request, policy],
-  );
+  const key = useMemo(() => {
+    if (!request?.purchases || !policy) return null;
+    const encoded = encodeRequest(request);
+    delete encoded.iterations;
+    // Iterations affect execution, not item acquisition or legal combinations.
+    // Keep the worker input stable and apply the chosen precision below.
+    return JSON.stringify({
+      request: encoded,
+      policy: { ...policy, iterationsPerSet: 1 },
+    });
+  }, [request, policy]);
   const baseKey = useMemo(() => {
     if (!key) return null;
     const value = JSON.parse(key);
@@ -40,11 +44,40 @@ export function usePurchaseAnalysis(
     [],
   );
   const generation = useRef(0);
-  const [result, setResult] = useState<{
+  const [workerResult, setResult] = useState<{
     key: string;
     baseKey: string;
     state: PurchaseAnalysisState;
   } | null>(null);
+  const result = useMemo(() => {
+    if (
+      !workerResult ||
+      !policy ||
+      workerResult.state.status !== "ready" ||
+      workerResult.state.analysis.status !== "complete"
+    )
+      return workerResult;
+    const state = workerResult.state;
+    const analysis = state.analysis;
+    if (analysis.status !== "complete") return workerResult;
+    return {
+      ...workerResult,
+      state: {
+        ...state,
+        analysis: {
+          ...analysis,
+          plan: {
+            ...analysis.plan,
+            simulations: analysis.plan.simulations.map((simulation, index) => ({
+              ...simulation,
+              iterations: policy.iterationsPerSet,
+              seed: String(100000 + index * (policy.iterationsPerSet + 1)),
+            })),
+          },
+        },
+      },
+    };
+  }, [workerResult, policy]);
   useEffect(() => {
     const revision = ++generation.current;
     if (!key || !baseKey) {

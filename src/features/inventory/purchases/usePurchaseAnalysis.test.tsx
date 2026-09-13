@@ -207,3 +207,40 @@ it("keeps tier rows and their checkbox state immediately while reusing the worke
     "purchase-original-50098",
   );
 });
+
+it("updates simulation iterations without restarting or messaging purchase analysis", () => {
+  vi.stubGlobal("Worker", MockWorker);
+  const first = { ...purchaseFixture({ frost: 100 }), iterations: 500 };
+  const policy = { ...purchasePolicy, iterationsPerSet: 500 };
+  const { result, rerender } = renderHook(
+    ({ request, policy }) => usePurchaseAnalysis(request, policy),
+    { initialProps: { request: first, policy } },
+  );
+  const worker = MockWorker.instances[0];
+  const post = vi.spyOn(worker, "postMessage");
+  act(() =>
+    worker.onmessage?.({ data: reply(first, worker.message.revision) }),
+  );
+  const preview =
+    result.current.status === "ready" ? result.current.preview : null;
+  rerender({
+    request: { ...first, iterations: 6000 },
+    policy: { ...policy, iterationsPerSet: 6000 },
+  });
+  expect(MockWorker.instances).toHaveLength(1);
+  expect(post).not.toHaveBeenCalled();
+  expect(worker.terminate).not.toHaveBeenCalled();
+  expect(result.current.status).toBe("ready");
+  if (
+    result.current.status !== "ready" ||
+    result.current.analysis.status !== "complete"
+  )
+    throw new Error("Expected completed analysis");
+  expect(result.current.preview).toBe(preview);
+  expect(
+    result.current.analysis.plan.simulations.every(
+      (s) => s.iterations === 6000,
+    ),
+  ).toBe(true);
+  expect(result.current.analysis.plan.simulations[1].seed).toBe("106001");
+});
