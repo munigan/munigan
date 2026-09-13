@@ -35,8 +35,14 @@
     padding-block: 16px;
     border-top: 1px solid var(--color-border);
   }
-  .resource-wallet-icon {
+  .resource-wallet-image {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
     justify-self: center;
+  }
+  .resource-wallet-icon {
     color: var(--color-item-epic);
   }
   .resource-wallet-copy {
@@ -535,5 +541,44 @@
   .resource-specialization > span {
     color: var(--color-muted);
     font-size: 12px;
+  }
+}
+
+@layer components {
+  .resource-items-trigger {
+    min-height: 36px;
+    position: relative;
+    display: grid;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    cursor: help;
+  }
+  .resource-items-trigger:focus-visible {
+    outline: 2px solid var(--color-action);
+    outline-offset: 3px;
+  }
+  .resource-items-count {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 0 3px;
+    border-radius: 3px 0 3px 0;
+    background: var(--color-canvas);
+    color: var(--color-text);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 15px;
+    pointer-events: none;
+  }
+  .resource-items-list {
+    margin: 5px 0 0;
+    padding-left: 16px;
+  }
+  .resource-items-list li + li {
+    margin-top: 3px;
   }
 }

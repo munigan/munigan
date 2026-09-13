@@ -13,6 +13,7 @@
     "equippedCaption": "Equipped only · no bags imported"
   },
   "purchases": {
+    "representedItems": "{count, plural, one {# tier item} other {# tier items}}",
     "walletTitle": "Tokens & currencies",
     "walletDescription": "Add what you have. We’ll compare the tier gear you can obtain.",
     "addTitle": "Add a token or currency",

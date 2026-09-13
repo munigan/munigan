@@ -206,3 +206,14 @@ it.each(["en-US", "pt-BR"] as const)(
     );
   },
 );
+
+it("shows the token's five specialization rewards in the shared tooltip", async () => {
+  renderWallet({ "regalia:vanquisher": 1 });
+  const trigger = screen.getByRole("button", { name: "5 tier items" });
+  expect(trigger).toHaveTextContent("+5");
+  await userEvent.hover(trigger);
+  const tooltip = await screen.findByRole("tooltip");
+  expect(within(tooltip).getAllByRole("listitem")).toHaveLength(5);
+  expect(tooltip).toHaveTextContent("Koltira's Battleplate of Triumph");
+  expect(tooltip).not.toHaveTextContent("Chestguard");
+});

@@ -89,7 +89,9 @@ export function ResourceWallet({
         const name = t(option.labelKey, { family: familyLabel });
         return (
           <div className="resource-wallet-row" key={id}>
-            <ResourceImage request={request} resourceId={id} />
+            <span className="resource-wallet-image">
+              <ResourceImage request={request} resourceId={id} />
+            </span>
             <div className="resource-wallet-copy">
               <strong>{name}</strong>
               <span>{t(option.walletDescriptionKey)}</span>

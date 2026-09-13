@@ -1,4 +1,11 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { getCatalog } from "@/domain/equipment/catalog";
+import {
+  TooltipRoot,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/Tooltip";
 import { getPurchaseCatalog } from "@/domain/purchases/catalog";
 import { defaultPurchaseVariant } from "@/domain/purchases/variants";
 import { validateItem } from "@/domain/equipment/validate";
@@ -14,6 +21,7 @@ export function ResourceImage({
   request: TopGearRequest;
   resourceId: ResourceId;
 }) {
+  const t = useTranslations("inventory.purchases");
   const emblem =
     resourceId === "frost"
       ? "inv_misc_frostemblem_01"
@@ -33,11 +41,10 @@ export function ResourceImage({
     );
   const variant =
     request.purchases?.gearVariant ?? defaultPurchaseVariant(request.snapshot);
-  const recipe = getPurchaseCatalog(
+  const recipes = getPurchaseCatalog(
     itemVersionOf(request.snapshot),
-  ).recipes.find(
+  ).recipes.filter(
     (r) =>
-      r.slot === "chest" &&
       r.classId === request.snapshot.settings.player!.class &&
       (!variant || r.setVariant === variant) &&
       r.cost[resourceId] &&
@@ -49,5 +56,33 @@ export function ResourceImage({
         enchantId: 0,
       }).length,
   );
-  return recipe ? <ItemImage itemId={recipe.itemId} size={36} /> : null;
+  const recipe = recipes.find((item) => item.slot === "chest");
+  if (!recipe) return null;
+  const equipment = getCatalog(itemVersionOf(request.snapshot));
+  const label = t("representedItems", { count: recipes.length });
+  return (
+    <TooltipRoot>
+      <TooltipTrigger
+        type="button"
+        className="resource-items-trigger"
+        aria-label={label}
+        delay={250}
+      >
+        <ItemImage itemId={recipe.itemId} size={36} />
+        <span className="resource-items-count" aria-hidden="true">
+          +{recipes.length}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent role="tooltip">
+        <strong>{label}</strong>
+        <ul className="resource-items-list">
+          {recipes.map((item) => (
+            <li key={item.id}>
+              {equipment.items.get(item.itemId)?.name ?? String(item.itemId)}
+            </li>
+          ))}
+        </ul>
+      </TooltipContent>
+    </TooltipRoot>
+  );
 }
