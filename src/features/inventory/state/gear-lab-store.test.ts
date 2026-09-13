@@ -163,6 +163,28 @@ it("saves resource replacement and variant in one notification", () => {
   expect(listener).toHaveBeenCalledTimes(1);
 });
 
+it("preserves purchase choices when replacing the sole resource", () => {
+  const request = purchaseFixture({ frost: 10 });
+  request.purchases!.excludedItemIds.original = [48505];
+  request.purchases!.itemEnhancements.original = {
+    "48505": { enchantId: 0 },
+  };
+  const store = createGearLabStore(request);
+
+  store.getState().actions.saveResource({
+    previousId: "frost",
+    id: "triumph",
+    quantity: 25,
+    gearVariant: "dk-dps",
+  });
+
+  expect(store.getState().draft!.purchases).toMatchObject({
+    balances: { triumph: 25 },
+    excludedItemIds: { original: [48505] },
+    itemEnhancements: { original: { "48505": { enchantId: 0 } } },
+  });
+});
+
 it("rejects a gear variant for another class atomically", () => {
   const store = createGearLabStore(purchaseFixture({ frost: 10 }));
   const initial = store.getState();
@@ -238,6 +260,50 @@ it("updates item version metadata and revalidates purchase choices", () => {
   expect(store.getState().draft!.snapshot.provenance.itemVersion).toBe(
     "edited",
   );
+});
+
+it("defers catalog repair on profile edits so its removed IDs remain visible", () => {
+  const request = purchaseFixture();
+  request.purchases!.recipeRevision = "retired-revision";
+  request.purchases!.excludedItemIds.original = [9_999_998];
+  request.purchases!.itemEnhancements.original = {
+    "9999999": { gemIds: [null] },
+  };
+  const store = createGearLabStore(request);
+
+  store.getState().actions.setItemVersion("classic");
+
+  expect(store.getState().draft!.purchases!.excludedItemIds.original).toEqual([
+    9_999_998,
+  ]);
+  expect(store.getState().draft!.purchases!.itemEnhancements.original).toEqual({
+    "9999999": { gemIds: [null] },
+  });
+  expect(store.getState().draft!.purchases!.recipeRevision).toBe(
+    "retired-revision",
+  );
+  expect(store.getState().actions.revalidatePurchases()).toEqual([
+    9_999_998, 9_999_999,
+  ]);
+});
+
+it("defers catalog repair when applying settings", () => {
+  const request = purchaseFixture();
+  request.purchases!.recipeRevision = "retired-revision";
+  request.purchases!.excludedItemIds.original = [9_999_998];
+  const store = createGearLabStore(request);
+
+  store.getState().actions.applySettings({
+    specId: request.snapshot.specId,
+    settings: request.snapshot.settings,
+    provenance: { profile: "edited" },
+    professionLevels: { 14: 450 },
+  });
+
+  expect(store.getState().draft!.purchases!.recipeRevision).toBe(
+    "retired-revision",
+  );
+  expect(store.getState().actions.revalidatePurchases()).toEqual([9_999_998]);
 });
 
 it("does not notify subscribers for equal edits", () => {

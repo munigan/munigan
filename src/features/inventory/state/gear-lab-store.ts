@@ -237,11 +237,15 @@ export function createGearLabStore(
       saveResource: ({ previousId, id, quantity, gearVariant }) =>
         set((state) => {
           if (!state.draft) return state;
+          if (!purchaseVariants(state.draft.snapshot).includes(gearVariant))
+            throw new Error(
+              "Purchase gear variant is not eligible for this character",
+            );
           let next = state.draft;
-          if (previousId && previousId !== id)
-            next = removePurchaseResource(next, previousId);
           if (next.purchases?.balances[id] !== quantity)
             next = setResourceBalance(next, id, quantity);
+          if (previousId && previousId !== id)
+            next = removePurchaseResource(next, previousId);
           next = withValidatedVariant(next, gearVariant);
           return next === state.draft ? state : { draft: next };
         }),
@@ -372,7 +376,6 @@ export function createGearLabStore(
               },
             },
           };
-          next = revalidatePurchaseInputs(next).request;
           next = revalidateBagSelections(next);
           return { draft: next };
         }),
@@ -391,7 +394,6 @@ export function createGearLabStore(
             ...state.draft,
             snapshot: { ...snapshot, ...value },
           };
-          next = revalidatePurchaseInputs(next).request;
           next = revalidateBagSelections(next);
           return { draft: next };
         }),

@@ -46,3 +46,32 @@ exit 0
 
 No browser, build, harness, or worker command was run.
 
+## Review fixes
+
+Added regression coverage for replacing the only resource while purchase
+exclusions and enhancement overrides exist. The red run showed those choices
+were reset to empty objects. `saveResource` now validates the variant, writes
+the new balance, and only then removes the prior balance, so the purchase input
+object remains present throughout the atomic computation.
+
+Added regression coverage for catalog repair after both item-version and
+settings/profile changes. The red run showed `purchases` had already been
+removed by implicit repair. Those edits now preserve the purchase catalog
+revision and stale choices; the explicit `revalidatePurchases()` command owns
+repair and returns `[9999998, 9999999]` or `[9999998]` for the existing notice.
+
+Review red command:
+
+```text
+pnpm vitest run --project unit src/features/inventory/state/gear-lab-store.test.ts
+Test Files  1 failed (1)
+Tests       3 failed | 14 passed (17)
+```
+
+Focused green command:
+
+```text
+pnpm vitest run --project unit src/features/inventory/state/gear-lab-store.test.ts
+Test Files  1 passed (1)
+Tests       17 passed (17)
+```
