@@ -7,28 +7,8 @@ import {
 import { analyzePurchaseSelection } from "@/domain/purchases/analysis";
 import { encodeSnapshot } from "@/domain/top-gear/request-schema";
 import { usePurchaseAnalysis } from "./usePurchaseAnalysis";
-import type {
-  PurchaseWorkerRequest,
-  PurchaseWorkerReply,
-} from "./purchase-worker-contract";
-class MockWorker {
-  static instances: MockWorker[] = [];
-  onmessage: ((event: { data: PurchaseWorkerReply }) => void) | null = null;
-  onerror: (() => void) | null = null;
-  addEventListener(type: string, callback: unknown) {
-    if (type === "message") this.onmessage = callback as typeof this.onmessage;
-    if (type === "error") this.onerror = callback as typeof this.onerror;
-  }
-  removeEventListener = vi.fn();
-  terminate = vi.fn();
-  message!: PurchaseWorkerRequest;
-  constructor() {
-    MockWorker.instances.push(this);
-  }
-  postMessage(message: PurchaseWorkerRequest) {
-    this.message = message;
-  }
-}
+import type { PurchaseWorkerReply } from "./purchase-worker-contract";
+import { ControlledWorker as MockWorker } from "../../../../tests/support/gear-lab-worker";
 afterEach(() => {
   vi.unstubAllGlobals();
   MockWorker.instances = [];
@@ -168,7 +148,12 @@ it("keeps the encoded prepared preview when enumeration later reaches its search
       },
     }),
   );
-  const reply = post.mock.calls[0][0];
+  expect(post.mock.calls[0][0]).toMatchObject({
+    revision: 9,
+    status: "preview",
+  });
+  const reply = post.mock.calls.at(-1)![0];
+  expect(reply.status).toBe("ready");
   expect(reply.analysis).toMatchObject({
     status: "search-limit",
     visitedNodes: 3000,
@@ -243,4 +228,23 @@ it("updates simulation iterations without restarting or messaging purchase analy
     ),
   ).toBe(true);
   expect(result.current.analysis.plan.simulations[1].seed).toBe("106001");
+});
+
+it("ignores nonterminal previews during the old hook migration", () => {
+  vi.stubGlobal("Worker", MockWorker);
+  const { result } = renderHook(() =>
+    usePurchaseAnalysis(purchaseFixture({ frost: 100 }), purchasePolicy),
+  );
+  const worker = MockWorker.instances[0];
+  const ready = reply(purchaseFixture({ frost: 100 }), worker.message.revision);
+  act(() =>
+    worker.onmessage?.({
+      data: {
+        revision: ready.revision,
+        status: "preview",
+        preview: ready.preview!,
+      },
+    }),
+  );
+  expect(result.current.status).toBe("loading");
 });

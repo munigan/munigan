@@ -21,6 +21,11 @@ self.onmessage = (event: MessageEvent<PurchaseWorkerRequest>) => {
           selection: prepared.selection,
           candidates: prepared.candidates,
         };
+        self.postMessage({
+          revision,
+          status: "preview",
+          preview,
+        } satisfies PurchaseWorkerReply);
       },
     );
     reply = { revision, status: "ready", analysis, preview };

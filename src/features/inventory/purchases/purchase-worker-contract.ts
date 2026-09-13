@@ -45,5 +45,11 @@ export type PurchaseWorkerReply = { revision: number } & (
           })
         | null;
     }
+  | {
+      status: "preview";
+      preview: Omit<PurchasePreview, "snapshot"> & {
+        snapshot: ReturnType<typeof encodeSnapshot>;
+      };
+    }
   | { status: "error"; diagnostic: PurchaseDiagnostic }
 );

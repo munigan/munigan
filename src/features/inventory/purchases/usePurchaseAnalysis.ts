@@ -117,6 +117,7 @@ export function usePurchaseAnalysis(
         return;
       try {
         const reply = event.data;
+        if (reply.status === "preview") return;
         setResult({
           key,
           baseKey,
