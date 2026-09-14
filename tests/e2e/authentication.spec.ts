@@ -49,6 +49,14 @@ async function signin(page: Page, profile = "account_a") {
     page.getByRole("button", { name: "Allow", exact: true }),
   ).toBeVisible();
 }
+async function expectSigninComplete(page: Page) {
+  // The shared header can show the session before AuthReturn finishes routing.
+  // Wait for the original destination before navigating or opening its menu.
+  await expect(page).toHaveURL(/\/en-us$/);
+  await expect(
+    page.getByRole("button", { name: "Account menu" }),
+  ).toBeVisible();
+}
 function calls() {
   return readFileSync(events, "utf8")
     .trim()
@@ -61,9 +69,7 @@ test("real provider handler creates a phone-only account and encrypts tokens", a
 }) => {
   await signin(page, "phone_only");
   await page.getByRole("button", { name: "Allow", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Account menu" }),
-  ).toBeVisible();
+  await expectSigninComplete(page);
   const user = (
     await db.query("SELECT name,email,email_verified FROM auth_user")
   ).rows[0];
@@ -120,9 +126,7 @@ test("denial permits a new attempt and callback replay creates no second session
       callback = req.url();
   });
   await page.getByRole("button", { name: "Allow", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Account menu" }),
-  ).toBeVisible();
+  await expectSigninComplete(page);
   await page.goto(callback);
   await expect(page).toHaveURL(/\/auth\/return$/);
   await expect(page.locator(".auth-return [role=alert]")).toBeVisible();
@@ -391,9 +395,7 @@ test("fresh account A opens its library cross-device while account B and public 
       const device = await context.newPage();
       await signin(device, profile);
       await device.getByRole("button", { name: "Allow", exact: true }).click();
-      await expect(
-        device.getByRole("button", { name: "Account menu" }),
-      ).toBeVisible();
+      await expectSigninComplete(device);
       const library = await device.request.get("/api/library");
       expect(library.status()).toBe(200);
       expect(library.headers()["cache-control"]).toContain("no-store");
@@ -434,9 +436,7 @@ test("reauthentication with a different account never authorizes account deletio
 }) => {
   await signin(page);
   await page.getByRole("button", { name: "Allow", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Account menu" }),
-  ).toBeVisible();
+  await expectSigninComplete(page);
   await db.query(
     "UPDATE auth_session SET created_at=now()-interval '10 minutes'",
   );
@@ -475,9 +475,7 @@ for (const kind of ["save", "signin", "deletion"] as const) {
     else {
       await signin(page);
       await page.getByRole("button", { name: "Allow", exact: true }).click();
-      await expect(
-        page.getByRole("button", { name: "Account menu" }),
-      ).toBeVisible();
+      await expectSigninComplete(page);
       await db.query(
         "UPDATE auth_session SET created_at=now()-interval '10 minutes'",
       );
@@ -494,9 +492,7 @@ for (const kind of ["save", "signin", "deletion"] as const) {
       const other = await authenticated.newPage();
       await signin(other);
       await other.getByRole("button", { name: "Allow", exact: true }).click();
-      await expect(
-        other.getByRole("button", { name: "Account menu" }),
-      ).toBeVisible();
+      await expectSigninComplete(other);
       await context.addCookies(
         (await authenticated.cookies()).filter((cookie) =>
           cookie.name.endsWith(".session_token"),

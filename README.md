@@ -64,7 +64,9 @@ pnpm lint
 pnpm test
 ```
 
-For database or simulator changes, also run `pnpm test:integration` or `pnpm test:sim`. Rebuild native code with `pnpm sim:build`. Browser tests use `pnpm test:e2e` and require the local database, a running worker, and Playwright browsers (`pnpm exec playwright install`).
+For database or simulator changes, also run `pnpm test:integration` or `pnpm test:sim`. Rebuild native code with `pnpm sim:build`. Browser tests use `pnpm test:e2e` and require the local database and Playwright browsers (`pnpm exec playwright install`). The test harness starts its own app and simulation worker.
+
+CI runs typechecking, lint, unit/UI tests, database and simulator tests, service checks, and a production build on pushes and pull requests. Run browser tests locally before submitting UI or authentication changes. You can also trigger **Browser tests (manual)** from the repository’s GitHub Actions page when needed; browser tests do not run automatically on each push.
 
 Read [`AGENTS.md`](AGENTS.md) when using coding agents. Simulator compatibility and worker details live in the [compatibility notes](docs/engineering/top-gear-compatibility.md) and [operations guide](docs/engineering/top-gear-operations.md).
 

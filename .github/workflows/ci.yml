@@ -1,4 +1,4 @@
-name: Top Gear local verification
+name: Munigan verification
 on: [push, pull_request]
 permissions:
   contents: read
@@ -71,13 +71,4 @@ jobs:
       - run: pnpm typecheck && pnpm lint && pnpm test
       - run: pnpm test:integration && pnpm test:sim
       - run: pnpm check:design && pnpm check:specs
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Browser tests with a separate native worker
-        run: |
-          touch .env.local
-          pnpm db:migrate
-          pnpm worker > /tmp/top-gear-worker.log 2>&1 &
-          WORKER_PID=$!
-          trap 'kill "$WORKER_PID"' EXIT
-          pnpm test:e2e
       - run: pnpm build
