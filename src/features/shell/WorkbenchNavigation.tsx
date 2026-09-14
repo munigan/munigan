@@ -8,6 +8,7 @@ import { Brand } from "./Brand";
 import { ToolNav } from "./ToolNav";
 import { DrawerNavigation } from "./DrawerNavigation";
 import { AccountMenu } from "@/features/auth/AccountMenu";
+import { ProLaunchButton } from "@/features/pro-launch/ProLaunchButton";
 
 export function WorkbenchHeader() {
   const t = useTranslations("shell");
@@ -19,6 +20,7 @@ export function WorkbenchHeader() {
         <ToolNav />
       </div>
       <div className="workbench-header-utilities">
+        <ProLaunchButton source="header" className="workbench-pro-button" />
         <LanguageSelector />
         <AccountMenu />
       </div>

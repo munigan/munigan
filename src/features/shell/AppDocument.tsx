@@ -18,6 +18,7 @@ import { TooltipProvider } from "@/components/ui/Tooltip";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import "@/features/auth/auth.css";
 import { DeleteAccountDialogHost } from "@/features/auth/DeleteAccountDialog";
+import { ProLaunchProvider } from "@/features/pro-launch/ProLaunchProvider";
 export async function AppDocument({
   children,
   locale,
@@ -40,8 +41,10 @@ export async function AppDocument({
           <TooltipProvider delay={250}>
             <ToastProvider>
               <AuthProvider>
-                <AppShell>{children}</AppShell>
-                <DeleteAccountDialogHost />
+                <ProLaunchProvider>
+                  <AppShell>{children}</AppShell>
+                  <DeleteAccountDialogHost />
+                </ProLaunchProvider>
               </AuthProvider>
             </ToastProvider>
           </TooltipProvider>

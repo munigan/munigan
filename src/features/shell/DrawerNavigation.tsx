@@ -13,6 +13,7 @@ import { LanguageFlag, LanguageSelector } from "./LanguageSelector";
 import { FutureTag, ToolIcon } from "./ToolIcon";
 import { futureTools, type ToolIconName } from "./tools";
 import { startTopGear } from "./top-gear-navigation";
+import { ProLaunchButton } from "@/features/pro-launch/ProLaunchButton";
 
 type View = "navigation" | "language" | "account";
 
@@ -178,6 +179,11 @@ export function DrawerNavigation({ onNavigate }: { onNavigate: () => void }) {
             )}
           </nav>
           <div className="drawer-utilities">
+            <ProLaunchButton
+              source="header"
+              className="drawer-pro-button"
+              onBeforeOpen={onNavigate}
+            />
             <button
               ref={languageRef}
               className="drawer-language"

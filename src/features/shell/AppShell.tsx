@@ -3,9 +3,12 @@ import { useTranslations } from "next-intl";
 import { WorkbenchHeader } from "./WorkbenchNavigation";
 import "./shell.css";
 import { BackgroundProvider } from "./CharacterBackground";
+import { DiscordIcon } from "@/features/auth/DiscordIcon";
+import { DISCORD_COMMUNITY_INVITE } from "@/domain/pro-launch/discord";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("shell");
+  const pro = useTranslations("pro");
   return (
     <div className="app-shell workbench-shell relative isolate min-h-dvh">
       <BackgroundProvider>
@@ -16,6 +19,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-brand font-semibold">munigan.app</span>
             <div className="workbench-footer-links">
               <span>{t("footer")}</span>
+              <a
+                href={DISCORD_COMMUNITY_INVITE}
+                className="workbench-discord-link"
+                aria-label={pro("discordSupport")}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <DiscordIcon />
+              </a>
               <a
                 href="https://github.com/munigan/munigan"
                 className="workbench-github-link"

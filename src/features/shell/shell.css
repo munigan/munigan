@@ -170,6 +170,19 @@ a.workbench-nav-row:hover,
 .workbench-header-utilities > .auth-control {
   flex-shrink: 0;
 }
+.workbench-pro-button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-control-border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-action);
+  font-size: 13px;
+  font-weight: 600;
+}
+.workbench-pro-button:hover {
+  border-color: var(--color-action);
+}
 .workbench-content > main.app-main {
   flex: 1;
   min-height: 0;
@@ -196,7 +209,8 @@ a.workbench-nav-row:hover,
   align-items: center;
   gap: 16px;
 }
-.workbench-github-link {
+.workbench-github-link,
+.workbench-discord-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -205,10 +219,12 @@ a.workbench-nav-row:hover,
   flex-shrink: 0;
   border-radius: 6px;
 }
-.workbench-github-link:hover {
+.workbench-github-link:hover,
+.workbench-discord-link:hover {
   color: var(--color-text);
 }
-.workbench-github-link:focus-visible {
+.workbench-github-link:focus-visible,
+.workbench-discord-link:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
@@ -458,6 +474,15 @@ a.workbench-nav-row:hover,
   margin-top: 28px;
   padding-top: 12px;
   border-top: 1px solid var(--color-border);
+}
+.drawer-pro-button {
+  min-height: 48px;
+  border: 1px solid var(--color-action);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-action);
+  font-size: 15px;
+  font-weight: 600;
 }
 .drawer-language {
   min-height: 44px;

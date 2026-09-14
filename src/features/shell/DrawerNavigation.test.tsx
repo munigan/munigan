@@ -10,11 +10,15 @@ const mocks = vi.hoisted(() => ({
   useAccount: vi.fn(),
   switchLocale: vi.fn(),
   persistLocale: vi.fn(),
+  openPro: vi.fn(),
   pathname: "/library",
   locale: "en-US",
 }));
 vi.mock("@/features/auth/AuthProvider", () => ({
   useAccount: mocks.useAccount,
+}));
+vi.mock("@/features/pro-launch/ProLaunchProvider", () => ({
+  useProLaunch: () => ({ open: mocks.openPro }),
 }));
 vi.mock("next/navigation", () => ({ usePathname: () => mocks.pathname }));
 vi.mock("@/i18n/LocaleProvider", () => ({
@@ -49,6 +53,7 @@ describe("responsive tool switcher", () => {
   beforeEach(() => {
     mocks.pathname = "/library";
     mocks.switchLocale.mockReset();
+    mocks.openPro.mockReset();
     mocks.useAccount.mockReturnValue({
       status: "authenticated",
       account: { id: "1", name: "Munigan", image: null },
@@ -119,5 +124,15 @@ describe("responsive tool switcher", () => {
     expect(
       menu.getByRole("link", { name: /Meus resultados|Minha biblioteca/i }),
     ).toBeVisible();
+  });
+  it("closes the drawer before opening the shared PRO dialog", async () => {
+    render(view());
+    const menu = await openMenu();
+    await userEvent.click(menu.getByRole("button", { name: "Go PRO" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.openPro).toHaveBeenCalledWith(
+      "header",
+      expect.any(HTMLElement),
+    );
   });
 });
