@@ -147,7 +147,7 @@ it("rejects an account changed since the join prompt was shown", async () => {
   expectPrivate(response);
 });
 
-it("hides authentication and database failures", async () => {
+it("hides authentication failures", async () => {
   vi.mocked(getIdentity).mockRejectedValue(
     new Error("secret database connection string"),
   );
@@ -159,5 +159,29 @@ it("hides authentication and database failures", async () => {
     expect(response.status).toBe(503);
     expect(JSON.stringify(await response.json())).not.toContain("secret");
     expectPrivate(response);
+  }
+});
+
+it("hides persistence failures after successful authentication", async () => {
+  const account = await seedAccount();
+  vi.mocked(getIdentity).mockResolvedValue({ account, ownerHash: null });
+  await pool.query(
+    "ALTER TABLE pro_launch_memberships RENAME TO pro_launch_memberships_unavailable",
+  );
+
+  try {
+    const response = await GET(
+      new NextRequest("http://localhost/api/pro-launch"),
+    );
+
+    expect(response.status).toBe(503);
+    expect(JSON.stringify(await response.json())).not.toContain(
+      "pro_launch_memberships",
+    );
+    expectPrivate(response);
+  } finally {
+    await pool.query(
+      "ALTER TABLE pro_launch_memberships_unavailable RENAME TO pro_launch_memberships",
+    );
   }
 });
