@@ -45,6 +45,7 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ProDialogState>({ kind: "auth_loading" });
   const generation = useRef(0);
   const request = useRef<AbortController | null>(null);
+  const joining = useRef(false);
   const currentAccountId = useRef<string | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const resumeRefreshPath = useRef<string | null>(null);
@@ -61,6 +62,7 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
     ++generation.current;
     request.current?.abort();
     request.current = null;
+    joining.current = false;
   }, []);
 
   const loadStatus = useCallback(
@@ -189,15 +191,29 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
   }, [invalidate]);
 
   const join = useCallback(async () => {
-    if (state.kind !== "ready" || state.joining) return;
-    const account = state.account;
-    const expectedUserId = account.id;
+    if (
+      joining.current ||
+      state.kind !== "ready" ||
+      state.joining ||
+      authStatus !== "authenticated" ||
+      !account ||
+      state.account.id !== account.id ||
+      currentAccountId.current !== account.id
+    )
+      return;
+    const shownAccount = state.account;
+    const expectedUserId = shownAccount.id;
     invalidate();
-    currentAccountId.current = expectedUserId;
+    joining.current = true;
     const requestGeneration = generation.current;
     const controller = new AbortController();
     request.current = controller;
-    setState({ kind: "ready", account, joining: true, error: null });
+    setState({
+      kind: "ready",
+      account: shownAccount,
+      joining: true,
+      error: null,
+    });
     try {
       await joinProLaunch(
         {
@@ -214,7 +230,8 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
         expectedUserId !== currentAccountId.current
       )
         return;
-      setState({ kind: "joined", account });
+      joining.current = false;
+      setState({ kind: "joined", account: shownAccount });
     } catch (error) {
       if (
         controller.signal.aborted ||
@@ -229,23 +246,19 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
           error.code === "ACCOUNT_DELETING")
       ) {
         invalidate();
-        setState({
-          kind: "ready",
-          account,
-          joining: false,
-          error: t("accountChanged"),
-        });
+        setState({ kind: "auth_loading" });
         void refresh();
         return;
       }
+      joining.current = false;
       setState({
         kind: "ready",
-        account,
+        account: shownAccount,
         joining: false,
         error: t("joinFailed"),
       });
     }
-  }, [state, source, locale, refresh, invalidate, t]);
+  }, [state, authStatus, account, source, locale, refresh, invalidate, t]);
 
   const beginSignIn = useCallback(async () => {
     const event = new Event(proBeforeSignInEvent, { cancelable: true });
@@ -261,12 +274,30 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
   }, [signIn, t]);
 
   const controller = useMemo(() => ({ open: openDialog }), [openDialog]);
+  const renderedState: ProDialogState =
+    authStatus === "loading"
+      ? { kind: "auth_loading" }
+      : authStatus === "unavailable"
+        ? { kind: "auth_unavailable" }
+        : authStatus === "anonymous" || !account
+          ? state.kind === "anonymous"
+            ? state
+            : {
+                kind: "anonymous",
+                signingIn: signIn.pending,
+                error: signIn.error,
+              }
+          : state.kind === "auth_loading"
+            ? state
+            : "account" in state && state.account.id === account.id
+              ? state
+              : { kind: "membership_loading", account };
   return (
     <ProLaunchContext.Provider value={controller}>
       {children}
       <ProLaunchDialog
         open={open}
-        state={state}
+        state={renderedState}
         onOpenChange={(next) => (next ? setOpen(true) : closeDialog())}
         onSignIn={() => void beginSignIn()}
         onJoin={() => void join()}

@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { messages as en } from "@/i18n/messages-en";
@@ -96,8 +96,8 @@ describe("ProLaunchProvider", () => {
     const join = await screen.findByRole("button", {
       name: "Join the PRO list",
     });
-    await userEvent.click(join);
-    await userEvent.click(join);
+    fireEvent.click(join);
+    fireEvent.click(join);
     const postCalls = fetchMock.mock.calls.filter(
       ([, init]) => init?.method === "POST",
     );
@@ -173,6 +173,58 @@ describe("ProLaunchProvider", () => {
     expect(screen.queryByText("Account A")).not.toBeInTheDocument();
   });
 
+  it("masks account A immediately when B appears while A's GET is pending", async () => {
+    const firstGet = deferred<Response>();
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => firstGet.promise)
+      .mockImplementationOnce(() => response({ status: "not_joined" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const rendered = render(view());
+    await userEvent.click(screen.getByRole("button", { name: "Open PRO" }));
+    expect(await screen.findByText("Account A")).toBeVisible();
+
+    mocks.auth = {
+      ...mocks.auth,
+      account: { id: "account-b", name: "Account B", image: null },
+    };
+    rendered.rerender(view());
+
+    expect(screen.queryByText("Account A")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Join the PRO list" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Account B")).toBeVisible();
+    await act(async () =>
+      firstGet.resolve(new Response(JSON.stringify({ status: "not_joined" }))),
+    );
+    expect(await screen.findByText("Account B")).toBeVisible();
+  });
+
+  it("does not accept a stale join action immediately after an account switch", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => response({ status: "not_joined" }))
+      .mockImplementationOnce(() => response({ status: "not_joined" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const rendered = render(view());
+    await userEvent.click(screen.getByRole("button", { name: "Open PRO" }));
+    const staleJoin = await screen.findByRole("button", {
+      name: "Join the PRO list",
+    });
+    mocks.auth = {
+      ...mocks.auth,
+      account: { id: "account-b", name: "Account B", image: null },
+    };
+    rendered.rerender(view());
+    fireEvent.click(staleJoin);
+
+    expect(
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "POST"),
+    ).toHaveLength(0);
+    expect(screen.queryByText("Account A")).not.toBeInTheDocument();
+  });
+
   it("re-reads status after an uncertain write is closed", async () => {
     const post = deferred<Response>();
     const fetchMock = vi
@@ -211,25 +263,36 @@ describe("ProLaunchProvider", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("refreshes auth after an account-changing join response and requires another click", async () => {
+  it("keeps an account-changing response nonactionable until refresh and a fresh GET", async () => {
     const fetchMock = vi
       .fn()
       .mockImplementationOnce(() => response({ status: "not_joined" }))
-      .mockImplementationOnce(() => response({ code: "ACCOUNT_CHANGED" }, 409));
+      .mockImplementationOnce(() => response({ code: "ACCOUNT_CHANGED" }, 409))
+      .mockImplementationOnce(() => response({ status: "not_joined" }));
     vi.stubGlobal("fetch", fetchMock);
-    render(view());
+    const rendered = render(view());
     await userEvent.click(screen.getByRole("button", { name: "Open PRO" }));
     await userEvent.click(
       await screen.findByRole("button", { name: "Join the PRO list" }),
     );
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "account changed",
-    );
+    expect(await screen.findByText("Checking your account…")).toBeVisible();
     expect(mocks.auth.refresh).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(
-      screen.getByRole("button", { name: "Join the PRO list" }),
+      screen.queryByRole("button", { name: "Join the PRO list" }),
+    ).not.toBeInTheDocument();
+    mocks.auth = { ...mocks.auth, status: "loading", account: null };
+    rendered.rerender(view());
+    mocks.auth = {
+      ...mocks.auth,
+      status: "authenticated",
+      account: { id: "account-a", name: "Account A", image: null },
+    };
+    rendered.rerender(view());
+    expect(
+      await screen.findByRole("button", { name: "Join the PRO list" }),
     ).toBeEnabled();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("refreshes auth once and resumes only after the matching account resolves", async () => {

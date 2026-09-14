@@ -66,3 +66,28 @@ The controller's read-only Playwright check confirmed desktop typography, no hor
 ## Self-review
 
 I re-read the brief, Discord amendment, and final-focus notes against the diff. The optional Discord link stays separate from signup, and Task 6 sidebar behavior remains untouched. The only output noise is the known jsdom navigation diagnostic above; I found no implementation concern.
+
+## Review fix: account-transition and duplicate-action races
+
+Review found that the stored dialog state could expose account A until passive effects ran after auth switched to B, that the join callback could overwrite the current identity ref with the stale shown account, that an account-changing rejection restored an actionable A state while refresh was pending, and that React state alone did not guard two callbacks in the same tick.
+
+I added a render-time auth/state consistency mask, validate the live auth account and identity ref before joining, and use a synchronous ref guard around the join request. A 401, `ACCOUNT_CHANGED`, or `ACCOUNT_DELETING` response now enters nonactionable auth loading, calls refresh, and waits for auth to transition and a fresh membership GET before enabling Join.
+
+RED command:
+
+```sh
+pnpm exec vitest run --project ui src/features/pro-launch/ProLaunchProvider.test.tsx
+```
+
+Result before the correction: 3 failures. Account A remained visible during deferred GET after switching to B; the detached stale Join control issued one POST; and the account-changing response rendered the old enabled Join state instead of auth loading. The original duplicate test was strengthened to fire two callbacks synchronously in one React batch.
+
+GREEN verification:
+
+```sh
+pnpm exec vitest run --project ui src/features/pro-launch/ProLaunchProvider.test.tsx src/features/shell/DrawerNavigation.test.tsx --project unit src/features/pro-launch/client.test.ts
+pnpm typecheck
+pnpm exec eslint src/features/pro-launch/ProLaunchProvider.tsx src/features/pro-launch/ProLaunchProvider.test.tsx
+git diff --check
+```
+
+Result: 3 files and 20 tests passed, 0 failed; typecheck, focused lint, and whitespace checks exited 0. The focused suite retains the documented jsdom navigation diagnostic from the drawer test.
