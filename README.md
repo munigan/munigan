@@ -1,23 +1,35 @@
-# WoW Droptimizer
+# Munigan
 
-A gear simulation app for level-80 World of Warcraft: Wrath of the Lich King characters. Import a character, compare gear combinations, and review DPS results using the [Poli93 simulator](https://github.com/Poli93/wotlk). Supports Original WotLK 3.3.5a and Wrath Classic item data.
+[Munigan](https://munigan.app) is a toolkit for World of Warcraft: Wrath of the Lich King players, with gear optimization, DPS simulations, and a raid trainer. Gear simulations use the [Poli93 simulator](https://github.com/Poli93/wotlk) and support Original WotLK 3.3.5a and Wrath Classic item data.
 
 Built with Next.js, React, TypeScript, PostgreSQL, and a native Go simulator.
 
 ## Getting started
 
-Install Node.js 24, pnpm 10.33.0, PostgreSQL 16, Go 1.21+ (the build downloads the pinned Go 1.23.4 toolchain), Python 3, and Git. The local setup uses Bash and Unix tools; use macOS or Linux.
+Install Node.js 24, pnpm 10.33.0, Docker with Compose, Go 1.21+ (the build downloads the pinned Go 1.23.4 toolchain), Python 3, Git, and OpenSSL. The build uses Bash and Unix tools; use macOS or Linux.
 
 ```sh
-git clone https://github.com/munigan/wow-droptimizer.git
-cd wow-droptimizer
+git clone https://github.com/munigan/munigan.git
+cd munigan
 pnpm install --frozen-lockfile
-pnpm setup:local
+docker compose up -d --wait
+cp .env.example .env.local
 ```
 
-On macOS, install PostgreSQL with `brew install postgresql@16`. If setup cannot find PostgreSQL, set `PG_BIN` to its `bin` directory.
+In `.env.local`, set the database URL to match the PostgreSQL service in [`compose.yaml`](compose.yaml):
 
-Setup starts a local PostgreSQL cluster at `127.0.0.1:55435`, creates `.env.local` if missing, builds the simulator, and applies database migrations. The first run downloads simulator sources and build dependencies. Run `pnpm setup:local` again when you need to restart the database. This database configuration is for local development only.
+```dotenv
+DATABASE_URL=postgresql://wotlk:local-development-only@127.0.0.1:55435/wow_top_gear
+```
+
+Generate a key with `openssl rand -hex 32` and paste it into `CAPABILITY_KEY` in `.env.local`. Then build the simulator and apply migrations:
+
+```sh
+pnpm sim:build
+pnpm db:migrate
+```
+
+The first build downloads simulator sources and dependencies. Docker Compose runs PostgreSQL on `127.0.0.1:55435` and stores its data in a named volume. Stop it with `docker compose down`; restart it with `docker compose up -d --wait`. If you previously used `pnpm setup:local`, stop that PostgreSQL instance before starting Compose because both use the same port.
 
 Start the app and simulation worker in separate terminals:
 
