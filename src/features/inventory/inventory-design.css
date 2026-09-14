@@ -429,6 +429,11 @@
   .run-iterations-labels span:last-child {
     transform: translateX(calc(-100% + 8px));
   }
+  @media (max-width: 360px) {
+    .run-iterations-labels {
+      font-size: 11px;
+    }
+  }
   .run-iterations-labels [data-selected="true"] {
     color: var(--color-action);
   }

@@ -42,7 +42,7 @@
     min-width: 0;
     flex: 1;
   }
-  .inventory .item-row-copy > .item-tooltip-link {
+  .inventory .item-row-copy > .item-tooltip-trigger {
     line-height: 20px;
   }
   .item-row-details {

@@ -77,8 +77,14 @@ test("runs real local DPS and compares complete owned sets", async ({
   ).toBeAttached({ timeout: 90000 });
   await expect(
     page.locator(".gear-strip a[data-item-enhancements]").first(),
-  ).toHaveAttribute("href", /(?:wowhead\.com\/wotlk\/|cavernoftime\.com\/)item=/);
-  const setButton = page.locator(".combination-row").nth(1).getByRole("button");
+  ).toHaveAttribute(
+    "href",
+    /(?:wowhead\.com\/wotlk\/|cavernoftime\.com\/)item=/,
+  );
+  const setButton = page
+    .locator(".combination-row")
+    .nth(1)
+    .getByRole("button", { name: /^View set 2,/ });
   await setButton.focus();
   await page.keyboard.press("Enter");
   await expect(setButton).toHaveAttribute("aria-pressed", "true");

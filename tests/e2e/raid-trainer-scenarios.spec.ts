@@ -251,7 +251,12 @@ test("mobile touch movement and release remain available", async ({ page }) => {
   // The rightward player is the rightmost cyan ring. A pooled cyan centroid
   // also includes the soaker ring/callout and is not a player position.
   const expectedPixels = 7 * ((840 * 0.82) / 90);
-  expect(Math.abs(after.x - before.x - expectedPixels)).toBeLessThanOrEqual(1);
+  // The held interval can straddle one 60 Hz simulation step, and comparing
+  // integer raster edges adds up to one pixel of rounding error.
+  const pixelTolerance = expectedPixels / 60 + 1;
+  expect(Math.abs(after.x - before.x - expectedPixels)).toBeLessThanOrEqual(
+    pixelTolerance,
+  );
   await page.clock.runFor(500);
   expect((await playerX()).x).toBe(after.x);
   await expect(

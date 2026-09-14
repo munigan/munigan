@@ -92,7 +92,7 @@ test("source hints work in rows, pickers and editors without triggering their ac
   const custom = page.locator('.inventory-row[data-source="custom"]').first();
   await custom.getByRole("img", { name: "Custom", exact: true }).hover();
   await expect(tooltip).toHaveText("Custom");
-  await equipped.locator(".item-row-copy > .item-tooltip-link").click();
+  await equipped.locator(".item-row-copy .item-tooltip-link").click();
   const editor = page.getByRole("dialog", { name: "Gems & enchants" });
   await editor.getByRole("img", { name: "Equipped", exact: true }).hover();
   await expect(tooltip).toHaveText("Equipped");
