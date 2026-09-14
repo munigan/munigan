@@ -593,3 +593,8 @@ Read-only export on 2026-09-14. Semantic tokens map to existing app theme. Copy 
   )
 ```
 
+## Final visual verification
+
+The shipped implementation was reviewed against the approved anonymous, authenticated, joined, free-limit, and over-limit states. Durable browser coverage lives in `tests/e2e/pro-launch.spec.ts` and checks both supported locales at 1440×900, 768×1024, 390×844, and 320×740. It verifies modal viewport fit and scrolling, drawer-to-modal handoff, Escape and focus restoration, desktop control order, the trailing Discord icon, and the free-limit sidebar alignment with DOM geometry (six label and marker centers within 1px).
+
+Release QA also covers the successful OAuth return with its query string stripped, explicit zero-before/one-after membership persistence, saved-draft restoration, the joined refresh state, the free 500-iteration request, and the 256-combination upper-bound presentation. Temporary local screenshots support review during the release run; this specification intentionally does not link to the ignored QA ledger because that workspace is deleted after final review.

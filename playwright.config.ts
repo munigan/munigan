@@ -7,6 +7,7 @@ export default defineConfig({
     "auth-controls.spec.ts",
     "auth-return-controls.spec.ts",
     "library-controls.spec.ts",
+    "pro-launch.spec.ts",
   ],
   fullyParallel: false,
   workers: 1,
