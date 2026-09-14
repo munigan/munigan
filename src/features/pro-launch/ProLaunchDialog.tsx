@@ -95,8 +95,7 @@ export function ProLaunchDialog({
             <>
               <DialogTitle className="pro-title">{t("title")}</DialogTitle>
               <DialogDescription className="pro-description">
-                <span>{t("lead")}</span>
-                <span>{t("introduction")}</span>
+                <span>{t("lead")}</span> <span>{t("introduction")}</span>
               </DialogDescription>
             </>
           )}

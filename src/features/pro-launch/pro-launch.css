@@ -31,7 +31,7 @@
 }
 .pro-title {
   grid-column: 1/-1;
-  font-family: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-display, "Barlow Condensed", sans-serif);
   font-size: 48px;
   font-weight: 700;
   line-height: 50px;

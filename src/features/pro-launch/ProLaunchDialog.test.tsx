@@ -47,6 +47,13 @@ describe("ProLaunchDialog", () => {
       signingIn: false,
       error: null,
     });
+    expect(
+      screen.getByRole("dialog", {
+        name: "Meet munigan PRO.",
+        description:
+          "More ways to find your next DPS gain. Here’s what we’re building for the paid plan.",
+      }),
+    ).toBeInTheDocument();
     await userEvent.click(
       screen.getByRole("button", { name: "Continue with Discord" }),
     );
