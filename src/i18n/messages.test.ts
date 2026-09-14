@@ -126,3 +126,12 @@ it("ships item tooltip translations for the item links on the home page", () => 
     expect(catalog).toHaveProperty("inventory.editor.colors.Red");
   }
 });
+
+it("ships the PRO launch-list namespace in every catalog", () => {
+  for (const catalog of [en, pt, homeEn, homePt]) {
+    expect(catalog).toHaveProperty("pro.goPro");
+    expect(catalog).toHaveProperty("pro.discordNotifications");
+    expect(catalog).toHaveProperty("pro.discordSupport");
+    expect(catalog).toHaveProperty("pro.roleRemovalHelp");
+  }
+});

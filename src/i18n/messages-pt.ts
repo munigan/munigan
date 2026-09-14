@@ -8,6 +8,7 @@ import reports from "../../messages/pt-BR/reports.json";
 import diagnostics from "../../messages/pt-BR/diagnostics.json";
 import auth from "../../messages/pt-BR/auth.json";
 import library from "../../messages/pt-BR/library.json";
+import pro from "../../messages/pt-BR/pro.json";
 export const messages = {
   common,
   shell,
@@ -19,4 +20,5 @@ export const messages = {
   diagnostics,
   auth,
   library,
+  pro,
 };

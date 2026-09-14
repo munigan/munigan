@@ -4,4 +4,5 @@ import shell from "../../messages/en-US/shell.json";
 import home from "../../messages/en-US/home.json";
 import auth from "../../messages/en-US/auth.json";
 import library from "../../messages/en-US/library.json";
-export const messages = { common, shell, home, auth, library, inventory };
+import pro from "../../messages/en-US/pro.json";
+export const messages = { common, shell, home, auth, library, inventory, pro };
