@@ -35,6 +35,7 @@ export function RunAllowance({
   const locale = useLocale();
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const pointerType = useRef("");
+  const touchIntent = useRef<boolean | null>(null);
   const overLimit = isCombinationLimitExceeded(policy, allowance);
   const showPro = overLimit && !error && !readinessError;
   const freeLimit =
@@ -88,7 +89,19 @@ export function RunAllowance({
             value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
           />
         </div>
-        <TooltipRoot open={tooltipOpen} onOpenChange={setTooltipOpen}>
+        <TooltipRoot
+          open={tooltipOpen}
+          onOpenChange={(nextOpen) => {
+            if (
+              pointerType.current === "touch" &&
+              touchIntent.current !== null
+            ) {
+              if (nextOpen === touchIntent.current) setTooltipOpen(nextOpen);
+              return;
+            }
+            setTooltipOpen(nextOpen);
+          }}
+        >
           <TooltipTrigger
             render={<button type="button" />}
             className="allowance-help"
@@ -96,11 +109,21 @@ export function RunAllowance({
             closeOnClick={false}
             onPointerDown={(event) => {
               pointerType.current = event.pointerType;
+              if (event.pointerType === "touch")
+                touchIntent.current = !tooltipOpen;
+              else touchIntent.current = null;
+            }}
+            onPointerCancel={() => {
+              touchIntent.current = null;
             }}
             onClick={(event) => {
               event.stopPropagation();
-              if (pointerType.current === "touch")
-                setTooltipOpen((open) => !open);
+              if (pointerType.current === "touch") {
+                setTooltipOpen(touchIntent.current ?? !tooltipOpen);
+                setTimeout(() => {
+                  touchIntent.current = null;
+                });
+              }
             }}
           >
             {t("allowance.about")}

@@ -350,6 +350,8 @@ for (const locale of ["en-us", "pt-br"] as const) {
       if (mobile) {
         await expect(navButton).toBeVisible();
         await navButton.click();
+        const drawer = page.locator(".workbench-drawer");
+        await expect(drawer).toBeVisible();
         trigger = page
           .locator(".workbench-drawer")
           .getByRole("button", { name: names.pro, exact: true });
@@ -459,27 +461,39 @@ test("slider geometry remains aligned and a locked higher value leaves the free 
   await expect.poll(() => simulationPosts).toBe(1);
 });
 
-test("touch allowance tooltip toggles on taps and closes with Escape in a constrained viewport", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    hasTouch: true,
-    viewport: { width: 390, height: 844 },
+for (const touchCase of [
+  { width: 320, height: 740, isMobile: true, overLimit: false },
+  { width: 320, height: 740, isMobile: true, overLimit: true },
+  { width: 390, height: 844, isMobile: false, overLimit: false },
+  { width: 390, height: 844, isMobile: false, overLimit: true },
+]) {
+  test(`touch allowance tooltip toggles at ${touchCase.width}px ${touchCase.isMobile ? "mobile" : "desktop emulation"} ${touchCase.overLimit ? "upper-bound" : "free"}`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      hasTouch: true,
+      isMobile: touchCase.isMobile,
+      viewport: { width: touchCase.width, height: touchCase.height },
+    });
+    const page = await context.newPage();
+    await seedDraft(page, touchCase.overLimit);
+    await restoreDraft(page);
+    const trigger = page.getByRole("button", { name: "About the set limit" });
+    await trigger.tap();
+    await expect(page.getByRole("tooltip")).toBeVisible();
+    await trigger.tap();
+    await expect(page.getByRole("tooltip")).toBeHidden();
+    await trigger.tap();
+    await expect(page.getByRole("tooltip")).toBeVisible();
+    await page.getByRole("heading", { name: "GEAR LAB", exact: true }).tap();
+    await expect(page.getByRole("tooltip")).toBeHidden();
+    await trigger.tap();
+    await expect(page.getByRole("tooltip")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("tooltip")).toBeHidden();
+    await context.close();
   });
-  const page = await context.newPage();
-  await seedDraft(page, true);
-  await restoreDraft(page);
-  const trigger = page.getByRole("button", { name: "About the set limit" });
-  await trigger.tap();
-  await expect(page.getByRole("tooltip")).toBeVisible();
-  await trigger.tap();
-  await expect(page.getByRole("tooltip")).toBeHidden();
-  await trigger.tap();
-  await expect(page.getByRole("tooltip")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("tooltip")).toBeHidden();
-  await context.close();
-});
+}
 
 for (const locale of ["en-us", "pt-br"] as const) {
   test(`joined ${locale} confirmation exposes the optional PRO role invitation without rejoining`, async ({
