@@ -38,11 +38,22 @@
   },
   "iterations": {
     "label": "Iterações por conjunto",
-    "help": "Mais iterações reduzem a variação aleatória, mas aumentam o tempo de simulação.",
+    "help": "Mais iterações reduzem a variação aleatória, mas levam mais tempo. Resultados próximos ainda podem ser inconclusivos.",
     "freeLimit": "Limite do plano grátis",
     "value": "{count} iterações",
     "blocked": "O plano grátis permite {count} iterações. Sua simulação usará {count} por conjunto.",
-    "seePro": "Conhecer o PRO"
+    "seePro": "Conhecer o PRO",
+    "option": "{count} iterações · {availability}",
+    "free": "Grátis",
+    "proSoon": "PRO em breve",
+    "accuracy": {
+      "500": "Estimativa rápida — comparação mais veloz, com maior variação entre execuções.",
+      "1000": "Precisão melhorada — menos variação aleatória do que com 500 iterações.",
+      "1500": "Resultados mais estáveis — estimativas mais consistentes para conjuntos parecidos.",
+      "2000": "Maior precisão — reduz o ruído ao comparar pequenas diferenças de DPS.",
+      "2500": "Comparação mais refinada — mais amostras para conjuntos com desempenho próximo.",
+      "3000": "Estimativa mais estável — menor ruído amostral entre estas opções, com maior tempo de execução."
+    }
   },
   "proLimit": {
     "title": "Limite gratuito atingido",

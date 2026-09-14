@@ -415,39 +415,25 @@ for (const locale of ["en-us", "pt-br"] as const) {
   }
 }
 
-test("slider geometry remains aligned and a locked higher value leaves the free 500 request runnable", async ({
+test("a locked precision choice leaves the free 500 request runnable", async ({
   page,
 }) => {
   await seedDraft(page);
   await restoreDraft(page);
-  const slider = page.getByRole("slider", { name: "Iterations per set" });
-  await expect(slider).toHaveValue("500");
-  await slider.press("ArrowRight");
-  await expect(slider).toHaveValue("500");
+  const select = page.getByRole("combobox", { name: "Iterations per set" });
+  await expect(select).toHaveAttribute("data-select-value", "500");
+  await select.click();
+  await expect(page.getByRole("option")).toHaveCount(6);
+  await page
+    .getByRole("option")
+    .filter({ hasText: "1,000 iterations" })
+    .click();
+  await expect(select).toHaveAttribute("data-select-value", "500");
   await expect(
     page.getByText(
       "Free is limited to 500 iterations. Your simulation will run with 500 per set.",
     ),
   ).toBeVisible();
-  const labels = await page
-    .locator(".run-iterations-labels span")
-    .evaluateAll((nodes) =>
-      nodes.map((node) => {
-        const rect = node.getBoundingClientRect();
-        return rect.x + rect.width / 2;
-      }),
-    );
-  const marks = await page
-    .locator(".run-iterations-marks span")
-    .evaluateAll((nodes) =>
-      nodes.map((node) => {
-        const rect = node.getBoundingClientRect();
-        return rect.x + rect.width / 2;
-      }),
-    );
-  expect(labels).toHaveLength(6);
-  for (let i = 0; i < 6; i++)
-    expect(Math.abs(labels[i] - marks[i])).toBeLessThanOrEqual(1);
   let simulationPosts = 0;
   page.on("request", (request) => {
     if (

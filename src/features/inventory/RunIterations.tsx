@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useState, type CSSProperties } from "react";
+import { useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Select, SelectOption } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { useProLaunch } from "@/features/pro-launch/ProLaunchProvider";
 
@@ -25,44 +26,30 @@ export function RunIterations({ iterations }: { iterations: number | null }) {
         <p id={`${id}-help`} className="run-iterations-help">
           {t("help")}
         </p>
-        <div className="run-iterations-scale">
-          <input
-            id={id}
-            type="range"
-            min={500}
-            max={3000}
-            step={500}
-            value={selected}
-            disabled={iterations === null}
-            aria-valuetext={t("value", { count: formatted })}
-            aria-describedby={`${id}-help ${id}-limit ${id}-feedback`}
-            onChange={(event) => {
-              setLimitReached(Number(event.currentTarget.value) > selected);
-              // Free currently has one allowed value, chosen by the server.
-              // A locked attempt must never become the selected run value.
-              event.currentTarget.value = String(selected);
-            }}
-          />
-          <div className="run-iterations-marks" aria-hidden="true">
-            {steps.map((value, index) => (
-              <span
-                key={value}
-                style={{ "--tick": `${index * 20}%` } as CSSProperties}
-              />
-            ))}
-          </div>
-          <div className="run-iterations-labels" aria-hidden="true">
-            {steps.map((value, index) => (
-              <span
-                key={value}
-                data-selected={value === iterations}
-                style={{ "--tick": `${index * 20}%` } as CSSProperties}
-              >
-                {value.toLocaleString(locale)}
-              </span>
-            ))}
-          </div>
-        </div>
+        <Select
+          id={id}
+          aria-label={t("label")}
+          value={selected}
+          disabled={iterations === null}
+          aria-describedby={`${id}-help ${id}-limit ${id}-feedback`}
+          onValueChange={(value) => {
+            // Preview higher precision without changing the server's free allowance.
+            setLimitReached(Number(value) > selected);
+          }}
+        >
+          {steps.map((value) => (
+            <SelectOption
+              key={value}
+              value={value}
+              description={t(`accuracy.${value}`)}
+            >
+              {t("option", {
+                count: value.toLocaleString(locale),
+                availability: value <= selected ? t("free") : t("proSoon"),
+              })}
+            </SelectOption>
+          ))}
+        </Select>
         <div id={`${id}-limit`} className="run-iterations-limit">
           <span>{t("freeLimit")}</span>
           <span>{t("value", { count: formatted })}</span>

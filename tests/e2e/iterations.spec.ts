@@ -1,106 +1,140 @@
-import { expect, test } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { expect, test, type Page } from "@playwright/test";
+import { spawnSync } from "node:child_process";
 import { selectOption } from "./select-option";
 
-const player = JSON.parse(
-  readFileSync("tests/fixtures/sim/warrior.request.json", "utf8"),
-).raid.parties[0].players[0];
-
-test("Free iterations stay expanded and capped with keyboard, pointer and responsive layouts", async ({
-  page,
-}, testInfo) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.route("**/api/tooltips/*/*", (route) =>
-    route.abort(),
+async function restore(page: Page, overLimit = false) {
+  const fixture = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      "tsx",
+      "-e",
+      `
+    import { fixtureRequest } from "./tests/support/fixtures.ts";
+    import { encodeRequest } from "./src/domain/top-gear/request-schema.ts";
+    const request = fixtureRequest();
+    if (${JSON.stringify(overLimit)}) {
+      const additions = request.snapshot.inventory.slice(0, 8).map((item, index) => ({
+        ...item, instanceId: "iterations-bag-" + index, enchantId: 0, gemIds: [],
+        source: "bag", equippedSlot: undefined,
+      }));
+      request.snapshot.inventory.push(...additions);
+      request.selection.selectedInstanceIds.push(...additions.map(item => item.instanceId));
+    }
+    process.stdout.write(JSON.stringify(encodeRequest(request)));
+  `,
+    ],
+    { encoding: "utf8" },
   );
+  if (fixture.status !== 0) throw new Error(fixture.stderr);
+  await page.addInitScript(
+    (value) => localStorage.setItem("wow-droptimizer.top-gear.v1", value),
+    fixture.stdout,
+  );
+  await page.route("**/api/tooltips/*/*", (route) => route.abort());
   await page.goto("/gear-lab");
-  await page.getByLabel("Character export", { exact: true }).fill(
-    JSON.stringify({
-      name: "Aldren",
-      class: "warrior",
-      race: "human",
-      level: 80,
-      talents: player.talentsString,
-      gear: player.equipment,
-      professions: [{ name: "Engineering" }, { name: "Jewelcrafting" }],
-    }),
-  );
-  await page.getByRole("button", { name: "Review import" }).click();
-  await selectOption(page.getByLabel("DPS preset"), {
-    label: "Fury (19/52/0)",
-  });
-  await page.getByRole("button", { name: "Select gear", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Restore draft", exact: true })
+    .click();
+}
 
-  const sidebar = page.locator(".run-summary");
-  const slider = page.getByRole("slider", { name: "Iterations per set" });
-  await expect(slider).toBeVisible();
-  await expect(slider).toBeEnabled();
+test("precision select describes all values and preserves the free request", async ({
+  page,
+}) => {
+  await restore(page);
+  const select = page.getByRole("combobox", { name: "Iterations per set" });
+  await expect(select).toBeEnabled();
   const draft = await page.evaluate(() =>
     localStorage.getItem("wow-droptimizer.top-gear.v1"),
   );
-  await slider.focus();
-  for (const key of ["ArrowRight", "ArrowUp", "PageUp", "End"]) {
-    await slider.press(key);
-    await expect(slider).toHaveValue("500");
-    await expect(sidebar.getByRole("status")).toContainText(
-      "Free is limited to 500",
-    );
+  await select.click();
+  const options = page.getByRole("option");
+  await expect(options).toHaveCount(6);
+  for (const value of [500, 1000, 1500, 2000, 2500, 3000]) {
+    const item = page.locator(`[role="option"][data-select-value="${value}"]`);
+    await expect(item).toHaveAccessibleDescription(/.+/);
   }
-  const bounds = (await slider.boundingBox())!;
-  await page.mouse.move(bounds.x + 8, bounds.y + bounds.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(
-    bounds.x + bounds.width - 8,
-    bounds.y + bounds.height / 2,
-    { steps: 6 },
+  await select.press("Escape");
+  await select.focus();
+  await select.press("ArrowDown");
+  await page.keyboard.press("End");
+  await expect(page.getByRole("option").last()).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(select).toHaveAttribute("data-select-value", "500");
+  await expect(page.locator(".run-summary").getByRole("status")).toContainText(
+    "Free is limited to 500",
   );
-  await page.mouse.up();
-  await expect(slider).toHaveValue("500");
-  await slider.click({
-    position: { x: bounds.width - 8, y: bounds.height / 2 },
-  });
-  await expect(slider).toHaveValue("500");
+  await selectOption(select, "1000");
+  await expect(select).toHaveAttribute("data-select-value", "500");
   await expect(
-    page.getByRole("button", { name: "Run Gear Lab" }),
+    page.getByRole("button", { name: "Run Gear Lab", exact: true }),
   ).toBeEnabled();
   expect(
     await page.evaluate(() =>
       localStorage.getItem("wow-droptimizer.top-gear.v1"),
     ),
   ).toBe(draft);
+});
 
-  for (const locale of ["en-US", "pt-BR"]) {
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    if (locale === "pt-BR") {
+for (const locale of ["en-US", "pt-BR"]) {
+  test(`sidebar final box remains reachable at short and narrow viewports in ${locale}`, async ({
+    page,
+  }, testInfo) => {
+    await restore(page, true);
+    if (locale === "pt-BR")
       await selectOption(page.getByLabel("Language", { exact: true }), "pt-BR");
-      await expect(
-        page.getByRole("slider", { name: "Iterações por conjunto" }),
-      ).toBeVisible();
-    }
-    for (const width of [1440, 1000, 901, 768, 390, 320]) {
-      await page.setViewportSize({ width, height: 1000 });
-      await sidebar.scrollIntoViewIfNeeded();
+    await expect(page.locator(".run-action-panel")).toContainText(
+      locale === "pt-BR" ? "Adicionar créditos" : "Add credits",
+    );
+    for (const width of [1440, 1000, 901, 390, 320]) {
+      await page.setViewportSize({ width, height: 650 });
+      await page.evaluate(() => window.scrollTo(0, 500));
+      const sidebar = page.locator(".run-summary");
+      if (width > 900) {
+        await sidebar.evaluate((node) => {
+          node.scrollTop = node.scrollHeight;
+        });
+        const box = await sidebar.boundingBox();
+        expect(box!.y).toBeGreaterThanOrEqual(76);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(626);
+      } else {
+        await page
+          .locator(".run-action-panel")
+          .evaluate((node) =>
+            window.scrollBy(
+              0,
+              node.getBoundingClientRect().bottom - innerHeight + 24,
+            ),
+          );
+      }
+      const finalBox = await page.locator(".run-action-panel").boundingBox();
+      expect(finalBox!.y + finalBox!.height).toBeLessThanOrEqual(650);
+      const lastText = page.locator(".run-action-panel > p").last();
+      await expect(lastText).toBeInViewport();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
         ),
       ).toBe(true);
-      const labels = await page
-        .locator(".run-iterations-labels span")
-        .evaluateAll((elements) =>
-          elements.map((element) => {
-            const rect = element.getBoundingClientRect();
-            return { left: rect.left, right: rect.right };
-          }),
-        );
-      for (let i = 1; i < labels.length; i++) {
-        expect(labels[i].left).toBeGreaterThanOrEqual(labels[i - 1].right + 2);
-      }
-      if (width === 1440 || width === 390) {
-        await sidebar.screenshot({
-          path: testInfo.outputPath(`iterations-${locale}-${width}.png`),
+      if (width === 1440 || width === 320)
+        await page.screenshot({
+          path: testInfo.outputPath(`sidebar-${locale}-${width}.png`),
         });
-      }
+      const precision = page.locator(".run-iterations").getByRole("combobox");
+      await precision.click();
+      const popup = page.getByRole("listbox");
+      await expect(popup).toBeVisible();
+      const popupBox = await popup.boundingBox();
+      expect(popupBox!.x).toBeGreaterThanOrEqual(0);
+      expect(popupBox!.x + popupBox!.width).toBeLessThanOrEqual(width);
+      await expect(
+        page.getByRole("option").first(),
+      ).toHaveAccessibleDescription(/.+/);
+      if (width === 1440 || width === 320)
+        await page.screenshot({
+          path: testInfo.outputPath(`precision-${locale}-${width}.png`),
+        });
+      await page.keyboard.press("Escape");
     }
-  }
-});
+  });
+}

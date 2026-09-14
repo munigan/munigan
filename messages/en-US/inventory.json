@@ -38,11 +38,22 @@
   },
   "iterations": {
     "label": "Iterations per set",
-    "help": "More iterations reduce random variation but take longer to simulate.",
+    "help": "More iterations reduce random variation but take longer. Close results may still be inconclusive.",
     "freeLimit": "Free plan limit",
     "value": "{count} iterations",
     "blocked": "Free is limited to {count} iterations. Your simulation will run with {count} per set.",
-    "seePro": "See PRO"
+    "seePro": "See PRO",
+    "option": "{count} iterations · {availability}",
+    "free": "Free",
+    "proSoon": "PRO soon",
+    "accuracy": {
+      "500": "Quick estimate — fastest comparison, with more variation between runs.",
+      "1000": "Improved precision — less random variation than 500 iterations.",
+      "1500": "Steadier results — more consistent estimates for similar gear sets.",
+      "2000": "Higher precision — reduces noise when comparing small DPS differences.",
+      "2500": "Finer comparison — more sampling for closely matched gear sets.",
+      "3000": "Most stable estimate — lowest sampling noise here, with the longest run time."
+    }
   },
   "proLimit": {
     "title": "Free limit reached",

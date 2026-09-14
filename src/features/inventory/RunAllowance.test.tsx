@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { expect, it, vi } from "vitest";
 import inventory from "../../../messages/en-US/inventory.json";
@@ -66,29 +67,34 @@ function setup({
   return { onRun, onReduceSelection };
 }
 
-it("keeps Free at 500 after repeated locked slider attempts without blocking a valid run", () => {
+it("describes all six iteration choices and keeps locked choices at the free allowance", async () => {
+  const user = userEvent.setup();
   const { onRun } = setup();
-  const slider = screen.getByRole("slider", { name: "Iterations per set" });
-  expect(slider).toBeVisible();
-  expect(slider).toHaveAttribute("min", "500");
-  expect(slider).toHaveAttribute("max", "3000");
-  expect(slider).toHaveAttribute("step", "500");
-  expect(slider).toHaveValue("500");
+  const select = screen.getByRole("combobox", { name: "Iterations per set" });
+  expect(screen.queryByRole("slider")).toBeNull();
   for (const value of ["1000", "3000", "1500"]) {
-    fireEvent.change(slider, { target: { value } });
-    expect(slider).toHaveValue("500");
+    await user.click(select);
+    const options = await screen.findAllByRole("option");
+    expect(options).toHaveLength(6);
+    for (const option of options) expect(option).toHaveAccessibleDescription();
+    await user.click(
+      options.find(
+        (option) => option.getAttribute("data-select-value") === value,
+      )!,
+    );
+    expect(select).toHaveAttribute("data-select-value", "500");
     expect(screen.getByRole("status")).toHaveTextContent(/Free.*500/);
   }
   const run = screen.getByRole("button", { name: /Run Gear Lab/ });
   expect(run).toBeEnabled();
-  fireEvent.click(run);
+  await user.click(run);
   expect(onRun).toHaveBeenCalledOnce();
 });
 
 it("waits for the server allowance before enabling the iterations control or submitting", () => {
   setup({ loadedPolicy: null });
   expect(
-    screen.getByRole("slider", { name: "Iterations per set" }),
+    screen.getByRole("combobox", { name: "Iterations per set" }),
   ).toBeDisabled();
   expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeDisabled();
 });
@@ -141,10 +147,13 @@ it.each([
   expect(screen.queryByRole("button", { name: /Add credits/ })).toBeNull();
 });
 
-it("opens the iteration PRO invitation while retaining the valid free run", () => {
+it("opens the iteration PRO invitation while retaining the valid free run", async () => {
+  const user = userEvent.setup();
   const { onRun } = setup({ suppliedAllowance: allowanceForCount(96, policy) });
-  const slider = screen.getByRole("slider", { name: "Iterations per set" });
-  fireEvent.change(slider, { target: { value: "1000" } });
+  await user.click(
+    screen.getByRole("combobox", { name: "Iterations per set" }),
+  );
+  await user.click((await screen.findAllByRole("option"))[1]);
   const seePro = screen.getByRole("button", { name: "See PRO" });
   fireEvent.click(seePro);
   expect(open).toHaveBeenCalledWith("iterations_limit", seePro);
