@@ -1,6 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import {
   DialogContent,
@@ -9,14 +8,8 @@ import {
   DialogRoot,
   DialogTitle,
 } from "@/components/ui/Dialog";
-import { authClient } from "./client";
 import { DiscordIcon } from "./DiscordIcon";
-
-import {
-  safeReturnPath,
-  storeSignInReturn,
-  oauthCallbackPath,
-} from "./return-state";
+import { useDiscordSignIn } from "./useDiscordSignIn";
 
 export function SignInDialog({
   open,
@@ -27,43 +20,8 @@ export function SignInDialog({
   onOpenChange: (open: boolean) => void;
   callbackPath: string;
 }) {
-  const locale = useLocale();
-  const flow = useRef("");
   const t = useTranslations("auth");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  async function beginSignIn() {
-    setError(null);
-    if (
-      !callbackPath.startsWith("/") ||
-      callbackPath.startsWith("//") ||
-      callbackPath.includes("\\") ||
-      /^\/api\/auth/.test(callbackPath) ||
-      /^\/auth\/return/.test(callbackPath)
-    ) {
-      setError(t("invalidCallback"));
-      return;
-    }
-    setPending(true);
-    try {
-      if (!flow.current) flow.current = crypto.randomUUID();
-      storeSignInReturn(flow.current, {
-        returnPath: safeReturnPath(callbackPath, window.location.origin),
-        locale: locale === "pt-BR" ? "pt-BR" : "en-US",
-      });
-      const callbackURL = oauthCallbackPath("flow", flow.current);
-      const result = await authClient.signIn.social({
-        provider: "discord",
-        callbackURL,
-        errorCallbackURL: callbackURL,
-      });
-      if (result?.error) setError(t("signInFailed"));
-    } catch {
-      setError(t("signInFailed"));
-    } finally {
-      setPending(false);
-    }
-  }
+  const { pending, error, beginSignIn } = useDiscordSignIn({ callbackPath });
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent className="auth-dialog">

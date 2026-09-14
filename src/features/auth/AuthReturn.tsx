@@ -20,6 +20,7 @@ import {
   loadDeletionReturn,
   validateDeletionReturn,
 } from "./deletion-return";
+import { storeProLaunchResume } from "@/features/pro-launch/resume";
 
 type Flow = { kind: "intent" | "flow"; key: string };
 const activeKey = "munigan.auth.active";
@@ -199,6 +200,17 @@ export function AuthReturn() {
             return;
           }
           validateDeletionReturn(flow!.key, result.account.id);
+          if (
+            "proLaunch" in state &&
+            state.proLaunch &&
+            "returnPath" in state
+          ) {
+            storeProLaunchResume({
+              userId: result.account.id,
+              returnPath: state.returnPath,
+              source: state.proLaunch.source,
+            });
+          }
           clearSignInReturn(flow!.key);
           sessionStorage.removeItem(activeKey);
           router.replace(

@@ -1,8 +1,13 @@
 import type { ReportViewState } from "@/domain/accounts/contracts";
+import {
+  proLaunchSources,
+  type ProLaunchSource,
+} from "@/domain/pro-launch/contracts";
 export type SignInReturn = {
   returnPath: string;
   locale: "en-US" | "pt-BR";
   expectedUserId?: string;
+  proLaunch?: { source: ProLaunchSource };
 };
 export const validFlowKey = (key: string) =>
   /^[A-Za-z0-9_-]{32,128}$/.test(key);
@@ -85,7 +90,13 @@ function signInValid(value: unknown): value is SignInReturn {
     (s.expectedUserId === undefined ||
       (typeof s.expectedUserId === "string" &&
         s.expectedUserId.length > 0 &&
-        s.expectedUserId.length <= 128))
+        s.expectedUserId.length <= 128)) &&
+    (s.proLaunch === undefined ||
+      (s.proLaunch !== null &&
+        typeof s.proLaunch === "object" &&
+        Object.keys(s.proLaunch).length === 1 &&
+        "source" in s.proLaunch &&
+        proLaunchSources.includes(s.proLaunch.source as ProLaunchSource)))
   );
 }
 function store(prefix: string, flow: string, value: unknown) {

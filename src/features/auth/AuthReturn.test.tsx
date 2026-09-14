@@ -10,6 +10,7 @@ import {
   loadReturnState,
   loadSignInReturn,
 } from "./return-state";
+import { consumeProLaunchResume } from "@/features/pro-launch/resume";
 const { replace, social } = vi.hoisted(() => ({
   replace: vi.fn(),
   social: vi.fn(),
@@ -65,6 +66,7 @@ it("never claims for general sign-in and checks expected identity", async () => 
     returnPath: "/library?auth=secret",
     locale: "en-US",
     expectedUserId: "original",
+    proLaunch: { source: "iterations_limit" },
   });
   history.replaceState(null, "", `/auth/return?flow=${key}`);
   const fetch = vi.fn().mockResolvedValue({
@@ -78,6 +80,81 @@ it("never claims for general sign-in and checks expected identity", async () => 
   );
   expect(replace).not.toHaveBeenCalled();
   expect(fetch).toHaveBeenCalledTimes(1);
+  expect(consumeProLaunchResume("other", "/library")).toBeNull();
+});
+it("stores a verified PRO resume and navigates without joining", async () => {
+  storeSignInReturn(key, {
+    returnPath: "/gear-lab",
+    locale: "en-US",
+    proLaunch: { source: "gear_limit" },
+  });
+  history.replaceState(null, "", `/auth/return?flow=${key}`);
+  const fetch = vi
+    .fn()
+    .mockResolvedValue(Response.json({ account: { id: "account-a" } }));
+  vi.stubGlobal("fetch", fetch);
+  view();
+  await waitFor(() => expect(replace).toHaveBeenCalledWith("/gear-lab"));
+  expect(consumeProLaunchResume("account-a", "/gear-lab")).toEqual({
+    source: "gear_limit",
+  });
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch.mock.calls[0][0]).toBe("/api/account/session");
+});
+it("does not store a PRO resume for ordinary login", async () => {
+  storeSignInReturn(key, { returnPath: "/library", locale: "en-US" });
+  history.replaceState(null, "", `/auth/return?flow=${key}`);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(Response.json({ account: { id: "account-a" } })),
+  );
+  view();
+  await waitFor(() => expect(replace).toHaveBeenCalledWith("/library"));
+  expect(consumeProLaunchResume("account-a", "/library")).toBeNull();
+});
+it("keeps PRO sign-in state retryable when resume storage fails", async () => {
+  storeSignInReturn(key, {
+    returnPath: "/gear-lab",
+    locale: "en-US",
+    proLaunch: { source: "header" },
+  });
+  history.replaceState(null, "", `/auth/return?flow=${key}`);
+  const originalSetItem = Storage.prototype.setItem;
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+    this: Storage,
+    storageKey,
+    value,
+  ) {
+    if (storageKey === "munigan.pro-launch.resume")
+      throw new Error("storage blocked");
+    return originalSetItem.call(this, storageKey, value);
+  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(Response.json({ account: { id: "account-a" } })),
+  );
+  view();
+  expect(await screen.findByRole("alert")).toHaveTextContent(en.returnFailed);
+  expect(loadSignInReturn(key)?.proLaunch).toEqual({ source: "header" });
+  expect(replace).not.toHaveBeenCalled();
+});
+it("does not store a PRO resume after rejected OAuth state", async () => {
+  storeSignInReturn(key, {
+    returnPath: "/gear-lab",
+    locale: "en-US",
+    proLaunch: { source: "header" },
+  });
+  sessionStorage.setItem(
+    "munigan.auth.active",
+    JSON.stringify({ version: 1, kind: "flow", key }),
+  );
+  history.replaceState(null, "", "/auth/return?error=state_mismatch");
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  view();
+  await screen.findByRole("alert");
+  expect(consumeProLaunchResume("account-a", "/gear-lab")).toBeNull();
+  expect(fetch).not.toHaveBeenCalled();
 });
 it("retains a failed intent across reload and retries saving without another OAuth", async () => {
   storeReturnState(key, state);

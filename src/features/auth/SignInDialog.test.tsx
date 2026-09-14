@@ -22,7 +22,11 @@ const messages = {
 };
 
 describe("SignInDialog", () => {
-  beforeEach(() => social.mockReset());
+  beforeEach(() => {
+    social.mockReset();
+    sessionStorage.clear();
+    vi.restoreAllMocks();
+  });
 
   it("does not open automatically and returns focus after Escape", async () => {
     function Harness() {
@@ -98,5 +102,21 @@ describe("SignInDialog", () => {
     );
     expect(social).not.toHaveBeenCalled();
     expect(screen.getByRole("alert")).toHaveTextContent("invalid");
+  });
+
+  it("does not navigate to Discord when return storage fails", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("storage blocked");
+    });
+    render(
+      <NextIntlClientProvider locale="en-US" messages={messages}>
+        <SignInDialog open onOpenChange={vi.fn()} callbackPath="/gear-lab" />
+      </NextIntlClientProvider>,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Continue with Discord" }),
+    );
+    expect(social).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("could not start");
   });
 });

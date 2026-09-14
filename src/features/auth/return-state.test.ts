@@ -59,6 +59,34 @@ it("round trips independent payload shapes and consumes explicitly", () => {
   expect(loadReturnState(key)).toBeNull();
   expect(loadSignInReturn(key)).not.toBeNull();
 });
+it("retains PRO intent separately from the safe callback path", () => {
+  storeSignInReturn(key, {
+    returnPath: "/gear-lab?pro=forged",
+    locale: "pt-BR",
+    proLaunch: { source: "gear_limit" },
+  });
+  expect(loadSignInReturn(key)).toEqual({
+    returnPath: "/gear-lab",
+    locale: "pt-BR",
+    proLaunch: { source: "gear_limit" },
+  });
+});
+it("rejects undeclared or malformed PRO sign-in intent", () => {
+  for (const proLaunch of [
+    { source: "unknown" },
+    { source: "header", extra: true },
+    {},
+    "header",
+  ]) {
+    expect(() =>
+      storeSignInReturn(key, {
+        returnPath: "/gear-lab",
+        locale: "en-US",
+        proLaunch,
+      } as never),
+    ).toThrow("Invalid sign-in state");
+  }
+});
 it("rejects hostile or expired stored values", () => {
   for (const patch of [
     { cursor: 1 },
