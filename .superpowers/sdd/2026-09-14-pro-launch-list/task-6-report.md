@@ -46,3 +46,11 @@ Additional verification:
 ## Self-review
 
 Re-read the brief against the diff. Server policy values and admission behavior remain unchanged; all PRO thresholds and explanatory numbers come from the loaded policy. Error precedence, upper-bound truthfulness, repeated iteration attempts, touch/keyboard tooltip use, storage failure cancellation, draft restoration, and focus-only reduction are covered. No remaining concern found.
+
+## Follow-up visual/spec corrections
+
+- Added a 24px flex gap between the combination and action surfaces at desktop and mobile widths, aligned the visual track center with the 44px range input center, and tightened the action button margin selector.
+- Restored the policy-derived numeric free combination cap, added localized exact excess copy, and moved ordinary feedback inside the third action surface.
+- RED: `pnpm exec vitest run --project ui src/features/inventory/RunAllowance.test.tsx` failed 3 assertions because exact excess copy was absent and error alerts were outside the action panel.
+- GREEN: the same command passed 10/10 tests.
+- Live Chromium geometry against the existing port 3100 server reported `actionDisplay: flex`, `actionGap: 24px`, `surfaceGap: 24`, and identical `trackCenter`/`inputCenter` values of 890px.

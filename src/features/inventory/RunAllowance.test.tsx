@@ -107,6 +107,9 @@ it("offers PRO for a known exact excess and never starts a run", () => {
   expect(open).toHaveBeenCalledWith("gear_limit", addCredits);
   expect(onRun).not.toHaveBeenCalled();
   expect(screen.getByText(/144 combinations/)).toBeInTheDocument();
+  expect(
+    screen.getByText("24 combinations above the free limit."),
+  ).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: /Reduce selection/ }));
   expect(onReduceSelection).toHaveBeenCalledOnce();
 });
@@ -132,6 +135,7 @@ it.each([
   expect(screen.getByRole("alert")).toHaveTextContent(
     messages.error || messages.readinessError,
   );
+  expect(screen.getByRole("alert").closest(".run-action-panel")).not.toBeNull();
   expect(screen.queryByRole("button", { name: /Add credits/ })).toBeNull();
 });
 

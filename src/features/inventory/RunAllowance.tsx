@@ -76,7 +76,11 @@ export function RunAllowance({
                 t("allowance.loading")
               )}
             </span>
-            <span className="badge">{t("allowance.free")}</span>
+            <span className="badge">
+              {policy
+                ? t("allowance.combinationLimit", { count: freeLimit })
+                : t("allowance.free")}
+            </span>
           </div>
           <progress
             aria-label={t("allowance.label")}
@@ -119,14 +123,15 @@ export function RunAllowance({
         {allowance?.countKind === "upper-bound" && overLimit && (
           <p className="run-count-note">{t("allowance.mayExceed")}</p>
         )}
+        {allowance?.countKind === "exact" && overLimit && (
+          <p className="run-count-note">
+            {t("allowance.exactExcess", {
+              count: allowance.count - freeLimit,
+            })}
+          </p>
+        )}
         <RunIterations iterations={policy?.iterationsPerSet ?? null} />
       </div>
-      {!showPro &&
-        (error || readinessError || (allowance && !allowance.allowed)) && (
-          <AlertMessage className="run-feedback" tone="error">
-            {error || readinessError || t("allowance.reduce")}
-          </AlertMessage>
-        )}
       {showPro && policy ? (
         <ProRunNotice
           freeLimit={freeLimit}
@@ -135,6 +140,11 @@ export function RunAllowance({
         />
       ) : (
         <section className="run-action-panel">
+          {(error || readinessError || (allowance && !allowance.allowed)) && (
+            <AlertMessage className="run-feedback" tone="error">
+              {error || readinessError || t("allowance.reduce")}
+            </AlertMessage>
+          )}
           <Button
             variant="primary"
             className="primary run-button"

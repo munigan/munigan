@@ -24,6 +24,7 @@
     "sets": "sets",
     "loading": "Loading allowance…",
     "free": "Free",
+    "combinationLimit": "Free limit: {count}",
     "label": "Free work allowance",
     "about": "About the set limit",
     "units": "{used} / {max} work units",
@@ -32,7 +33,8 @@
     "combinations": "combinations",
     "exact": "{count, plural, one {# combination} other {# combinations}}",
     "upTo": "{count, plural, one {Up to # combination} other {Up to # combinations}}",
-    "mayExceed": "This selection may exceed the free limit."
+    "mayExceed": "This selection may exceed the free limit.",
+    "exactExcess": "{count, plural, one {# combination above the free limit.} other {# combinations above the free limit.}}"
   },
   "iterations": {
     "label": "Iterations per set",

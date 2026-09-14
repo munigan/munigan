@@ -24,6 +24,9 @@
   }
   .run-summary .run-action {
     position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
     padding: 0;
     background: transparent;
     box-shadow: none;
@@ -64,7 +67,7 @@
     font-size: 18px;
     line-height: 24px;
   }
-  .run-action-panel > .run-button {
+  .run-summary .run-action-panel > .run-button {
     width: 100%;
     margin-top: 8px;
   }
@@ -135,7 +138,7 @@
       padding: 28px 0 0;
     }
     .run-summary .allowance-help {
-      display: block;
+      display: flex;
     }
     .run-summary .simulation-settings-summary {
       display: block;
@@ -437,7 +440,7 @@
   }
   .run-iterations-marks {
     position: absolute;
-    top: 22px;
+    top: 20px;
     left: var(--label-half);
     right: var(--label-half);
     height: 4px;

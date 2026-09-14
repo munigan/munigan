@@ -24,6 +24,7 @@
     "sets": "conjuntos",
     "loading": "Carregando limite…",
     "free": "Grátis",
+    "combinationLimit": "Limite grátis: {count}",
     "label": "Limite gratuito de processamento",
     "about": "Sobre o limite de conjuntos",
     "units": "{used} / {max} unidades de processamento",
@@ -32,7 +33,8 @@
     "combinations": "combinações",
     "exact": "{count, plural, one {# combinação} other {# combinações}}",
     "upTo": "{count, plural, one {Até # combinação} other {Até # combinações}}",
-    "mayExceed": "Esta seleção pode ultrapassar o limite gratuito."
+    "mayExceed": "Esta seleção pode ultrapassar o limite gratuito.",
+    "exactExcess": "{count, plural, one {# combinação acima do limite gratuito.} other {# combinações acima do limite gratuito.}}"
   },
   "iterations": {
     "label": "Iterações por conjunto",
