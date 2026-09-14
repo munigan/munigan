@@ -68,6 +68,9 @@ export async function requestAccountDeletion(
       "UPDATE account_lifecycle SET status='deleting',deletion_requested_at=now() WHERE user_id=$1",
       [account.id],
     );
+    await c.query("DELETE FROM pro_launch_memberships WHERE user_id=$1", [
+      account.id,
+    ]);
     await c.query(
       "UPDATE tg_jobs SET deleted_at=coalesce(deleted_at,now()),cancel_requested=CASE WHEN NOT settled THEN true ELSE cancel_requested END WHERE account_id=$1",
       [account.id],
