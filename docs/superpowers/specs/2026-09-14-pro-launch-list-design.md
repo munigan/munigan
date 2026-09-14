@@ -90,4 +90,3 @@ The user approved implementation using the configured Discord server after this 
 - Centralize both public URLs in `src/domain/pro-launch/discord.ts`. No secret webhook URLs, bot tokens, outgoing webhook calls, DMs, role-sync API or payment execution in this release.
 - Replace offerBody, anonymousBody, consent and nextSteps copy to make clear app signup reserves the offer and optional Discord server enrollment enables channel announcements. No claim of guaranteed delivery or existing role assignment.
 - Two publishing webhooks exist in Discord but are intentionally not consumed by this web UI implementation. See `docs/engineering/discord-community-setup.md`.
-
