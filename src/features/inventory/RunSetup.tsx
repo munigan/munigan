@@ -1,4 +1,5 @@
 "use client";
+import { memo, type ReactNode } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Select, SelectOption } from "@/components/ui/Select";
 import type { TopGearRequest, WorkPolicy } from "@/domain/top-gear/model";
@@ -14,47 +15,101 @@ import { CharacterPortrait } from "./CharacterPortrait";
 import { RunSettingRow, RunSettingAction } from "./RunSettingRow";
 import { RunAllowance } from "./RunAllowance";
 import { Button } from "@/components/ui/Button";
+import type { GearLabActions } from "./state/gear-lab-store";
+import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 export function RunSetup({
   request,
+  resourceCount,
   policy,
   allowance,
   error,
   readinessError,
   pending,
-  onChange: change,
+  actions,
   onImport,
   onSettings,
   onEnhancements,
   onRun,
+  onPurchases,
+  purchaseAnalysis,
+  feedback,
   onReduceSelection,
 }: {
-  request: TopGearRequest;
+  feedback?: ReactNode;
+  onReduceSelection?: () => void;
+  request: Pick<TopGearRequest, "snapshot" | "iterations">;
+  resourceCount: number;
   policy: WorkPolicy | null;
   allowance: ReturnType<typeof estimateAllowance> | null;
   error: string;
   readinessError: string;
   pending: boolean;
-  onChange: (request: TopGearRequest) => void;
+  actions: GearLabActions;
   onImport: () => void;
   onSettings: () => void;
   onEnhancements: () => void;
   onRun: () => void;
-  onReduceSelection?: () => void;
+  onPurchases?: () => void;
+  purchaseAnalysis?: PurchaseAnalysisState;
 }) {
   const t = useTranslations("inventory");
-  const locale = useLocale();
-  const spec = getSpec(request.snapshot.specId);
+
   return (
     <aside className="run-summary" aria-label={t("run.setup")}>
+      <RunConfiguration
+        snapshot={request.snapshot}
+        resourceCount={resourceCount}
+        actions={actions}
+        onImport={onImport}
+        onSettings={onSettings}
+        onEnhancements={onEnhancements}
+        onPurchases={onPurchases}
+      />
+      <RunAllowance
+        request={request}
+        policy={policy}
+        allowance={allowance}
+        purchaseAnalysis={purchaseAnalysis}
+        error={error}
+        readinessError={readinessError}
+        pending={pending}
+        onRun={onRun}
+        onReduceSelection={onReduceSelection}
+        onIterationsChange={(iterations) => {
+          if (policy) actions.setIterations(iterations, policy);
+        }}
+      />
+      {feedback}
+    </aside>
+  );
+}
+
+const RunConfiguration = memo(function RunConfiguration({
+  snapshot,
+  resourceCount,
+  actions,
+  onImport,
+  onSettings,
+  onEnhancements,
+  onPurchases,
+}: {
+  snapshot: TopGearRequest["snapshot"];
+  resourceCount: number;
+  actions: GearLabActions;
+  onImport: () => void;
+  onSettings: () => void;
+  onEnhancements: () => void;
+  onPurchases?: () => void;
+}) {
+  const t = useTranslations("inventory"),
+    locale = useLocale();
+  const spec = getSpec(snapshot.specId);
+  return (
+    <>
       <div className="run-character section-top">
-        <CharacterPortrait
-          className={spec.className}
-          snapshot={request.snapshot}
-        />
+        <CharacterPortrait className={spec.className} snapshot={snapshot} />
         <div className="run-character-name">
-          <h2>
-            {request.snapshot.settings.player!.name || t("run.character")}
-          </h2>
+          <h2>{snapshot.settings.player!.name || t("run.character")}</h2>
           <p className="muted small">
             {spec.name} ·{" "}
             {spec.className.replace("Deathknight", "Death Knight")} · 80
@@ -74,21 +129,9 @@ export function RunSetup({
             <span className="run-setting-title">{t("run.itemVersion")}</span>
             <Select
               aria-label={t("run.itemVersion")}
-              value={itemVersionOf(request.snapshot)}
+              value={itemVersionOf(snapshot)}
               onValueChange={(value) => {
-                const itemVersion = value as ItemVersion;
-                change({
-                  ...request,
-                  snapshot: {
-                    ...request.snapshot,
-                    itemVersion,
-                    itemDataRevision: itemVersions[itemVersion].revision,
-                    provenance: {
-                      ...request.snapshot.provenance,
-                      itemVersion: "edited",
-                    },
-                  },
-                });
+                actions.setItemVersion(value as ItemVersion);
               }}
             >
               {Object.entries(itemVersions).map(([id, profile]) => (
@@ -109,30 +152,28 @@ export function RunSetup({
           </RunSettingAction>
           <p className="run-setting-description">
             {t("run.targets", {
-              count: request.snapshot.settings.encounter!.targets.length,
+              count: snapshot.settings.encounter!.targets.length,
             })}{" "}
-            ·{" "}
-            {request.snapshot.settings.encounter!.duration.toLocaleString(
-              locale,
-            )}
-            s
+            · {snapshot.settings.encounter!.duration.toLocaleString(locale)}s
           </p>
         </RunSettingRow>
+        {resourceCount > 0 && (
+          <RunSettingRow icon="settings">
+            <RunSettingAction onClick={() => onPurchases?.()}>
+              {t("purchases.summary")}
+            </RunSettingAction>
+            <p className="run-setting-description">
+              {t("purchases.summaryCount", {
+                count: resourceCount,
+              })}
+            </p>
+          </RunSettingRow>
+        )}
         <EnhancementSummary
-          snapshot={request.snapshot}
+          snapshot={snapshot}
           onOpen={() => onEnhancements()}
         />
       </div>
-      <RunAllowance
-        request={request}
-        policy={policy}
-        allowance={allowance}
-        error={error}
-        readinessError={readinessError}
-        pending={pending}
-        onRun={onRun}
-        onReduceSelection={onReduceSelection}
-      />
-    </aside>
+    </>
   );
-}
+});

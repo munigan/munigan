@@ -63,9 +63,7 @@ it("keeps manual gem and empty enchant changes local across fields until applyin
   expect(JSON.stringify(request)).toBe(original);
   expect(onApply).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole("button", { name: "Apply changes" }));
-  expect(
-    onApply.mock.calls[0][0].snapshot.itemEnhancements["custom-50037"],
-  ).toEqual({ gemIds: [40111], enchantId: 0 });
+  expect(onApply.mock.calls[0][0]).toEqual({ gemIds: [40111], enchantId: 0 });
   expect(onClose).toHaveBeenCalledOnce();
 });
 
@@ -83,9 +81,7 @@ it("resets all fields to automatic without mutating the imported item", async ()
   await userEvent.click(screen.getByRole("button", { name: "Reset item" }));
   expect(screen.getByRole("radio", { name: "Automatic" })).toBeChecked();
   await userEvent.click(screen.getByRole("button", { name: "Apply changes" }));
-  expect(
-    onApply.mock.calls[0][0].snapshot.itemEnhancements?.["custom-50037"],
-  ).toBeUndefined();
+  expect(onApply.mock.calls[0][0]).toEqual({});
   expect(request.snapshot.inventory.at(-1)?.gemIds).toEqual([]);
 });
 
@@ -165,7 +161,7 @@ it("retains an invalid stored override and lets Automatic recover it", async () 
   await userEvent.click(screen.getByRole("radio", { name: "Automatic" }));
   expect(screen.getByRole("button", { name: "Apply changes" })).toBeEnabled();
   await userEvent.click(screen.getByRole("button", { name: "Apply changes" }));
-  expect(onApply.mock.calls[0][0].snapshot.itemEnhancements).toBeUndefined();
+  expect(onApply.mock.calls[0][0]).toEqual({ gemIds: [null] });
 });
 
 it("allows ordinary enchants without Enchanting and disables unavailable profession enchants", async () => {

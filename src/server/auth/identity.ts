@@ -4,6 +4,7 @@ import type {
   RequestIdentity,
 } from "@/domain/accounts/contracts";
 import { owner } from "@/server/http/api";
+import { unlimitedLocalAdmission } from "@/server/jobs/policy";
 import { digest } from "@/server/jobs/capabilities";
 import { authConfigured, authFlags, getAuth } from "./config";
 import { AccountError, authUnavailable } from "./errors";
@@ -17,9 +18,30 @@ export async function readAccountSession(request: Request, refresh = false) {
         /(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=/.test(
           request.headers.get("cookie") ?? "",
         );
-      if (flags.savingEnabled || flags.enrollmentEnabled || hasCookie)
+      const localAnonymous =
+        unlimitedLocalAdmission() &&
+        !flags.savingEnabled &&
+        !flags.enrollmentEnabled;
+      if (
+        flags.savingEnabled ||
+        flags.enrollmentEnabled ||
+        (hasCookie && !localAnonymous)
+      )
         throw authUnavailable();
-      return { account: null, headers: new Headers() };
+      const headers = new Headers();
+      if (hasCookie && localAnonymous) {
+        // A local preview can outlive its optional OAuth setup. Expire that
+        // obsolete login while retaining the independent anonymous owner cookie.
+        headers.append(
+          "set-cookie",
+          "better-auth.session_token=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
+        );
+        headers.append(
+          "set-cookie",
+          "__Secure-better-auth.session_token=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax; Secure",
+        );
+      }
+      return { account: null, headers };
     }
     const { response, headers } = await getAuth().api.getSession({
       headers: request.headers,

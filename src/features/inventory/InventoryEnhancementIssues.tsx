@@ -1,13 +1,10 @@
 import { localizeDiagnostic } from "@/i18n/diagnostics";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { TopGearRequest } from "@/domain/top-gear/model";
 import type { analyzeItemEnhancementSets } from "@/domain/equipment/enumerate";
 import { getCatalog } from "@/domain/equipment/catalog";
-import {
-  setItemEnhancements,
-  validateItemEnhancements,
-} from "@/domain/equipment/item-enhancements";
+import { validateItemEnhancements } from "@/domain/equipment/item-enhancements";
 import { Alert, AlertContent } from "@/components/ui/Alert";
 import { Pagination } from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/Button";
@@ -20,12 +17,12 @@ export type EnhancementSetAnalysis = ReturnType<
 export function InventoryEnhancementIssues({
   request,
   analysis,
-  onChange,
+  onReset,
   onEdit,
 }: {
   request: TopGearRequest;
   analysis: EnhancementSetAnalysis | null;
-  onChange: (request: TopGearRequest) => void;
+  onReset: (instanceId: string) => void;
   onEdit: (instanceId: string, field: EnhancementField) => void;
 }) {
   const t = useTranslations("inventory");
@@ -33,13 +30,18 @@ export function InventoryEnhancementIssues({
   const [expanded, setExpanded] = useState(false),
     [index, setIndex] = useState(0);
   const catalog = getCatalog(request.snapshot.itemVersion);
-  const invalidItems = request.snapshot.inventory.filter((item) => {
-    const override = request.snapshot.itemEnhancements?.[item.instanceId];
-    return (
-      override &&
-      validateItemEnhancements(request.snapshot, item, override).length
-    );
-  });
+  const invalid = useMemo(
+    () =>
+      request.snapshot.inventory.flatMap((item) => {
+        const override = request.snapshot.itemEnhancements?.[item.instanceId];
+        const diagnostics = override
+          ? validateItemEnhancements(request.snapshot, item, override)
+          : [];
+        return diagnostics.length ? [{ item, diagnostics }] : [];
+      }),
+    [request.snapshot],
+  );
+  const invalidItems = invalid.map((value) => value.item);
   if (
     !analysis?.excludedCount &&
     analysis?.complete !== false &&
@@ -55,13 +57,7 @@ export function InventoryEnhancementIssues({
     ...new Map(
       [
         ...(conflict?.diagnostics ?? []),
-        ...invalidItems.flatMap((item) =>
-          validateItemEnhancements(
-            request.snapshot,
-            item,
-            request.snapshot.itemEnhancements![item.instanceId],
-          ),
-        ),
+        ...invalid.flatMap((value) => value.diagnostics),
       ].map((issue) => [issue.code + issue.message, issue]),
     ).values(),
   ];
@@ -124,12 +120,7 @@ export function InventoryEnhancementIssues({
               >
                 {t("editor.fixItem")}
               </Button>
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  onChange(setItemEnhancements(request, item.instanceId, {}))
-                }
-              >
+              <Button variant="ghost" onClick={() => onReset(item.instanceId)}>
                 {t("editor.resetItem")}
               </Button>
             </div>

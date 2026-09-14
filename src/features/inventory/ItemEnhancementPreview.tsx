@@ -20,10 +20,12 @@ export function ItemEnhancementPreview({
   item,
   snapshot,
   onEdit,
+  disabled = false,
 }: {
   item: ItemInstance;
   snapshot: Snapshot;
   onEdit: (field: EnhancementField) => void;
+  disabled?: boolean;
 }) {
   const [enchantOpen, setEnchantOpen] = useState(false);
   const enchantTooltipId = useId();
@@ -52,6 +54,8 @@ export function ItemEnhancementPreview({
   const enchantTriggerProps = {
     className: "item-enhancement-enchant",
     "data-enhancement-field": "enchant",
+    "aria-disabled": disabled || undefined,
+    tabIndex: disabled ? -1 : undefined,
     "data-manual": override?.enchantId !== undefined,
     "aria-label": [
       t("editor.openEnchant", { name: enchantName }),
@@ -62,7 +66,7 @@ export function ItemEnhancementPreview({
     onClick: (event: MouseEvent<HTMLElement>) => {
       event.preventDefault();
       event.stopPropagation();
-      onEdit("enchant");
+      if (!disabled) onEdit("enchant");
     },
   };
   if (!sockets.length && !enchants.length) return null;
@@ -73,13 +77,17 @@ export function ItemEnhancementPreview({
           gem = catalog.gems.get(id);
         const name = gem?.name ?? t("editor.emptySocket");
         const label = t("editor.openGem", { index: index + 1, name });
-        const activate = () => onEdit(index);
+        const activate = () => {
+          if (!disabled) onEdit(index);
+        };
         return id ? (
           <ItemIcon
             key={index}
             item={{ ...item, itemId: id, enchantId: 0, gemIds: [] }}
             size={20}
             role="button"
+            aria-disabled={disabled || undefined}
+            tabIndex={disabled ? -1 : undefined}
             className="item-enhancement-gem"
             aria-label={label}
             title={`${name}${gem ? ` · ${gemDescription(gem, t, locale)}` : ""}`}
@@ -102,6 +110,7 @@ export function ItemEnhancementPreview({
           <button
             key={index}
             type="button"
+            disabled={disabled}
             className="item-enhancement-gem item-enhancement-empty"
             aria-label={label}
             title={name}
@@ -143,12 +152,12 @@ export function ItemEnhancementPreview({
                     if (event.key === " ") {
                       event.preventDefault();
                       event.stopPropagation();
-                      onEdit("enchant");
+                      if (!disabled) onEdit("enchant");
                     }
                   }}
                 />
               ) : (
-                <button type="button" />
+                <button type="button" disabled={disabled} />
               )
             }
           >

@@ -16,6 +16,7 @@ import { emptyLoadout } from "@/domain/top-gear/slots";
 import { defaultSettings, listSpecs } from "@/features/settings/registry";
 import type { Snapshot, Selection, WorkPolicy } from "@/domain/top-gear/model";
 import { createCatalog } from "./catalog";
+import { createSearchBudget, SearchLimitError } from "./search-budget";
 const policy: WorkPolicy = {
   version: "test",
   unitsPerSet: 5000,
@@ -203,4 +204,56 @@ it("rejects two handed offhand without the talent", () => {
   expect([
     ...enumerateLoadouts(f.snapshot, f.selection, f.catalog),
   ]).toHaveLength(0);
+});
+
+it("checks complete acceptance before deduplicating identical physical copies", () => {
+  const f = fixture([ItemType.ItemTypeHead, ItemType.ItemTypeHead]);
+  f.snapshot.inventory[1].itemId = 100;
+  f.snapshot.equipped.head = "i0";
+  const result = [
+    ...enumerateLoadouts(f.snapshot, f.selection, f.catalog, 1000, undefined, {
+      acceptComplete: (loadout) => loadout.head === "i1",
+    }),
+  ];
+  expect(result.map((l) => l.head)).toEqual(["i1"]);
+  expect(
+    [
+      ...enumerateLoadouts(
+        f.snapshot,
+        f.selection,
+        f.catalog,
+        1000,
+        undefined,
+        {
+          deduplicate: false,
+        },
+      ),
+    ].map((l) => l.head),
+  ).toEqual(["i0", "i1"]);
+});
+
+it("shares an exact node budget and exposes only the assigned prefix to partial checks", () => {
+  const f = fixture([ItemType.ItemTypeHead, ItemType.ItemTypeHead]);
+  f.snapshot.equipped.head = "i0";
+  const budget = createSearchBudget(18);
+  const prefixes: string[][] = [];
+  const result = [
+    ...enumerateLoadouts(f.snapshot, f.selection, f.catalog, 1, undefined, {
+      budget,
+      acceptPartial: (loadout, assigned) => {
+        prefixes.push([...assigned]);
+        return !assigned.includes("head") || loadout.head === "i1";
+      },
+    }),
+  ];
+  expect(result.map((l) => l.head)).toEqual(["i1"]);
+  expect(prefixes[0]).toEqual(["head"]);
+  expect(prefixes[1]).toEqual(["head"]);
+  expect(prefixes[2]).toEqual(["head", "neck"]);
+  expect(budget.visitedNodes).toBe(18);
+  expect(() => [
+    ...enumerateLoadouts(f.snapshot, f.selection, f.catalog, 1000, undefined, {
+      budget: createSearchBudget(17),
+    }),
+  ]).toThrow(SearchLimitError);
 });

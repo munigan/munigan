@@ -12,6 +12,155 @@
     "bagsCaption": "Equipped + carried bags",
     "equippedCaption": "Equipped only · no bags imported"
   },
+  "purchases": {
+    "retry": "Retry",
+    "representedItems": "{count, plural, one {# tier item} other {# tier items}}",
+    "walletTitle": "Tokens & currencies",
+    "walletDescription": "Add what you have. We’ll compare the tier gear you can obtain.",
+    "addTitle": "Add a token or currency",
+    "editTitle": "Edit resource",
+    "dialogDescription": "Choose the tier and item level you want to obtain.",
+    "addResource": "Add resource",
+    "saveResource": "Save resource",
+    "edit": "Edit",
+    "editResource": "Edit {name}",
+    "removeResource": "Remove {name}",
+    "cancel": "Cancel",
+    "tier": "Tier",
+    "tierValue": "Tier {tier}",
+    "quality": "Reward quality",
+    "quantity": "Quantity",
+    "walletQuantity": "{name} quantity",
+    "oneSelected": "1 resource selected",
+    "availableHelp": "Only the amount you own will be available.",
+    "familyMatch": "{family} · Matched to your {class}",
+    "reviewTitle": "Eligible tier items use these balances",
+    "reviewDescription": "Unused resources are kept.",
+    "reviewPurchases": "Review purchases",
+    "classes": {
+      "Deathknight": "Death Knight",
+      "Druid": "Druid",
+      "Hunter": "Hunter",
+      "Mage": "Mage",
+      "Paladin": "Paladin",
+      "Priest": "Priest",
+      "Rogue": "Rogue",
+      "Shaman": "Shaman",
+      "Warlock": "Warlock",
+      "Warrior": "Warrior"
+    },
+    "families": {
+      "vanquisher": "Vanquisher",
+      "protector": "Protector",
+      "conqueror": "Conqueror"
+    },
+    "qualities": {
+      "base": "Base · {level}",
+      "normal": "Normal · {level}",
+      "heroic": "Heroic · {level}"
+    },
+    "resources": {
+      "frost": "Emblems of Frost",
+      "triumph": "Emblems of Triumph",
+      "trophy": "Trophy of the Crusade",
+      "regalia": "Regalia of the Grand {family}",
+      "markNormal": "{family}’s Mark of Sanctification",
+      "markHeroic": "Heroic {family}’s Mark of Sanctification"
+    },
+    "descriptions": {
+      "frost": "Buys a new base tier piece.",
+      "triumph": "Buys a new base tier piece.",
+      "trophy": "Also requires Emblems of Triumph.",
+      "regalia": "Redeems directly for one tier piece.",
+      "markNormal": "Upgrades the matching 251 piece.",
+      "markHeroic": "Upgrades the matching 264 piece."
+    },
+    "walletDescriptions": {
+      "frost": "Buys base T10 · Item level 251",
+      "triumph": "Buys base T9 · Item level 232",
+      "trophy": "Also requires Emblems of Triumph · Buys T9 · Item level 245",
+      "regalia": "Heroic · Redeems directly for T9 · Item level 258",
+      "markNormal": "Normal · Upgrades T10 251 → 264",
+      "markHeroic": "Heroic · Upgrades T10 264 → 277"
+    },
+    "quantityLabels": {
+      "base": "Emblems available",
+      "normal": "Tokens available",
+      "heroic": "Tokens available"
+    },
+    "prerequisites": {
+      "noneTitle": "No prior tier piece is required",
+      "frost": "Your Frost emblems can buy a matching 251 piece.",
+      "triumph": "Your Triumph emblems can buy a matching 232 piece.",
+      "triumphIncludedTitle": "Triumph emblems are also required",
+      "trophy": "The plan budgets the Trophy and the Triumph emblems for the matching 245 reward.",
+      "directTitle": "One token. Five possible rewards.",
+      "regalia": "We’ll compare all five compatible T9 pieces. No lower tier piece is needed.",
+      "baseIncludedTitle": "The base piece is included in the plan",
+      "markNormal": "We’ll use a matching 251 piece you own, or budget Frost emblems to buy it.",
+      "normalIncludedTitle": "The normal piece is included in the plan",
+      "markHeroic": "We’ll use a matching 264 piece you own, or include its prerequisite path."
+    },
+    "reviewHelp": "Your options are included by default. Eligibility is checked per item. A complete set must fit all shared balances.",
+    "walletIncludedCount": "{count, plural, one {# compatible purchase included} other {# compatible purchases included}}",
+    "walletCalculating": "Calculating included purchases…",
+    "walletCountUnavailable": "Included purchase count unavailable.",
+    "reviewPending": "Purchase options are updating. Resolve any analysis issue or edit resources to retry.",
+    "includedCount": "{count} included",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "includeItem": "Include {name}, item level {level}",
+    "included": "Included",
+    "excluded": "Excluded",
+    "directCost": "Direct cost: {cost}",
+    "requiresExact": "Requires the exact item: {name} (#{itemId})",
+    "consumedOwned": "Consumed owned item: {name} ({instanceId})",
+    "totalCost": "Total: {cost}",
+    "missing": "Missing: {amounts}",
+    "consumedHelp": "Upgrades consume their prerequisite item. Its gems and enchant do not transfer to the reward.",
+    "exclusionHelp": "Excluded items can still be used as upgrade prerequisites. Exclusions stay saved when resources are unavailable.",
+    "done": "Done",
+    "usesResources": "Uses resources",
+    "calculating": "Updating combinations…",
+    "searchLimit": "Search incomplete. Reduce selected items or resources to finish calculating.",
+    "noLegalSets": "No legal sets fit these selections and resources.",
+    "catalogChanged": "The purchase catalog changed. Review saved choices to continue.",
+    "revalidate": "Review updated catalog",
+    "removedChoices": "Removed unavailable choices: {items}",
+    "catalogReviewed": "Purchase choices updated. Recalculating…",
+    "analysisError": "Could not calculate purchases. Edit resources to retry.",
+    "resetEnhancements": "Reset enhancements for item #{itemId}",
+    "summary": "Purchase resources",
+    "summaryCount": "{count} resource types · Shared across each set",
+    "overLimit": "Too many affordable sets. Reduce your selections or resources.",
+    "editEnhancements": "Edit enhancements for {name}",
+    "availableIncludedCount": "{count} available · Included",
+    "includeWhenAvailable": "Include when available",
+    "fullChain": "Full path if you do not own a prerequisite:",
+    "editEnhancementsShort": "Edit gems & enchant",
+    "gearSpecialization": "Gear specialization",
+    "variants": {
+      "dk-dps": "Death Knight · DPS",
+      "dk-tank": "Death Knight · Tank",
+      "warrior-dps": "Warrior · DPS",
+      "warrior-tank": "Warrior · Tank",
+      "druid-balance": "Druid · Balance",
+      "druid-feral": "Druid · Feral",
+      "druid-restoration": "Druid · Restoration",
+      "paladin-retribution": "Paladin · Retribution",
+      "paladin-protection": "Paladin · Protection",
+      "paladin-holy": "Paladin · Holy",
+      "priest-shadow": "Priest · Shadow",
+      "priest-healing": "Priest · Healing",
+      "shaman-elemental": "Shaman · Elemental",
+      "shaman-enhancement": "Shaman · Enhancement",
+      "shaman-restoration": "Shaman · Restoration",
+      "hunter-dps": "Hunter",
+      "mage-dps": "Mage",
+      "rogue-dps": "Rogue",
+      "warlock-dps": "Warlock"
+    }
+  },
   "versions": {
     "original": {
       "description": "Original Ulduar item levels · Mjolnir Runestone: iLvl 226"
@@ -21,6 +170,7 @@
     }
   },
   "allowance": {
+    "local": "Local",
     "sets": "sets",
     "loading": "Loading allowance…",
     "free": "Free",
@@ -37,6 +187,7 @@
     "exactExcess": "{count, plural, one {# combination above the free limit.} other {# combinations above the free limit.}}"
   },
   "iterations": {
+    "localLimit": "Local maximum",
     "label": "Iterations per set",
     "help": "More iterations reduce random variation but take longer. Close results may still be inconclusive.",
     "freeLimit": "Free plan limit",
@@ -53,7 +204,8 @@
       "2000": "Higher precision — reduces noise when comparing small DPS differences.",
       "2500": "Finer comparison — more sampling for closely matched gear sets.",
       "3000": "Most stable estimate — lowest sampling noise here, with the longest run time."
-    }
+    },
+    "localOption": "Local"
   },
   "proLimit": {
     "title": "Free limit reached",
@@ -67,6 +219,7 @@
     "reduceHelp": "Select fewer items to reach {count} combinations or less. Keep {iterations} iterations and run free."
   },
   "sources": {
+    "purchase": "Purchase",
     "equipped": "Equipped",
     "custom": "Custom",
     "bag": "Bags"

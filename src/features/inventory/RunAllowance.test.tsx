@@ -180,3 +180,114 @@ it("opens the allowance explanation from keyboard focus", async () => {
   fireEvent.focus(screen.getByRole("button", { name: "About the set limit" }));
   expect(await screen.findByRole("tooltip")).toBeVisible();
 });
+
+it.each([
+  "loading",
+  "search-limit",
+  "catalog-changed",
+  "no-legal-sets",
+] as const)(
+  "blocks a stale allowed allowance for purchase state %s",
+  (status) => {
+    const request = fixtureRequest();
+    const purchaseAnalysis =
+      status === "loading"
+        ? ({ status } as const)
+        : {
+            status: "ready" as const,
+            analysis:
+              status === "catalog-changed"
+                ? { status, currentRevision: "new" }
+                : { status, visitedNodes: 12, diagnostics: [] },
+            preview: null,
+          };
+    render(
+      <NextIntlClientProvider locale="en-US" messages={{ inventory }}>
+        <RunAllowance
+          request={request}
+          policy={policy}
+          allowance={estimateAllowance(
+            request.snapshot,
+            request.selection,
+            policy,
+          )}
+          purchaseAnalysis={purchaseAnalysis}
+          error=""
+          readinessError=""
+          pending={false}
+          onRun={vi.fn()}
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeDisabled();
+    expect(document.querySelector(".set-count")).not.toHaveTextContent("/ 120");
+  },
+);
+
+it("marks an early stopped purchase count as a lower bound rather than exact", async () => {
+  const { purchaseFixture, purchasePolicy } =
+    await import("../../../tests/support/purchase-fixtures");
+  const { analyzePurchaseSelection } =
+    await import("@/domain/purchases/analysis");
+  const request = purchaseFixture({ frost: 100 });
+  const policy = { ...purchasePolicy, maxUnits: 20 };
+  const analysis = analyzePurchaseSelection(request, policy);
+  expect(analysis.status).toBe("over-limit");
+  render(
+    <NextIntlClientProvider locale="en-US" messages={{ inventory }}>
+      <RunAllowance
+        request={request}
+        policy={policy}
+        allowance={null}
+        purchaseAnalysis={{ status: "ready", analysis, preview: null }}
+        error=""
+        readinessError=""
+        pending={false}
+        onRun={vi.fn()}
+      />
+    </NextIntlClientProvider>,
+  );
+  expect(document.querySelector(".set-count")).toHaveTextContent(
+    "≥ 2 combinations",
+  );
+  expect(screen.getByRole("button", { name: /Add credits/ })).toBeEnabled();
+  expect(screen.queryByRole("button", { name: /Run Gear Lab/ })).toBeNull();
+});
+
+it("shows uncapped local allowance and sends the chosen 6000 iterations to the draft", async () => {
+  const request = fixtureRequest();
+  const localPolicy = {
+    ...policy,
+    maxUnits: null,
+    maxSearchNodes: null,
+    maxJobSeconds: null,
+    selectableIterations: { min: 500, max: 6000, step: 500 },
+  };
+  const onIterationsChange = vi.fn();
+  render(
+    <NextIntlClientProvider locale="en-US" messages={{ inventory }}>
+      <RunAllowance
+        request={request}
+        policy={localPolicy}
+        allowance={estimateAllowance(
+          request.snapshot,
+          request.selection,
+          localPolicy,
+        )}
+        error=""
+        readinessError=""
+        pending={false}
+        onRun={() => {}}
+        onIterationsChange={onIterationsChange}
+      />
+    </NextIntlClientProvider>,
+  );
+  expect(screen.getByText("Local")).toBeInTheDocument();
+  expect(screen.queryByRole("progressbar")).toBeNull();
+  await userEvent.click(
+    screen.getByRole("combobox", { name: "Iterations per set" }),
+  );
+  await userEvent.click((await screen.findAllByRole("option"))[11]);
+  expect(onIterationsChange).toHaveBeenCalledWith(6000);
+  expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeEnabled();
+});

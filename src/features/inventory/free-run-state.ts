@@ -6,6 +6,7 @@ export function isCombinationLimitExceeded(
 ): boolean {
   return (
     !!policy &&
+    policy.maxUnits !== null &&
     !!allowance &&
     policy.unitsPerSet > 0 &&
     allowance.count > Math.floor(policy.maxUnits / policy.unitsPerSet)

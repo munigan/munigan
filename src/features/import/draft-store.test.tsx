@@ -5,6 +5,7 @@ import {
   encodeRequest,
   validateRequest,
 } from "@/domain/top-gear/request-schema";
+import { purchaseFixture } from "../../../tests/support/purchase-fixtures";
 
 afterEach(() => localStorage.clear());
 
@@ -33,4 +34,19 @@ it("restores other correctable settings but rejects malformed and outdated draft
   expect(() => loadDraft()).toThrow(/older simulator version/i);
   localStorage.setItem(draftKey, '{"tool":"unknown"}');
   expect(() => loadDraft()).toThrow();
+});
+
+it("persists purchase inputs and leaves a subsequent new import purchase-free", () => {
+  const purchase = purchaseFixture({ frost: 0, triumph: 75 });
+  purchase.purchases!.recipeRevision = "stale-editable-revision";
+  saveDraft(purchase);
+
+  expect(loadDraft()?.purchases).toEqual(purchase.purchases);
+
+  const imported = fixtureRequest();
+  saveDraft(imported);
+  expect(loadDraft()).not.toHaveProperty("purchases");
+  expect(JSON.parse(localStorage.getItem(draftKey)!)).not.toHaveProperty(
+    "purchases",
+  );
 });

@@ -12,6 +12,155 @@
     "bagsCaption": "Equipados + itens nas bolsas",
     "equippedCaption": "Apenas equipados · nenhuma bolsa importada"
   },
+  "purchases": {
+    "retry": "Tentar novamente",
+    "representedItems": "{count, plural, one {# item de conjunto} other {# itens de conjunto}}",
+    "walletTitle": "Fichas e moedas",
+    "walletDescription": "Adicione o que você tem. Compararemos os equipamentos de tier que você pode obter.",
+    "addTitle": "Adicionar ficha ou moeda",
+    "editTitle": "Editar recurso",
+    "dialogDescription": "Escolha o tier e o nível de item que você deseja obter.",
+    "addResource": "Adicionar recurso",
+    "saveResource": "Salvar recurso",
+    "edit": "Editar",
+    "editResource": "Editar {name}",
+    "removeResource": "Remover {name}",
+    "cancel": "Cancelar",
+    "tier": "Tier",
+    "tierValue": "Tier {tier}",
+    "quality": "Qualidade da recompensa",
+    "quantity": "Quantidade",
+    "walletQuantity": "Quantidade de {name}",
+    "oneSelected": "1 recurso selecionado",
+    "availableHelp": "Somente a quantidade que você possui estará disponível.",
+    "familyMatch": "{family} · Compatível com seu {class}",
+    "reviewTitle": "Itens de tier elegíveis usam estes saldos",
+    "reviewDescription": "Os recursos não usados são mantidos.",
+    "reviewPurchases": "Revisar compras",
+    "classes": {
+      "Deathknight": "Cavaleiro da Morte",
+      "Druid": "Druida",
+      "Hunter": "Caçador",
+      "Mage": "Mago",
+      "Paladin": "Paladino",
+      "Priest": "Sacerdote",
+      "Rogue": "Ladino",
+      "Shaman": "Xamã",
+      "Warlock": "Bruxo",
+      "Warrior": "Guerreiro"
+    },
+    "families": {
+      "vanquisher": "Aniquilador",
+      "protector": "Protetor",
+      "conqueror": "Conquistador"
+    },
+    "qualities": {
+      "base": "Base · {level}",
+      "normal": "Normal · {level}",
+      "heroic": "Heroico · {level}"
+    },
+    "resources": {
+      "frost": "Emblemas de Gelo",
+      "triumph": "Emblemas do Triunfo",
+      "trophy": "Troféu da Cruzada",
+      "regalia": "Insígnia do Grande {family}",
+      "markNormal": "Marca de Santificação do {family}",
+      "markHeroic": "Marca Heroica de Santificação do {family}"
+    },
+    "descriptions": {
+      "frost": "Compra uma nova peça base de tier.",
+      "triumph": "Compra uma nova peça base de tier.",
+      "trophy": "Também requer Emblemas do Triunfo.",
+      "regalia": "Pode ser trocada diretamente por uma peça de tier.",
+      "markNormal": "Melhora a peça 251 correspondente.",
+      "markHeroic": "Melhora a peça 264 correspondente."
+    },
+    "walletDescriptions": {
+      "frost": "Compra T10 base · Nível do item 251",
+      "triumph": "Compra T9 base · Nível do item 232",
+      "trophy": "Também requer Emblemas do Triunfo · Compra T9 · Nível do item 245",
+      "regalia": "Heroico · Troca direta por T9 · Nível do item 258",
+      "markNormal": "Normal · Melhora T10 251 → 264",
+      "markHeroic": "Heroico · Melhora T10 264 → 277"
+    },
+    "quantityLabels": {
+      "base": "Emblemas disponíveis",
+      "normal": "Fichas disponíveis",
+      "heroic": "Fichas disponíveis"
+    },
+    "prerequisites": {
+      "noneTitle": "Nenhuma peça de tier anterior é necessária",
+      "frost": "Seus Emblemas de Gelo podem comprar uma peça 251 correspondente.",
+      "triumph": "Seus Emblemas do Triunfo podem comprar uma peça 232 correspondente.",
+      "triumphIncludedTitle": "Emblemas do Triunfo também são necessários",
+      "trophy": "O plano reserva o Troféu e os Emblemas do Triunfo para a recompensa 245 correspondente.",
+      "directTitle": "Uma ficha. Cinco recompensas possíveis.",
+      "regalia": "Compararemos as cinco peças T9 compatíveis. Nenhuma peça de tier inferior é necessária.",
+      "baseIncludedTitle": "A peça base está incluída no plano",
+      "markNormal": "Usaremos uma peça 251 correspondente que você possui ou reservaremos Emblemas de Gelo para comprá-la.",
+      "normalIncludedTitle": "A peça normal está incluída no plano",
+      "markHeroic": "Usaremos uma peça 264 correspondente que você possui ou incluiremos o caminho de pré-requisitos."
+    },
+    "reviewHelp": "Suas opções são incluídas por padrão. A disponibilidade é verificada por item. Um conjunto completo deve respeitar todos os saldos compartilhados.",
+    "walletIncludedCount": "{count, plural, =0 {# compras compatíveis incluídas} one {# compra compatível incluída} other {# compras compatíveis incluídas}}",
+    "walletCalculating": "Calculando compras incluídas…",
+    "walletCountUnavailable": "Contagem de compras incluídas indisponível.",
+    "reviewPending": "As opções estão sendo atualizadas. Resolva os problemas da análise ou edite os recursos para tentar novamente.",
+    "includedCount": "{count} incluídos",
+    "available": "Disponível",
+    "unavailable": "Indisponível",
+    "includeItem": "Incluir {name}, nível de item {level}",
+    "included": "Incluído",
+    "excluded": "Excluído",
+    "directCost": "Custo direto: {cost}",
+    "requiresExact": "Requer o item exato: {name} (#{itemId})",
+    "consumedOwned": "Item possuído consumido: {name} ({instanceId})",
+    "totalCost": "Total: {cost}",
+    "missing": "Faltam: {amounts}",
+    "consumedHelp": "Melhorias consomem o item necessário. Suas gemas e seu encantamento não são transferidos para a recompensa.",
+    "exclusionHelp": "Itens excluídos ainda podem ser usados como pré-requisitos de melhorias. As exclusões são preservadas quando os recursos estão indisponíveis.",
+    "done": "Concluir",
+    "usesResources": "Usa recursos",
+    "calculating": "Atualizando combinações…",
+    "searchLimit": "Busca incompleta. Reduza os itens selecionados ou recursos para concluir o cálculo.",
+    "noLegalSets": "Nenhum conjunto válido cabe nestas seleções e recursos.",
+    "catalogChanged": "O catálogo de compras mudou. Revise as escolhas salvas para continuar.",
+    "revalidate": "Revisar catálogo atualizado",
+    "removedChoices": "Escolhas indisponíveis removidas: {items}",
+    "catalogReviewed": "Escolhas de compra atualizadas. Recalculando…",
+    "analysisError": "Não foi possível calcular as compras. Edite os recursos para tentar novamente.",
+    "resetEnhancements": "Redefinir melhorias do item #{itemId}",
+    "summary": "Recursos de compra",
+    "summaryCount": "{count} tipos de recursos · Compartilhados em cada conjunto",
+    "overLimit": "Há conjuntos acessíveis demais. Reduza suas seleções ou recursos.",
+    "editEnhancements": "Editar melhorias de {name}",
+    "availableIncludedCount": "{count} disponíveis · Incluídos",
+    "includeWhenAvailable": "Incluir quando disponível",
+    "fullChain": "Caminho completo caso você não possua um pré-requisito:",
+    "editEnhancementsShort": "Editar gemas e encantamento",
+    "gearSpecialization": "Especialização do equipamento",
+    "variants": {
+      "dk-dps": "Cavaleiro da Morte · DPS",
+      "dk-tank": "Cavaleiro da Morte · Tanque",
+      "warrior-dps": "Guerreiro · DPS",
+      "warrior-tank": "Guerreiro · Tanque",
+      "druid-balance": "Druida · Equilíbrio",
+      "druid-feral": "Druida · Feral",
+      "druid-restoration": "Druida · Restauração",
+      "paladin-retribution": "Paladino · Retribuição",
+      "paladin-protection": "Paladino · Proteção",
+      "paladin-holy": "Paladino · Sagrado",
+      "priest-shadow": "Sacerdote · Sombra",
+      "priest-healing": "Sacerdote · Cura",
+      "shaman-elemental": "Xamã · Elemental",
+      "shaman-enhancement": "Xamã · Aperfeiçoamento",
+      "shaman-restoration": "Xamã · Restauração",
+      "hunter-dps": "Caçador",
+      "mage-dps": "Mago",
+      "rogue-dps": "Ladino",
+      "warlock-dps": "Bruxo"
+    }
+  },
   "versions": {
     "original": {
       "description": "Níveis originais dos itens de Ulduar · Mjolnir Runestone: iLvl 226"
@@ -21,6 +170,7 @@
     }
   },
   "allowance": {
+    "local": "Local",
     "sets": "conjuntos",
     "loading": "Carregando limite…",
     "free": "Grátis",
@@ -37,6 +187,7 @@
     "exactExcess": "{count, plural, one {# combinação acima do limite gratuito.} other {# combinações acima do limite gratuito.}}"
   },
   "iterations": {
+    "localLimit": "Máximo local",
     "label": "Iterações por conjunto",
     "help": "Mais iterações reduzem a variação aleatória, mas levam mais tempo. Resultados próximos ainda podem ser inconclusivos.",
     "freeLimit": "Limite do plano grátis",
@@ -53,7 +204,8 @@
       "2000": "Maior precisão — reduz o ruído ao comparar pequenas diferenças de DPS.",
       "2500": "Comparação mais refinada — mais amostras para conjuntos com desempenho próximo.",
       "3000": "Estimativa mais estável — menor ruído amostral entre estas opções, com maior tempo de execução."
-    }
+    },
+    "localOption": "Local"
   },
   "proLimit": {
     "title": "Limite gratuito atingido",
@@ -67,6 +219,7 @@
     "reduceHelp": "Selecione menos itens para chegar a {count} combinações ou menos. Mantenha {iterations} iterações e simule grátis."
   },
   "sources": {
+    "purchase": "Compra",
     "equipped": "Equipado",
     "custom": "Personalizado",
     "bag": "Bolsas"

@@ -49,3 +49,6 @@ await writeFile(`${out}/glyph-names.json`,JSON.stringify(glyphs,null,2)+'\n');aw
 // Preserve upstream automatic rotation decisions as generated source, using a small Player facade at runtime.
 let auto='// @ts-nocheck\n// Generated from the pinned simulator autoRotation functions. Do not edit.\nimport data from "../../../data/wotlk/presets.json";\nimport {HandType,ItemSlot} from "./common";\nimport {ShamanImbue} from "./shaman";\nexport const autoRotations={\n';
 for(const spec of specs){const source=await readFile(`${upstream}/ui/${spec}/sim.ts`,'utf8');const ast=ts.createSourceFile('sim.ts',source,ts.ScriptTarget.Latest,true);let arrow:ts.Node|undefined;function visit(n:ts.Node){if(ts.isPropertyAssignment(n)&&n.name.getText(ast)==='autoRotation')arrow=n.initializer;ts.forEachChild(n,visit)}visit(ast);if(!arrow)throw Error(`Missing rotation ${spec}`);auto+=JSON.stringify(spec)+':'+arrow.getText(ast).replaceAll('Presets.',`data.${spec}.presets.`)+',\n';}auto+='};\n';await writeFile('src/generated/wotlk/auto-rotations.ts',auto.replace(/[ \t]+$/gm,''));
+// Import after refreshing item data, so validation sees the new catalog.
+const {validatePurchaseManifest}=await import('./purchases');
+validatePurchaseManifest();

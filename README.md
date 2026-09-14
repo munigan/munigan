@@ -119,6 +119,14 @@ Set up and start Munigan on this machine. Do the setup, not just describe the st
    success unless the Trigger-backed simulation completes.
 ```
 
+## Unrestricted local testing
+
+Set `APP_ENV=local` and `LOCAL_UNLIMITED_ADMISSION=1` in the development app and worker environments. This explicit opt-in is ignored when `NODE_ENV=production`. It removes the set/search caps, daily capacity, account/browser/connection quotas, queue backlog cap, job deadline, and queue-age expiry. It does not change item legality or the Frost/token balances entered for purchases.
+
+The local precision select defaults to 500 and supports 500–6,000 in steps of 500. Its selected value is saved in the draft and frozen with each job; editing a report restores it. `TOP_GEAR_ITERATIONS` can set a valid local default, and the OAuth preview harness preserves this environment setting. Without the opt-in, the existing server-controlled iteration policy and admission limits remain unchanged.
+
+Actual execution remains bounded to two concurrent jobs, finite per-set iterations, two attempts per set, and the native per-set process watchdog (`SIM_TIMEOUT_SECONDS`, default 60 seconds). Cancellation, leases, and recovery remain active. Uncapped local jobs do not reserve or spend the shared daily quota ledger.
+
 ## Project structure
 
 - `src/` — app UI, server logic, and generated simulator types.

@@ -17,6 +17,18 @@ import {
   maxCustomItems,
   maxInventoryItems,
 } from "@/domain/equipment/custom-eligibility";
+import {
+  canonicalizePurchaseInputs,
+  isGeneratedPurchaseId,
+  purchaseInputsSchema,
+  validatePurchaseInputs,
+} from "@/domain/purchases/schema";
+import { getPurchaseCatalog } from "@/domain/purchases/catalog";
+import {
+  PurchaseEnhancementError,
+  effectivePurchaseItem,
+  purchaseItem,
+} from "@/domain/purchases/enhancements";
 const id = z.string().min(1).max(100),
   slot = z.enum(slots),
   numericId = z.number().int().nonnegative().max(10000000);
@@ -24,6 +36,7 @@ const shape = z
   .object({
     tool: z.literal("top-gear"),
     precision: z.literal("standard"),
+    iterations: z.number().int().min(500).max(6000).multipleOf(500).optional(),
     snapshot: z.object({
       id,
       specId: id,
@@ -89,6 +102,7 @@ const shape = z
         lockedSlots: z.partialRecord(slot, id.nullable()),
       })
       .strict(),
+    purchases: purchaseInputsSchema.optional(),
   })
   .strict();
 export function encodeSnapshot(s: Snapshot) {
@@ -103,8 +117,23 @@ export function decodeSnapshot(s: ReturnType<typeof encodeSnapshot>): Snapshot {
     settings: IndividualSimSettings.fromJson(s.settings),
   };
 }
+function withoutPurchases<T extends { purchases?: unknown }>(
+  request: T,
+): Omit<T, "purchases"> {
+  const copy = { ...request };
+  delete copy.purchases;
+  return copy;
+}
 export function encodeRequest(r: TopGearRequest) {
-  return { ...r, snapshot: encodeSnapshot(r.snapshot) };
+  const purchases = r.purchases
+    ? canonicalizePurchaseInputs(r.purchases)
+    : undefined;
+  const request = withoutPurchases(r);
+  return {
+    ...request,
+    snapshot: encodeSnapshot(r.snapshot),
+    ...(purchases ? { purchases } : {}),
+  };
 }
 // Drafts must be safe to edit, but need not be ready to simulate yet.
 export function decodeDraft(input: unknown): TopGearRequest {
@@ -144,12 +173,22 @@ export function decodeDraft(input: unknown): TopGearRequest {
       for (const nested of Object.values(value))
         pending.push([nested, depth + 1]);
   }
-  return { ...parsed, snapshot: { ...s, settings } };
+  const purchases = parsed.purchases
+    ? canonicalizePurchaseInputs(parsed.purchases)
+    : undefined;
+  const request = withoutPurchases(parsed);
+  return {
+    ...request,
+    snapshot: { ...s, settings },
+    ...(purchases ? { purchases } : {}),
+  };
 }
 
 export function validateRequest(input: unknown): TopGearRequest {
   const parsed = decodeDraft(input),
     s = parsed.snapshot;
+  if (parsed.purchases)
+    validatePurchaseInputs(parsed.purchases, itemVersionOf(s));
   const settings = s.settings,
     p = settings.player!;
   const spec = getSpec(s.specId);
@@ -227,6 +266,21 @@ export function validateRequest(input: unknown): TopGearRequest {
       );
   }
   const ids = new Set(snapshot.inventory.map((i) => i.instanceId));
+  const submittedInstanceIds = [
+    ...snapshot.inventory.map((item) => item.instanceId),
+    ...parsed.selection.selectedInstanceIds,
+    ...Object.values(snapshot.equipped).filter(
+      (value): value is string => !!value,
+    ),
+    ...Object.values(parsed.selection.lockedSlots).filter(
+      (value): value is string => !!value,
+    ),
+    ...Object.keys(snapshot.itemEnhancements ?? {}),
+  ];
+  if (submittedInstanceIds.some(isGeneratedPurchaseId))
+    throw new Error(
+      "Generated purchase items cannot be submitted as inventory",
+    );
   const custom = snapshot.inventory.filter((i) => i.source === "custom");
   if (
     custom.length > maxCustomItems ||
@@ -261,6 +315,19 @@ export function validateRequest(input: unknown): TopGearRequest {
       (!ids.has(value) || !parsed.selection.selectedInstanceIds.includes(value))
     )
       throw new Error(`Locked ${key} must be selected and owned`);
+  const converted = new Set(
+    parsed.purchases
+      ? custom
+          .filter(
+            (item) =>
+              parsed.selection.selectedInstanceIds.includes(item.instanceId) &&
+              getPurchaseCatalog(itemVersionOf(snapshot)).byItemId.has(
+                item.itemId,
+              ),
+          )
+          .map((item) => item.instanceId)
+      : [],
+  );
   for (const [instanceId, override] of Object.entries(
     snapshot.itemEnhancements ?? {},
   )) {
@@ -269,6 +336,7 @@ export function validateRequest(input: unknown): TopGearRequest {
     );
     if (!item)
       throw new Error("Enhancements must reference an owned item instance");
+    if (converted.has(instanceId)) continue;
     const errors = validateItemEnhancements(snapshot, item, override);
     if (errors.length) throw new Error(errors[0].message);
   }
@@ -290,7 +358,20 @@ export function validateRequest(input: unknown): TopGearRequest {
   )
     throw new Error("Equipped item mapping is inconsistent");
   for (const item of snapshot.inventory) {
-    const errors = validateItem(snapshot, item);
+    // Only eligible registered rewards replace custom intent. Ordinary and
+    // ineligible items retain their original strict item validation.
+    const effective =
+      converted.has(item.instanceId) &&
+      !validateItem(snapshot, purchaseItem(snapshot, item.itemId)).length
+        ? effectivePurchaseItem(parsed, item.itemId).instance
+        : item;
+    const errors = validateItem(snapshot, effective);
+    if (errors.length && effective !== item)
+      throw new PurchaseEnhancementError(
+        itemVersionOf(snapshot),
+        item.itemId,
+        errors,
+      );
     if (errors.length && item.source === "custom")
       throw new Error(`Custom item: ${errors[0].message}`);
     if (

@@ -65,7 +65,7 @@ try {
     ...process.env,
     NODE_ENV: "development" as const,
     APP_ENV: "local",
-    TOP_GEAR_ITERATIONS: "500",
+    TOP_GEAR_ITERATIONS: process.env.TOP_GEAR_ITERATIONS ?? "500",
     TRIGGER_SECRET_KEY: "",
     APP_ORIGIN: "http://127.0.0.1:3100",
     BETTER_AUTH_URL: "http://127.0.0.1:3100",

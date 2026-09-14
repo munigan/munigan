@@ -11,6 +11,7 @@ export function NumberInput({
   step = 1,
   unit,
   size = "default",
+  minDigits = 1,
 }: {
   label: string;
   value: number;
@@ -20,6 +21,7 @@ export function NumberInput({
   step?: number;
   unit?: string;
   size?: "default" | "small";
+  minDigits?: number;
 }) {
   const t = useTranslations("common");
   const [draft, setDraft] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export function NumberInput({
           aria-label={label}
           value={draft ?? value}
           style={{
-            width: `${Math.max(2, String(draft ?? value).length + 1)}ch`,
+            width: `${Math.max(minDigits + 1, String(draft ?? value).length + 1)}ch`,
           }}
           min={min}
           max={max}

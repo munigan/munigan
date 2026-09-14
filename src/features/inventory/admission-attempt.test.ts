@@ -68,19 +68,25 @@ it("treats generic 503 responses as uncertain and never sends if session storage
   vi.restoreAllMocks();
 });
 
-it.each(["allowance", "invalidInput"])(
+it.each([
+  "allowance",
+  "invalidInput",
+  "purchaseNoLegalSets",
+  "purchaseAllowanceExceeded",
+  "purchaseSearchLimit",
+  "purchaseCatalogChanged",
+  "purchaseEnhancementInvalid",
+])(
   "recognizes definitive initial 422 %s without unlocking an earlier ambiguous attempt",
   async (code) => {
     const attempt = createAttempt({ tool: "top-gear" }, "account");
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue({
-          ok: false,
-          status: 422,
-          json: async () => ({ code }),
-        }),
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 422,
+        json: async () => ({ code }),
+      }),
     );
     await expect(submitAttempt(attempt)).rejects.toThrow();
     expect(canSwitchMode(attempt)).toBe(true);
@@ -93,13 +99,11 @@ it("keeps unknown first 422 failures uncertain", async () => {
   const attempt = createAttempt({ tool: "top-gear" }, "account");
   vi.stubGlobal(
     "fetch",
-    vi
-      .fn()
-      .mockResolvedValue({
-        ok: false,
-        status: 422,
-        json: async () => ({ error: "Unexpected infrastructure failure" }),
-      }),
+    vi.fn().mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({ error: "Unexpected infrastructure failure" }),
+    }),
   );
   await expect(submitAttempt(attempt)).rejects.toThrow();
   expect(canSwitchMode(attempt)).toBe(false);

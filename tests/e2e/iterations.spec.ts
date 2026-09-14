@@ -44,6 +44,7 @@ test("precision select describes all values and preserves the free request", asy
   await restore(page);
   const select = page.getByRole("combobox", { name: "Iterations per set" });
   await expect(select).toBeEnabled();
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
   const draft = await page.evaluate(() =>
     localStorage.getItem("wow-droptimizer.top-gear.v1"),
   );

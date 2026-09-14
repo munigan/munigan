@@ -6,7 +6,9 @@ import type {
   Allowance,
   RunPlan,
   Diagnostic,
+  Slot,
 } from "@/domain/top-gear/model";
+import type { SearchBudget } from "./search-budget";
 import { slots, emptyLoadout } from "@/domain/top-gear/slots";
 import { getCatalog, type Catalog } from "./catalog";
 import { HandType, WeaponType } from "@/generated/wotlk/common";
@@ -101,12 +103,102 @@ function choices(snapshot: Snapshot, selection: Selection, catalog: Catalog) {
     return values;
   });
 }
+function completeLoadoutDiagnostics(
+  snapshot: Snapshot,
+  loadout: Loadout,
+  catalog: Catalog,
+): Diagnostic[] {
+  const gemmed = withEnhancements(
+    snapshot,
+    prepareGems(snapshot, loadout, catalog).overrides,
+    prepareEnchants(snapshot, loadout, catalog).overrides,
+  );
+  const diagnostics = validateLoadout(gemmed, loadout, catalog);
+  const selected = new Set(Object.values(loadout));
+  for (const item of snapshot.inventory)
+    if (
+      selected.has(item.instanceId) &&
+      snapshot.itemEnhancements?.[item.instanceId]
+    )
+      diagnostics.push(
+        ...validateItemEnhancements(
+          snapshot,
+          item,
+          snapshot.itemEnhancements[item.instanceId],
+        ),
+      );
+  return diagnostics;
+}
+
+/** Bound to one immutable snapshot. Ordered physical IDs preserve hand, socket,
+ * profession and paired-slot semantics; a changed snapshot needs a new evaluator.
+ */
+export function createLoadoutEvaluator(
+  snapshot: Snapshot,
+  catalog = getCatalog(snapshot.itemVersion),
+) {
+  type Evaluation = {
+    diagnostics?: Diagnostic[];
+    key?: string;
+    referenceKey?: string;
+  };
+  const entries = new Map<string, Evaluation>();
+  // Intern physical IDs once: large local drafts can have several ordered
+  // evaluations per displayed set. Compact keys keep their retention affordable.
+  const instanceIndices = new Map(
+    snapshot.inventory.map((item, index) => [item.instanceId, index + 1]),
+  );
+  function entry(loadout: Loadout) {
+    const id = JSON.stringify(
+      slots.map((slot) => {
+        const instanceId = loadout[slot];
+        return instanceId === null
+          ? 0
+          : (instanceIndices.get(instanceId) ?? instanceId);
+      }),
+    );
+    let value = entries.get(id);
+    if (!value) {
+      if (entries.size >= 250000) entries.delete(entries.keys().next().value!);
+      value = {};
+      entries.set(id, value);
+    }
+    return value;
+  }
+  return {
+    diagnostics(loadout: Loadout) {
+      const value = entry(loadout);
+      return (value.diagnostics ??= completeLoadoutDiagnostics(
+        snapshot,
+        loadout,
+        catalog,
+      ));
+    },
+    key(loadout: Loadout, reference = false) {
+      const value = entry(loadout);
+      return reference
+        ? (value.referenceKey ??= loadoutKey(snapshot, loadout, true))
+        : (value.key ??= loadoutKey(snapshot, loadout));
+    },
+  };
+}
+
 export function* enumerateLoadouts(
   snapshot: Snapshot,
   selection: Selection,
   catalog: Catalog = getCatalog(snapshot.itemVersion),
-  maxNodes = 100000,
+  maxNodes: number | null = 100000,
   onExcluded?: (loadout: Loadout, diagnostics: Diagnostic[]) => void,
+  options?: {
+    budget?: SearchBudget;
+    deduplicate?: boolean;
+    evaluator?: ReturnType<typeof createLoadoutEvaluator>;
+    acceptPartial?: (
+      loadout: Loadout,
+      assignedSlots: readonly Slot[],
+    ) => boolean;
+    acceptComplete?: (loadout: Loadout) => boolean;
+  },
 ): Generator<Loadout> {
   const domains = choices(snapshot, selection, catalog),
     loadout = emptyLoadout(),
@@ -114,30 +206,23 @@ export function* enumerateLoadouts(
     seen = new Set<string>();
   let visited = 0;
   function* visit(index: number): Generator<Loadout> {
-    if (++visited > maxNodes) throw new Error("Search limit reached");
+    if (options?.budget) options.budget.visit();
+    else if (maxNodes !== null && ++visited > maxNodes)
+      throw new Error("Search limit reached");
     if (index === slots.length) {
-      const gemmed = withEnhancements(
-        snapshot,
-        prepareGems(snapshot, loadout, catalog).overrides,
-        prepareEnchants(snapshot, loadout, catalog).overrides,
-      );
-      const diagnostics = validateLoadout(gemmed, loadout, catalog);
-      for (const item of snapshot.inventory)
-        if (
-          Object.values(loadout).includes(item.instanceId) &&
-          snapshot.itemEnhancements?.[item.instanceId]
-        )
-          diagnostics.push(
-            ...validateItemEnhancements(
-              snapshot,
-              item,
-              snapshot.itemEnhancements[item.instanceId],
-            ),
-          );
+      const diagnostics = options?.evaluator
+        ? options.evaluator.diagnostics(loadout)
+        : completeLoadoutDiagnostics(snapshot, loadout, catalog);
       if (diagnostics.length === 0) {
-        const key = loadoutKey(snapshot, loadout);
-        if (!seen.has(key)) {
-          seen.add(key);
+        if (options?.acceptComplete && !options.acceptComplete(loadout)) return;
+        const key =
+          options?.deduplicate === false
+            ? undefined
+            : options?.evaluator
+              ? options.evaluator.key(loadout)
+              : loadoutKey(snapshot, loadout);
+        if (key === undefined || !seen.has(key)) {
+          if (key !== undefined) seen.add(key);
           yield alignPairedSlots(
             snapshot,
             loadout,
@@ -152,7 +237,11 @@ export function* enumerateLoadouts(
       if (id !== null && used.has(id)) continue;
       loadout[slots[index]] = id;
       if (id !== null) used.add(id);
-      yield* visit(index + 1);
+      if (
+        !options?.acceptPartial ||
+        options.acceptPartial(loadout, slots.slice(0, index + 1))
+      )
+        yield* visit(index + 1);
       if (id !== null) used.delete(id);
     }
     loadout[slots[index]] = null;
@@ -237,7 +326,9 @@ export function allowanceForCount(
     countKind,
     units: Number.isSafeInteger(units) ? units : Number.MAX_SAFE_INTEGER,
     allowed:
-      Number.isSafeInteger(units) && units <= policy.maxUnits && count > 0,
+      (policy.maxUnits === null ||
+        (Number.isSafeInteger(units) && units <= policy.maxUnits)) &&
+      count > 0,
     policyVersion: policy.version,
   };
 }
@@ -256,7 +347,7 @@ export function estimateAllowance(
       analyzeItemEnhancementSets(
         snapshot,
         selection,
-        Math.min(policy.maxSearchNodes, 10000),
+        Math.min(policy.maxSearchNodes ?? 10000, 10000),
       );
     if (analysis.complete) {
       const allowance = allowanceForCount(

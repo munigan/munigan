@@ -16,7 +16,6 @@ import { Select, SelectOption } from "@/components/ui/Select";
 import { useToastManager } from "@/components/ui/Toast";
 import type { Slot, TopGearRequest } from "@/domain/top-gear/model";
 import {
-  addCustomItems,
   compatibleItems,
   emptyItemFilters,
   filterItems,
@@ -36,9 +35,9 @@ import "./custom-items.css";
 type Props = {
   request: TopGearRequest;
   slot: Slot;
-  onChange: (r: TopGearRequest) => void;
+  onAdd: (slot: Slot, itemIds: number[]) => void;
 };
-export function AddCustomItem({ request, slot, onChange }: Props) {
+export function AddCustomItem({ request, slot, onAdd }: Props) {
   const t = useTranslations("inventory");
   const [open, setOpen] = useState(false);
   return (
@@ -59,7 +58,7 @@ export function AddCustomItem({ request, slot, onChange }: Props) {
         <CustomItemPicker
           request={request}
           slot={slot}
-          onChange={onChange}
+          onAdd={onAdd}
           onClose={() => setOpen(false)}
         />
       )}
@@ -69,7 +68,7 @@ export function AddCustomItem({ request, slot, onChange }: Props) {
 function CustomItemPicker({
   request,
   slot,
-  onChange,
+  onAdd,
   onClose,
 }: Props & { onClose: () => void }) {
   const d = useTranslations("diagnostics");
@@ -137,8 +136,7 @@ function CustomItemPicker({
   }
   function add() {
     try {
-      const next = addCustomItems(request, slot, [...selected]);
-      onChange(next);
+      onAdd(slot, [...selected]);
       toasts.add({
         title: <AddedItemsToast count={selected.size} />,
         description: <AddedItemsDescription />,

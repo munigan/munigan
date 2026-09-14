@@ -1,3 +1,4 @@
+import type { PurchaseAnalysisState } from "./purchases/purchase-worker-contract";
 import { useTranslations, useLocale } from "next-intl";
 import { AlertMessage } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -21,8 +22,10 @@ export function RunAllowance({
   pending,
   onRun,
   onReduceSelection = () => {},
+  purchaseAnalysis,
+  onIterationsChange,
 }: {
-  request: TopGearRequest;
+  request: Pick<TopGearRequest, "snapshot" | "iterations">;
   policy: WorkPolicy | null;
   allowance: ReturnType<typeof estimateAllowance> | null;
   error: string;
@@ -30,16 +33,42 @@ export function RunAllowance({
   pending: boolean;
   onRun: () => void;
   onReduceSelection?: () => void;
+  purchaseAnalysis?: PurchaseAnalysisState;
+  onIterationsChange?: (iterations: number) => void;
 }) {
   const t = useTranslations("inventory");
   const locale = useLocale();
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const pointerType = useRef("");
   const touchIntent = useRef<boolean | null>(null);
+  const purchaseStatus =
+    purchaseAnalysis?.status === "ready"
+      ? purchaseAnalysis.analysis.status
+      : purchaseAnalysis?.status;
+  const purchaseMessage =
+    purchaseStatus && purchaseStatus !== "complete"
+      ? t(
+          `purchases.${purchaseStatus === "search-limit" ? "searchLimit" : purchaseStatus === "no-legal-sets" ? "noLegalSets" : purchaseStatus === "catalog-changed" ? "catalogChanged" : purchaseStatus === "error" ? "analysisError" : purchaseStatus === "over-limit" ? "overLimit" : "calculating"}`,
+        )
+      : "";
+  const currentAllowance = purchaseAnalysis
+    ? purchaseAnalysis.status === "ready" &&
+      purchaseAnalysis.analysis.status === "complete"
+      ? purchaseAnalysis.analysis.plan.allowance
+      : purchaseAnalysis.status === "ready" &&
+          purchaseAnalysis.analysis.status === "over-limit"
+        ? purchaseAnalysis.analysis.allowance
+        : null
+    : allowance;
+  allowance = currentAllowance;
+  const selectedIterations = policy?.selectableIterations
+    ? (request.iterations ?? policy.iterationsPerSet)
+    : (policy?.iterationsPerSet ?? null);
+  const unlimited = policy?.maxUnits === null;
   const overLimit = isCombinationLimitExceeded(policy, allowance);
   const showPro = overLimit && !error && !readinessError;
   const freeLimit =
-    policy && policy.unitsPerSet > 0
+    policy && policy.maxUnits !== null && policy.unitsPerSet > 0
       ? Math.floor(policy.maxUnits / policy.unitsPerSet)
       : 0;
   useEffect(() => {
@@ -67,6 +96,7 @@ export function RunAllowance({
                     </strong>
                   ) : (
                     <strong>
+                      {allowance.countKind === "over-limit" ? "≥ " : ""}
                       {t("allowance.exact", {
                         count: Math.min(allowance.count, 999999),
                       })}
@@ -74,20 +104,24 @@ export function RunAllowance({
                   )}
                 </>
               ) : (
-                t("allowance.loading")
+                purchaseMessage || t("allowance.loading")
               )}
             </span>
             <span className="badge">
-              {policy
-                ? t("allowance.combinationLimit", { count: freeLimit })
-                : t("allowance.free")}
+              {unlimited
+                ? t("allowance.local")
+                : policy
+                  ? t("allowance.combinationLimit", { count: freeLimit })
+                  : t("allowance.free")}
             </span>
           </div>
-          <progress
-            aria-label={t("allowance.label")}
-            max={policy?.maxUnits ?? 1}
-            value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
-          />
+          {!unlimited && (
+            <progress
+              aria-label={t("allowance.label")}
+              max={policy?.maxUnits ?? 1}
+              value={Math.min(allowance?.units ?? 0, policy?.maxUnits ?? 1)}
+            />
+          )}
         </div>
         <TooltipRoot
           open={tooltipOpen}
@@ -132,13 +166,14 @@ export function RunAllowance({
             <p>
               {t("allowance.units", {
                 used: allowance?.units.toLocaleString(locale) ?? "—",
-                max: policy?.maxUnits.toLocaleString(locale) ?? "—",
+                max: unlimited
+                  ? "∞"
+                  : (policy?.maxUnits?.toLocaleString(locale) ?? "—"),
               })}
             </p>
             <p>
               {t("allowance.help", {
-                iterations:
-                  policy?.iterationsPerSet.toLocaleString(locale) ?? "—",
+                iterations: selectedIterations?.toLocaleString(locale) ?? "—",
               })}
             </p>
           </TooltipContent>
@@ -153,7 +188,11 @@ export function RunAllowance({
             })}
           </p>
         )}
-        <RunIterations iterations={policy?.iterationsPerSet ?? null} />
+        <RunIterations
+          iterations={selectedIterations}
+          range={policy?.selectableIterations}
+          onChange={onIterationsChange}
+        />
       </div>
       {showPro && policy ? (
         <ProRunNotice
@@ -172,7 +211,14 @@ export function RunAllowance({
           <Button
             variant="primary"
             className="primary run-button"
-            disabled={pending || !allowance?.allowed || !!readinessError}
+            disabled={
+              pending ||
+              !allowance?.allowed ||
+              !!readinessError ||
+              (purchaseAnalysis?.status === "ready" &&
+                !!purchaseAnalysis.refreshing) ||
+              (!!purchaseAnalysis && purchaseStatus !== "complete")
+            }
             onClick={onRun}
           >
             {pending ? t("run.submitting") : t("run.find")}{" "}

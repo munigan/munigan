@@ -30,6 +30,7 @@
   "oldItemData": "This draft uses older item data. Select the current item version or import again.",
   "requiredSettings": "A player and encounter are required",
   "oldSimulator": "This draft uses an older simulator version. Import again.",
+  "purchaseCatalogChanged": "The purchase catalog changed. Review your purchase inputs before submitting.",
   "complexSettings": "Simulation configuration is too complex",
   "finiteSettings": "Simulation settings must contain finite numbers",
   "classSpec": "Class does not match specialization",
@@ -150,5 +151,9 @@
   "warmaneNetwork": "Could not connect to Warmane. Try again shortly or use a saved profile.",
   "warmaneRelayUnavailable": "The Armory import service is temporarily unavailable. Your input has been kept.",
   "warmaneNoSavedProfile": "No recent saved Armory profile is available. Refresh from Armory or use an addon export.",
-  "warmaneBusy": "Please wait {seconds} seconds before refreshing this profile again."
+  "warmaneBusy": "Please wait {seconds} seconds before refreshing this profile again.",
+  "purchaseNoLegalSets": "No legal gear sets fit these purchase inputs. Review your selections and resources.",
+  "purchaseAllowanceExceeded": "These purchase options exceed the simulation allowance. Reduce your selections or resources.",
+  "purchaseSearchLimit": "The purchase search is too complex. Reduce your selections or resources.",
+  "purchaseEnhancementInvalid": "Review or reset the gems and enchant for purchase item {itemId}."
 }
