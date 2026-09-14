@@ -7,10 +7,12 @@ import { useProLaunch } from "@/features/pro-launch/ProLaunchProvider";
 export function ProRunNotice({
   freeLimit,
   freeIterations,
+  limitIsUpperBound,
   onReduceSelection,
 }: {
   freeLimit: number;
   freeIterations: number;
+  limitIsUpperBound: boolean;
   onReduceSelection(): void;
 }) {
   const t = useTranslations("inventory");
@@ -18,7 +20,9 @@ export function ProRunNotice({
   return (
     <section className="run-action-panel">
       <div className="section-top">
-        <span>{t("proLimit.title")}</span>
+        <span>
+          {t(limitIsUpperBound ? "proLimit.upperBoundTitle" : "proLimit.title")}
+        </span>
         <span>{t("proLimit.soon")}</span>
       </div>
       <h3>{t("proLimit.heading")}</h3>

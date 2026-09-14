@@ -46,6 +46,7 @@
   },
   "proLimit": {
     "title": "Limite gratuito atingido",
+    "upperBoundTitle": "Pode exceder o limite grátis",
     "soon": "Em breve",
     "heading": "Mais espaço para seus equipamentos.",
     "body": "Simulações maiores do Gear Lab estão chegando com o PRO. Receba novidades e um desconto extra.",

@@ -122,6 +122,8 @@ it("qualifies an upper-bound excess without claiming an exact paid requirement",
   expect(
     screen.getByText("This selection may exceed the free limit."),
   ).toBeInTheDocument();
+  expect(screen.getByText("May exceed free limit")).toBeInTheDocument();
+  expect(screen.queryByText("Free limit reached")).toBeNull();
 });
 
 it.each([
@@ -155,21 +157,17 @@ it("toggles the allowance tooltip by touch and dismisses it with Escape", async 
   const trigger = screen.getByRole("button", { name: "About the set limit" });
   fireEvent.pointerDown(trigger, { pointerType: "touch" });
   fireEvent.click(trigger);
-  expect(
-    await screen.findByText(/Each admitted set receives 500/),
-  ).toBeVisible();
-  fireEvent.pointerLeave(trigger, { pointerType: "touch" });
-  expect(screen.getByText(/Each admitted set receives 500/)).toBeVisible();
-  fireEvent.keyDown(document, { key: "Escape" });
-  await waitFor(() =>
-    expect(screen.queryByText(/Each admitted set receives 500/)).toBeNull(),
+  expect(await screen.findByRole("tooltip")).toHaveTextContent(
+    /Each admitted set receives 500/,
   );
+  fireEvent.pointerLeave(trigger, { pointerType: "touch" });
+  expect(screen.getByRole("tooltip")).toBeVisible();
+  fireEvent.keyDown(document, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("tooltip")).toBeNull());
 });
 
 it("opens the allowance explanation from keyboard focus", async () => {
   setup({ suppliedAllowance: allowanceForCount(96, policy) });
   fireEvent.focus(screen.getByRole("button", { name: "About the set limit" }));
-  expect(
-    await screen.findByText(/Each admitted set receives 500/),
-  ).toBeVisible();
+  expect(await screen.findByRole("tooltip")).toBeVisible();
 });

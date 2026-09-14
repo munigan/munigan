@@ -46,6 +46,7 @@
   },
   "proLimit": {
     "title": "Free limit reached",
+    "upperBoundTitle": "May exceed free limit",
     "soon": "Coming soon",
     "heading": "More room for your gear.",
     "body": "Larger Gear Lab runs are coming with PRO. Get launch updates and an extra discount.",

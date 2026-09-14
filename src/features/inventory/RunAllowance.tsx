@@ -105,7 +105,7 @@ export function RunAllowance({
           >
             {t("allowance.about")}
           </TooltipTrigger>
-          <TooltipContent className="allowance-tooltip">
+          <TooltipContent role="tooltip" className="allowance-tooltip">
             <p>
               {t("allowance.units", {
                 used: allowance?.units.toLocaleString(locale) ?? "—",
@@ -136,6 +136,7 @@ export function RunAllowance({
         <ProRunNotice
           freeLimit={freeLimit}
           freeIterations={policy.iterationsPerSet}
+          limitIsUpperBound={allowance?.countKind === "upper-bound"}
           onReduceSelection={onReduceSelection}
         />
       ) : (
