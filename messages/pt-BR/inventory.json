@@ -28,14 +28,29 @@
     "about": "Sobre o limite de conjuntos",
     "units": "{used} / {max} unidades de processamento",
     "help": "Estimativa máxima, incluindo o equipamento atual uma vez. Combinações inválidas ou idênticas são removidas durante o processamento. Cada conjunto aceito recebe {iterations} iterações de simulação.",
-    "reduce": "Selecione menos itens para ficar dentro do limite gratuito de conjuntos."
+    "reduce": "Selecione menos itens para ficar dentro do limite gratuito de conjuntos.",
+    "combinations": "combinações",
+    "exact": "{count, plural, one {# combinação} other {# combinações}}",
+    "upTo": "{count, plural, one {Até # combinação} other {Até # combinações}}",
+    "mayExceed": "Esta seleção pode ultrapassar o limite gratuito."
   },
   "iterations": {
     "label": "Iterações por conjunto",
     "help": "Mais iterações reduzem a variação aleatória, mas aumentam o tempo de simulação.",
     "freeLimit": "Limite do plano grátis",
     "value": "{count} iterações",
-    "blocked": "O plano grátis permite {count} iterações. Sua simulação usará {count} por conjunto."
+    "blocked": "O plano grátis permite {count} iterações. Sua simulação usará {count} por conjunto.",
+    "seePro": "Conhecer o PRO"
+  },
+  "proLimit": {
+    "title": "Limite gratuito atingido",
+    "soon": "Em breve",
+    "heading": "Mais espaço para seus equipamentos.",
+    "body": "Simulações maiores do Gear Lab estão chegando com o PRO. Receba novidades e um desconto extra.",
+    "addCredits": "Adicionar créditos",
+    "noPayment": "Os pagamentos ainda não estão disponíveis.",
+    "reduce": "Reduzir seleção",
+    "reduceHelp": "Selecione menos itens para chegar a {count} combinações ou menos. Mantenha {iterations} iterações e simule grátis."
   },
   "sources": {
     "equipped": "Equipado",

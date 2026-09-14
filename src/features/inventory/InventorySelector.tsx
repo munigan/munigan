@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { BagPreview } from "@/features/import/BagPreview";
 import { SectionHeading } from "@/components/ui/layout";
 import { Button } from "@/components/ui/Button";
-import { useMemo, useRef, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import type { TopGearRequest, Slot } from "@/domain/top-gear/model";
 import { slots } from "@/domain/top-gear/slots";
 import { getCatalog } from "@/domain/equipment/catalog";
@@ -28,15 +28,17 @@ const filterKeys = {
   Weapons: "weapons",
   "Rings & trinkets": "accessories",
 } as const;
-export function InventorySelector({
-  request,
-  onChange,
-  enhancementAnalysis = null,
-}: {
-  request: TopGearRequest;
-  onChange: (r: TopGearRequest) => void;
-  enhancementAnalysis?: EnhancementSetAnalysis | null;
-}) {
+export const InventorySelector = forwardRef<
+  HTMLElement,
+  {
+    request: TopGearRequest;
+    onChange: (r: TopGearRequest) => void;
+    enhancementAnalysis?: EnhancementSetAnalysis | null;
+  }
+>(function InventorySelector(
+  { request, onChange, enhancementAnalysis = null },
+  forwardedRef,
+) {
   const d = useTranslations("diagnostics");
   const t = useTranslations("inventory");
   const [filter, setFilter] = useState("All slots");
@@ -103,7 +105,12 @@ export function InventorySelector({
           : true,
   );
   return (
-    <section className="inventory">
+    <section
+      ref={forwardedRef}
+      className="inventory"
+      tabIndex={-1}
+      aria-label={t("equipment")}
+    >
       <SectionHeading className="section-top items-start">
         <h2>
           {t("equipment")}{" "}
@@ -242,4 +249,4 @@ export function InventorySelector({
       )}
     </section>
   );
-}
+});

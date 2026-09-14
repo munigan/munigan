@@ -60,6 +60,7 @@ import {
   type AdmissionAttempt,
 } from "./admission-attempt";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
+import { proBeforeSignInEvent } from "@/features/pro-launch/ProLaunchProvider";
 
 export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
   const t = useTranslations("import");
@@ -85,6 +86,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     [replace, setReplace] = useState(false),
     [storageError, setStorageError] = useState<ErrorDescriptor | null>(null);
   const importPanel = useRef<ImportPanelHandle>(null);
+  const equipmentSelection = useRef<HTMLElement>(null);
   const [importRevision, setImportRevision] = useState(0);
   const [selectionVisit, setSelectionVisit] = useState({
     revision: 0,
@@ -121,6 +123,22 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
     const start = (event: Event) => returnToStart(event);
     window.addEventListener(topGearStartEvent, start);
     return () => window.removeEventListener(topGearStartEvent, start);
+  }, []);
+  const preserveForPro = useEffectEvent((event: Event) => {
+    try {
+      if (request) saveDraft(request);
+      importPanel.current?.saveForLater();
+      if (request)
+        sessionStorage.setItem("munigan.top-gear.signin-restore", "1");
+    } catch (error) {
+      event.preventDefault();
+      setStorageError(describeError(error));
+    }
+  });
+  useEffect(() => {
+    const listener = (event: Event) => preserveForPro(event);
+    window.addEventListener(proBeforeSignInEvent, listener);
+    return () => window.removeEventListener(proBeforeSignInEvent, listener);
   }, []);
 
   const [restoring, setRestoring] = useState(autoRestore);
@@ -426,6 +444,7 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
         ) : (
           <div className="gear-layout">
             <InventorySelector
+              ref={equipmentSelection}
               key={selectionVisit.revision}
               request={request}
               onChange={change}
@@ -450,6 +469,13 @@ export function TopGearApp({ autoRestore = false }: { autoRestore?: boolean }) {
               onSettings={() => setSettingsOpen(true)}
               onEnhancements={() => setEnhancementsOpen(true)}
               onRun={() => void run()}
+              onReduceSelection={() => {
+                equipmentSelection.current?.focus({ preventScroll: true });
+                equipmentSelection.current?.scrollIntoView({
+                  block: "start",
+                  behavior: "auto",
+                });
+              }}
             />
           </div>
         )}

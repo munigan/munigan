@@ -26,6 +26,7 @@ export function RunSetup({
   onSettings,
   onEnhancements,
   onRun,
+  onReduceSelection,
 }: {
   request: TopGearRequest;
   policy: WorkPolicy | null;
@@ -38,35 +39,36 @@ export function RunSetup({
   onSettings: () => void;
   onEnhancements: () => void;
   onRun: () => void;
+  onReduceSelection?: () => void;
 }) {
   const t = useTranslations("inventory");
   const locale = useLocale();
   const spec = getSpec(request.snapshot.specId);
   return (
     <aside className="run-summary" aria-label={t("run.setup")}>
-      <div className="run-configuration">
-        <div className="run-character section-top">
-          <CharacterPortrait
-            className={spec.className}
-            snapshot={request.snapshot}
-          />
-          <div className="run-character-name">
-            <h2>
-              {request.snapshot.settings.player!.name || t("run.character")}
-            </h2>
-            <p className="muted small">
-              {spec.name} ·{" "}
-              {spec.className.replace("Deathknight", "Death Knight")} · 80
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            className="text-button !p-0 !min-h-9 !text-[13px]"
-            onClick={() => onImport()}
-          >
-            {t("run.edit")}
-          </Button>
+      <div className="run-character section-top">
+        <CharacterPortrait
+          className={spec.className}
+          snapshot={request.snapshot}
+        />
+        <div className="run-character-name">
+          <h2>
+            {request.snapshot.settings.player!.name || t("run.character")}
+          </h2>
+          <p className="muted small">
+            {spec.name} ·{" "}
+            {spec.className.replace("Deathknight", "Death Knight")} · 80
+          </p>
         </div>
+        <Button
+          variant="ghost"
+          className="text-button !p-0 !min-h-9 !text-[13px]"
+          onClick={() => onImport()}
+        >
+          {t("run.edit")}
+        </Button>
+      </div>
+      <div className="run-configuration">
         <RunSettingRow icon="version">
           <label className="run-version-field">
             <span className="run-setting-title">{t("run.itemVersion")}</span>
@@ -129,6 +131,7 @@ export function RunSetup({
         readinessError={readinessError}
         pending={pending}
         onRun={onRun}
+        onReduceSelection={onReduceSelection}
       />
     </aside>
   );

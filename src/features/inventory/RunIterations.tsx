@@ -2,6 +2,8 @@
 
 import { useId, useState, type CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Button } from "@/components/ui/Button";
+import { useProLaunch } from "@/features/pro-launch/ProLaunchProvider";
 
 const steps = [500, 1000, 1500, 2000, 2500, 3000];
 
@@ -9,6 +11,7 @@ export function RunIterations({ iterations }: { iterations: number | null }) {
   const t = useTranslations("inventory.iterations");
   const locale = useLocale();
   const id = useId();
+  const pro = useProLaunch();
   const [limitReached, setLimitReached] = useState(false);
   const selected = iterations ?? steps[0];
   const formatted = iterations?.toLocaleString(locale) ?? "—";
@@ -16,10 +19,9 @@ export function RunIterations({ iterations }: { iterations: number | null }) {
   return (
     <div className="run-iterations">
       <div className="run-iterations-content">
-        <div className="run-iterations-heading">
-          <label htmlFor={id}>{t("label")}</label>
-          <strong>{formatted}</strong>
-        </div>
+        <label className="run-iterations-heading" htmlFor={id}>
+          {t("label")}
+        </label>
         <p id={`${id}-help`} className="run-iterations-help">
           {t("help")}
         </p>
@@ -68,9 +70,17 @@ export function RunIterations({ iterations }: { iterations: number | null }) {
       </div>
       <div id={`${id}-feedback`} role="status" aria-atomic="true">
         {limitReached && (
-          <p className="run-iterations-feedback">
-            {t("blocked", { count: formatted })}
-          </p>
+          <div className="run-iterations-feedback">
+            <p>{t("blocked", { count: formatted })}</p>
+            <Button
+              variant="ghost"
+              onClick={(event) =>
+                pro.open("iterations_limit", event.currentTarget)
+              }
+            >
+              {t("seePro")}
+            </Button>
+          </div>
         )}
       </div>
     </div>

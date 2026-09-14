@@ -10,6 +10,7 @@ import type { TopGearRequest } from "@/domain/top-gear/model";
 import { TopGearApp } from "./TopGearApp";
 import { draftKey, saveDraft } from "../import/draft-store";
 import { topGearStartEvent } from "@/features/shell/top-gear-navigation";
+import { proBeforeSignInEvent } from "@/features/pro-launch/ProLaunchProvider";
 const { auth, push } = vi.hoisted(() => ({
   auth: { status: "authenticated", account: { id: "a" }, savingEnabled: true },
   push: vi.fn(),
@@ -27,33 +28,51 @@ vi.mock("./InventorySelector", () => ({
   InventorySelector: ({
     request,
     onChange,
+    ref,
   }: {
     request: TopGearRequest;
     onChange: (request: TopGearRequest) => void;
+    ref?: React.Ref<HTMLElement>;
   }) => (
-    <button
-      onClick={() =>
-        onChange({
-          ...request,
-          selection: {
-            ...request.selection,
-            selectedInstanceIds: request.selection.selectedInstanceIds.slice(
-              0,
-              -1,
-            ),
-          },
-        })
-      }
-    >
-      Reduce selection
-    </button>
+    <section ref={ref} tabIndex={-1} aria-label="Equipment selection">
+      <button
+        onClick={() =>
+          onChange({
+            ...request,
+            selection: {
+              ...request.selection,
+              selectedInstanceIds: request.selection.selectedInstanceIds.slice(
+                0,
+                -1,
+              ),
+            },
+          })
+        }
+      >
+        Reduce selection
+      </button>
+      <span data-testid="selection-count">
+        {request.selection.selectedInstanceIds.length}
+      </span>
+    </section>
   ),
 }));
 vi.mock("./RunSetup", () => ({
-  RunSetup: ({ onRun, pending }: { onRun: () => void; pending: boolean }) => (
-    <button onClick={onRun} disabled={pending}>
-      Run fixture
-    </button>
+  RunSetup: ({
+    onRun,
+    pending,
+    onReduceSelection,
+  }: {
+    onRun: () => void;
+    pending: boolean;
+    onReduceSelection: () => void;
+  }) => (
+    <>
+      <button onClick={onRun} disabled={pending}>
+        Run fixture
+      </button>
+      <button onClick={onReduceSelection}>Sidebar reduce selection</button>
+    </>
   ),
 }));
 vi.mock("../auth/SignInDialog", () => ({ SignInDialog: () => null }));
@@ -256,4 +275,50 @@ it("preserves a newer draft saved while an older run is being admitted", async (
   expect(JSON.parse(localStorage.getItem(draftKey)!).snapshot.id).toBe(
     newer.snapshot.id,
   );
+});
+
+it("preserves the current request before PRO sign-in without changing admission", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({}) }));
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const event = new Event(proBeforeSignInEvent, { cancelable: true });
+  act(() => window.dispatchEvent(event));
+  expect(event.defaultPrevented).toBe(false);
+  expect(localStorage.getItem(draftKey)).not.toBeNull();
+  expect(sessionStorage.getItem("munigan.top-gear.signin-restore")).toBe("1");
+});
+
+it("focuses the equipment selection without changing selected IDs", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({}) }));
+  const scrollIntoView = vi.fn();
+  HTMLElement.prototype.scrollIntoView = scrollIntoView;
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const before = screen.getByTestId("selection-count").textContent;
+  await userEvent.click(
+    screen.getByRole("button", { name: "Sidebar reduce selection" }),
+  );
+  expect(
+    screen.getByRole("region", { name: "Equipment selection" }),
+  ).toHaveFocus();
+  expect(screen.getByTestId("selection-count")).toHaveTextContent(before!);
+  expect(scrollIntoView).toHaveBeenCalledWith({
+    block: "start",
+    behavior: "auto",
+  });
+});
+
+it("cancels PRO sign-in when preserving the draft fails", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({}) }));
+  view();
+  await userEvent.click(screen.getByRole("button", { name: "Import fixture" }));
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new Error("storage unavailable");
+    });
+  const event = new Event(proBeforeSignInEvent, { cancelable: true });
+  act(() => window.dispatchEvent(event));
+  expect(event.defaultPrevented).toBe(true);
+  setItem.mockRestore();
 });

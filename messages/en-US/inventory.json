@@ -28,14 +28,29 @@
     "about": "About the set limit",
     "units": "{used} / {max} work units",
     "help": "Upper bound, including equipped gear once. Illegal or identical combinations are removed by the worker. Each admitted set receives {iterations} simulation iterations.",
-    "reduce": "Select fewer items to stay within the free set limit."
+    "reduce": "Select fewer items to stay within the free set limit.",
+    "combinations": "combinations",
+    "exact": "{count, plural, one {# combination} other {# combinations}}",
+    "upTo": "{count, plural, one {Up to # combination} other {Up to # combinations}}",
+    "mayExceed": "This selection may exceed the free limit."
   },
   "iterations": {
     "label": "Iterations per set",
     "help": "More iterations reduce random variation but take longer to simulate.",
     "freeLimit": "Free plan limit",
     "value": "{count} iterations",
-    "blocked": "Free is limited to {count} iterations. Your simulation will run with {count} per set."
+    "blocked": "Free is limited to {count} iterations. Your simulation will run with {count} per set.",
+    "seePro": "See PRO"
+  },
+  "proLimit": {
+    "title": "Free limit reached",
+    "soon": "Coming soon",
+    "heading": "More room for your gear.",
+    "body": "Larger Gear Lab runs are coming with PRO. Get launch updates and an extra discount.",
+    "addCredits": "Add credits",
+    "noPayment": "Payments aren’t available yet.",
+    "reduce": "Reduce selection",
+    "reduceHelp": "Select fewer items to reach {count} combinations or less. Keep {iterations} iterations and run free."
   },
   "sources": {
     "equipped": "Equipped",

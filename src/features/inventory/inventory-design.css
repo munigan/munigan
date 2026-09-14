@@ -15,9 +15,12 @@
     border-left: 1px solid var(--color-border);
   }
   .run-summary .run-configuration {
-    padding: 0;
+    padding: 20px;
     overflow: visible;
     gap: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
   }
   .run-summary .run-action {
     position: static;
@@ -42,6 +45,28 @@
   .run-summary .run-button {
     margin-top: 24px;
     min-height: 48px;
+  }
+  .run-action-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+  }
+  .run-action-panel .section-top,
+  .run-action-panel h3,
+  .run-action-panel p {
+    margin: 0;
+  }
+  .run-action-panel h3 {
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .run-action-panel > .run-button {
+    width: 100%;
+    margin-top: 8px;
   }
   .inventory .slot-items {
     overflow: hidden;
@@ -165,8 +190,7 @@
     align-items: center;
     gap: 12px;
     margin: 0;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0;
   }
   .run-character-name {
     flex: 1;
@@ -268,8 +292,9 @@
   }
   .run-budget-panel {
     background: var(--color-surface);
-    border-radius: 6px;
-    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
   }
   .run-summary .run-budget .section-top {
     margin: 0;
@@ -293,15 +318,29 @@
     margin: 12px 0;
   }
   .run-summary .allowance-help {
+    appearance: none;
+    border: 0;
+    border-bottom: 1px dashed currentColor;
+    padding: 0;
+    min-height: 0;
+    width: fit-content;
+    background: transparent;
+    color: var(--color-muted);
     font-size: 12px;
     line-height: 16px;
+    cursor: help;
   }
-  .run-summary .allowance-help summary {
-    min-height: 0;
-    padding: 0;
+  .allowance-tooltip p {
+    margin: 0;
   }
-  .run-summary .allowance-help p {
+  .allowance-tooltip p + p {
+    margin-top: 8px;
+  }
+  .run-count-note {
     margin: 10px 0 0;
+    color: var(--color-muted);
+    font-size: 12px;
+    line-height: 16px;
   }
   .run-iterations {
     margin-top: 20px;
@@ -344,13 +383,21 @@
   .run-iterations-feedback {
     margin-top: 12px;
   }
+  .run-iterations-feedback p {
+    margin: 0 0 6px;
+  }
   .run-iterations-scale {
+    --label-half: 20px;
+    --thumb: 20px;
     position: relative;
+    height: 64px;
   }
   .run-iterations-scale input {
-    display: block;
+    position: absolute;
+    left: calc(var(--label-half) - var(--thumb) / 2);
+    top: 0;
     appearance: none;
-    width: 100%;
+    width: calc(100% - 2 * var(--label-half) + var(--thumb));
     min-width: 0;
     height: 44px;
     margin: 0;
@@ -365,69 +412,65 @@
     opacity: 0.5;
   }
   .run-iterations-scale input::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: 4px;
-    background: var(--color-control-border);
+    background: transparent;
   }
   .run-iterations-scale input::-moz-range-track {
-    height: 4px;
-    border-radius: 4px;
-    background: var(--color-control-border);
+    background: transparent;
   }
   .run-iterations-scale input::-webkit-slider-thumb {
     appearance: none;
-    width: 16px;
-    height: 16px;
-    margin-top: -6px;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
     border: 0;
     border-radius: 50%;
     background: var(--color-action);
   }
   .run-iterations-scale input::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
     border: 0;
     border-radius: 50%;
     background: var(--color-action);
   }
   .run-iterations-marks {
     position: absolute;
-    top: 20px;
-    inset-inline: 8px;
+    top: 22px;
+    left: var(--label-half);
+    right: var(--label-half);
+    height: 4px;
+    border-radius: 4px;
+    background: var(--color-control-border);
     pointer-events: none;
   }
-  .run-iterations-marks span {
+  .run-iterations-marks span,
+  .run-iterations-labels span {
     position: absolute;
     left: var(--tick);
+    transform: translateX(-50%);
+  }
+  .run-iterations-marks span {
     width: 4px;
     height: 4px;
     border-radius: 50%;
     background: var(--color-muted);
-    transform: translateX(-50%);
-  }
-  .run-iterations-marks span:first-child {
-    visibility: hidden;
   }
   .run-iterations-labels {
-    position: relative;
-    height: 16px;
-    margin-top: 8px;
-    margin-inline: 8px;
+    position: absolute;
+    top: 44px;
+    left: var(--label-half);
+    right: var(--label-half);
     font-size: 12px;
     line-height: 16px;
     color: var(--color-muted);
     pointer-events: none;
   }
   .run-iterations-labels span {
-    position: absolute;
-    left: var(--tick);
-    transform: translateX(-50%);
-  }
-  .run-iterations-labels span:first-child {
-    transform: translateX(-8px);
-  }
-  .run-iterations-labels span:last-child {
-    transform: translateX(calc(-100% + 8px));
+    width: 40px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
   @media (max-width: 360px) {
     .run-iterations-labels {
