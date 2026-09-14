@@ -85,6 +85,7 @@ describe("ProLaunchDialog", () => {
       error: "We couldn’t confirm your signup.",
     });
     expect(screen.getByRole("button", { name: "Joining…" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Joining…");
     expect(screen.getByRole("alert")).toHaveTextContent("confirm your signup");
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(handlers.onOpenChange).toHaveBeenCalledWith(false);

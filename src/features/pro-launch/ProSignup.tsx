@@ -57,6 +57,11 @@ export function ProSignup({
           <Button className="pro-primary" disabled={joining} onClick={onJoin}>
             {t(joining ? "joining" : "join")}
           </Button>
+          {joining && (
+            <span className="sr-only" role="status">
+              {t("joining")}
+            </span>
+          )}
         </div>
       ) : (
         <>
