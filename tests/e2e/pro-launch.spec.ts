@@ -7,8 +7,7 @@ import { startDiscordHarness } from "../support/discord-oauth";
 
 let db: pg.Pool;
 let events: string;
-const evidenceDir =
-  ".superpowers/sdd/2026-09-14-pro-launch-list/qa/task-7";
+const evidenceDir = ".superpowers/sdd/2026-09-14-pro-launch-list/qa/task-7";
 
 test.beforeAll(async () => {
   const runtime = JSON.parse(
@@ -69,21 +68,26 @@ if (${JSON.stringify(overLimit)}) {
   request.selection.selectedInstanceIds.push(...additions.map((item) => item.instanceId));
 }
 process.stdout.write(JSON.stringify(encodeRequest(request)));`;
-  const fixture = spawnSync(process.execPath, ["--import", "tsx", "-e", script], {
-    encoding: "utf8",
-  });
+  const fixture = spawnSync(
+    process.execPath,
+    ["--import", "tsx", "-e", script],
+    {
+      encoding: "utf8",
+    },
+  );
   if (fixture.status !== 0)
     throw new Error(`PRO fixture generation failed: ${fixture.stderr}`);
   await page.addInitScript(
-    ({ value }) =>
-      localStorage.setItem("wow-droptimizer.top-gear.v1", value),
+    ({ value }) => localStorage.setItem("wow-droptimizer.top-gear.v1", value),
     { value: fixture.stdout },
   );
 }
 
 async function restoreDraft(page: import("@playwright/test").Page) {
   await page.goto("/gear-lab");
-  await page.getByRole("button", { name: "Restore draft", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Restore draft", exact: true })
+    .click();
 }
 
 test.beforeEach(async () => {
@@ -107,7 +111,9 @@ test("explicit Discord consent returns to an unjoined draft and joining persists
   const draftBefore = await page.evaluate(() =>
     localStorage.getItem("wow-droptimizer.top-gear.v1"),
   );
-  await expect(page.getByRole("heading", { name: /17 \/ 17 selected/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /17 \/ 17 selected/ }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Go PRO", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText(
     "Gear Lab without limits",
@@ -125,11 +131,13 @@ test("explicit Discord consent returns to an unjoined draft and joining persists
       localStorage.getItem("wow-droptimizer.top-gear.v1"),
     ),
   ).toBe(draftBefore);
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    0,
-  );
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(0);
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("heading", { name: /17 \/ 17 selected/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /17 \/ 17 selected/ }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Go PRO", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Join the PRO list", exact: true }),
@@ -138,9 +146,9 @@ test("explicit Discord consent returns to an unjoined draft and joining persists
     .getByRole("button", { name: "Join the PRO list", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toContainText("You’re on the list.");
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    1,
-  );
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(1);
   await page.reload();
   await page.getByRole("button", { name: "Go PRO", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("You’re on the list.");
@@ -153,13 +161,14 @@ test("OAuth cancellation never creates a launch membership", async ({
   await beginProSignIn(page);
   await page.getByRole("button", { name: "Deny", exact: true }).click();
   await expect(page.locator(".auth-return [role=alert]")).toBeVisible();
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    0,
-  );
-
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(0);
 });
 
-test("invalid OAuth state never creates a launch membership", async ({ page }) => {
+test("invalid OAuth state never creates a launch membership", async ({
+  page,
+}) => {
   await beginProSignIn(page);
   await page.route("**/api/auth/callback/discord?*", async (route) => {
     const invalid = new URL(route.request().url());
@@ -168,9 +177,9 @@ test("invalid OAuth state never creates a launch membership", async ({ page }) =
   });
   await page.getByRole("button", { name: "Allow", exact: true }).click();
   await expect(page.locator(".auth-return [role=alert]")).toBeVisible();
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    0,
-  );
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(0);
 });
 
 test("blocked resume storage preserves the Gear Lab draft and prevents OAuth navigation", async ({
@@ -220,16 +229,16 @@ test("a failed join can be retried without creating duplicate memberships", asyn
   await expect(page.getByRole("dialog")).toContainText(
     "We couldn’t confirm your signup",
   );
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    0,
-  );
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(0);
   await join(page);
   await page.reload();
   await page.getByRole("button", { name: "Go PRO", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("You’re on the list.");
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    1,
-  );
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(1);
 });
 
 test("switching the browser session cannot enroll the account shown before the switch", async ({
@@ -254,11 +263,27 @@ test("switching the browser session cannot enroll the account shown before the s
     ),
   );
   await otherContext.close();
-  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  await expect(page.getByText("Account B", { exact: true })).toBeVisible();
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    0,
+  const rejected = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === "/api/pro-launch",
   );
+  await page
+    .getByRole("button", { name: "Join the PRO list", exact: true })
+    .click();
+  expect((await rejected).status()).toBe(409);
+  await expect(page.getByText("Account B", { exact: true })).toBeVisible();
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(0);
+  await join(page);
+  const membership = (
+    await db.query(
+      `SELECT m.user_id,u.name
+       FROM pro_launch_memberships m JOIN auth_user u ON u.id=m.user_id`,
+    )
+  ).rows;
+  expect(membership).toEqual([expect.objectContaining({ name: "Account B" })]);
 });
 
 test("deleting the authenticated account removes its launch membership", async ({
@@ -274,9 +299,9 @@ test("deleting the authenticated account removes its launch membership", async (
     .getByRole("button", { name: "Delete my account", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText("Access removed");
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(
-    0,
-  );
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(0);
 });
 
 test("an existing Discord account can sign in again and retains its enrollment", async ({
@@ -288,14 +313,18 @@ test("an existing Discord account can sign in again and retains its enrollment",
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("menuitem", { name: "Sign out", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Sign in", exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("button", { name: "Continue with Discord" }).click();
   await page.getByRole("button", { name: "Allow", exact: true }).click();
   await expect(page).toHaveURL(/\/gear-lab$/);
   await page.getByRole("button", { name: "Go PRO", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("You’re on the list.");
-  expect((await db.query("SELECT * FROM pro_launch_memberships")).rowCount).toBe(1);
+  expect(
+    (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+  ).toBe(1);
 });
 
 for (const locale of ["en-us", "pt-br"] as const) {
@@ -352,23 +381,34 @@ for (const locale of ["en-us", "pt-br"] as const) {
         await page.keyboard.press("Tab");
         await expect(dialog.locator(":focus")).toHaveCount(1);
       }
+      if (viewport.width === 320) {
+        const bottomCta = dialog.getByRole("button", {
+          name:
+            locale === "pt-br"
+              ? "Continuar com Discord"
+              : "Continue with Discord",
+          exact: true,
+        });
+        await bottomCta.scrollIntoViewIfNeeded();
+        await expect(bottomCta).toBeVisible();
+      }
       const box = (await dialog.boundingBox())!;
       expect(box.width).toBeLessThanOrEqual(viewport.width);
       expect(box.height).toBeLessThanOrEqual(viewport.height);
       expect(
-        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
       ).toBe(true);
       if (locale === "en-us" && viewport.width === 1440)
         await page.screenshot({ path: `${evidenceDir}/anonymous-desktop.png` });
       if (locale === "pt-br" && viewport.width === 320)
-        await page.screenshot({ path: `${evidenceDir}/anonymous-mobile-320.png` });
+        await page.screenshot({
+          path: `${evidenceDir}/anonymous-mobile-320.png`,
+        });
       await page.keyboard.press("Escape");
       await expect(dialog).toBeHidden();
-      await expect(
-        mobile
-          ? navButton
-          : desktopTrigger,
-      ).toBeFocused();
+      await expect(mobile ? navButton : desktopTrigger).toBeFocused();
     });
   }
 }
@@ -387,18 +427,22 @@ test("slider geometry remains aligned and a locked higher value leaves the free 
       "Free is limited to 500 iterations. Your simulation will run with 500 per set.",
     ),
   ).toBeVisible();
-  const labels = await page.locator(".run-iterations-labels span").evaluateAll(
-    (nodes) => nodes.map((node) => {
-      const rect = node.getBoundingClientRect();
-      return rect.x + rect.width / 2;
-    }),
-  );
-  const marks = await page.locator(".run-iterations-marks span").evaluateAll(
-    (nodes) => nodes.map((node) => {
-      const rect = node.getBoundingClientRect();
-      return rect.x + rect.width / 2;
-    }),
-  );
+  const labels = await page
+    .locator(".run-iterations-labels span")
+    .evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.x + rect.width / 2;
+      }),
+    );
+  const marks = await page
+    .locator(".run-iterations-marks span")
+    .evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.x + rect.width / 2;
+      }),
+    );
   expect(labels).toHaveLength(6);
   for (let i = 0; i < 6; i++)
     expect(Math.abs(labels[i] - marks[i])).toBeLessThanOrEqual(1);
@@ -415,6 +459,104 @@ test("slider geometry remains aligned and a locked higher value leaves the free 
   await expect.poll(() => simulationPosts).toBe(1);
 });
 
+test("touch allowance tooltip toggles on taps and closes with Escape in a constrained viewport", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    viewport: { width: 390, height: 844 },
+  });
+  const page = await context.newPage();
+  await seedDraft(page, true);
+  await restoreDraft(page);
+  const trigger = page.getByRole("button", { name: "About the set limit" });
+  await trigger.tap();
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  await trigger.tap();
+  await expect(page.getByRole("tooltip")).toBeHidden();
+  await trigger.tap();
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toBeHidden();
+  await context.close();
+});
+
+for (const locale of ["en-us", "pt-br"] as const) {
+  test(`joined ${locale} confirmation exposes the optional PRO role invitation without rejoining`, async ({
+    page,
+    context,
+  }) => {
+    const pt = locale === "pt-br";
+    const names = pt
+      ? {
+          pro: "Seja PRO",
+          continue: "Continuar com Discord",
+          join: "Entrar na lista PRO",
+          joined: "Você está na lista.",
+          invite: "Ativar avisos no Discord",
+          optional:
+            "Opcional: entre no servidor para receber o cargo PRO Launch e menções no canal.",
+          removal:
+            "Para pedir a remoção do cargo PRO Launch depois, fale no canal de suporte.",
+        }
+      : {
+          pro: "Go PRO",
+          continue: "Continue with Discord",
+          join: "Join the PRO list",
+          joined: "You’re on the list.",
+          invite: "Enable Discord notifications",
+          optional:
+            "Optional: join the server to receive the PRO Launch role and channel mentions.",
+          removal:
+            "To remove the PRO Launch role later, ask in the support channel.",
+        };
+    await startDiscordHarness(page, "phone_only");
+    await page.goto(`/${locale}`);
+    await page.getByRole("button", { name: names.pro, exact: true }).click();
+    await page
+      .getByRole("button", { name: names.continue, exact: true })
+      .click();
+    await page.getByRole("button", { name: "Allow", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}$`));
+    let membershipPosts = 0;
+    page.on("request", (request) => {
+      if (
+        request.method() === "POST" &&
+        new URL(request.url()).pathname === "/api/pro-launch"
+      )
+        membershipPosts++;
+    });
+    await page.getByRole("button", { name: names.join, exact: true }).click();
+    await expect(page.getByRole("dialog")).toContainText(names.joined);
+    const invite = page.getByRole("link", { name: names.invite, exact: true });
+    await expect(invite).toHaveAttribute(
+      "href",
+      "https://discord.gg/79SMq4A7vg",
+    );
+    await expect(invite).toHaveAttribute("target", "_blank");
+    await expect(invite).toHaveAttribute("rel", /noopener/);
+    await expect(invite).toHaveAttribute("rel", /noreferrer/);
+    await expect(page.getByText(names.optional, { exact: true })).toBeVisible();
+    await expect(page.getByText(names.removal, { exact: true })).toBeVisible();
+    await context.route("https://discord.gg/**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        body: "Discord invite intercepted",
+      }),
+    );
+    const popupPromise = page.waitForEvent("popup");
+    await invite.click();
+    const popup = await popupPromise;
+    await popup.waitForLoadState("domcontentloaded");
+    await expect.poll(() => membershipPosts).toBe(1);
+    expect(
+      (await db.query("SELECT * FROM pro_launch_memberships")).rowCount,
+    ).toBe(1);
+    await popup.close();
+  });
+}
+
 test("an over-limit Add credits entry opens the shared dialog without a simulation POST", async ({
   page,
 }) => {
@@ -429,9 +571,13 @@ test("an over-limit Add credits entry opens the shared dialog without a simulati
   });
   await restoreDraft(page);
   await expect(page.getByText(/Up to 256 combinations/)).toBeVisible();
-  await expect(page.getByText("This selection may exceed the free limit.")).toBeVisible();
+  await expect(
+    page.getByText("This selection may exceed the free limit."),
+  ).toBeVisible();
   await page.screenshot({ path: `${evidenceDir}/over-limit-sidebar.png` });
   await page.getByRole("button", { name: "Add credits", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText("Gear Lab without limits");
+  await expect(page.getByRole("dialog")).toContainText(
+    "Gear Lab without limits",
+  );
   expect(simulationPosts).toBe(0);
 });
