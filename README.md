@@ -43,6 +43,82 @@ pnpm worker
 
 Open [http://127.0.0.1:3000/top-gear](http://127.0.0.1:3000/top-gear). No Trigger.dev account is needed for this local workflow. Optional service settings are documented in [`.env.example`](.env.example); keep secrets in `.env.local`.
 
+## AI Setup
+
+Paste this prompt into your coding agent to set up a local development environment with Trigger.dev. Have a Trigger.dev account/project ready; the agent may need you to complete browser login or add development credentials to `.env.local`. Discord and relay credentials enable the corresponding optional features.
+
+```text
+Set up and start Munigan on this machine. Do the setup, not just describe the steps.
+
+1. Use the existing checkout, or clone https://github.com/munigan/munigan.git
+   into a new munigan directory. Read AGENTS.md, README.md, package.json,
+   compose.yaml, .env.example, trigger.config.ts, and the relevant operations
+   guides in docs/engineering. Preserve existing work and configuration.
+
+2. Check/install Node.js 24, pnpm 10.33.0, Docker with Compose, Git, Go 1.21+
+   (the build selects Go 1.23.4), Python 3, Bash, and OpenSSL. Start Docker
+   if needed. Run pnpm install --frozen-lockfile, then docker compose up -d
+   --wait. Use the Compose PostgreSQL service; resolve any existing listener
+   on port 55435 without deleting its data or stopping unrelated services.
+
+3. Create .env.local from .env.example only if it does not exist; otherwise
+   merge missing settings. Keep it private and preserve existing secrets.
+   Set APP_ENV=local, APP_ORIGIN=http://127.0.0.1:3000, and
+   DATABASE_URL=postgresql://wotlk:local-development-only@127.0.0.1:55435/wow_top_gear.
+   Use this same direct URL for DATABASE_URL_UNPOOLED if that variable is set.
+   Generate CAPABILITY_KEY with openssl rand -hex 32 only if missing. Keep
+   the checked-in development policy defaults. Never print or commit secrets.
+
+4. Run pnpm sim:build and pnpm db:migrate. Verify the native executable at
+   dist/simulator/local/wowsimcli and database connectivity. Keep the
+   repository's pinned simulator/data versions; no data regeneration is
+   needed for a normal checkout.
+
+5. Configure Trigger.dev Development. Run pnpm exec trigger login and let
+   me complete browser authentication if needed. Use a project I can access
+   or help me create my own in Trigger.dev; do not assume I have access to
+   the project's checked-in default. Set TRIGGER_PROJECT_REF to my project
+   reference and TRIGGER_SECRET_KEY to its Development secret key in
+   .env.local. Have me add credentials privately if they are unavailable.
+   Keep the existing Trigger config and task definitions. Development tasks
+   execute on this machine and can use the local Docker database.
+
+6. Configure optional features when their development credentials are
+   available. For Discord login and saved reports, generate a stable
+   BETTER_AUTH_SECRET if missing, set BETTER_AUTH_URL to APP_ORIGIN, configure
+   DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET, and register the exact callback
+   http://127.0.0.1:3000/api/auth/callback/discord in the Discord application.
+   Then enable AUTH_ENROLLMENT_ENABLED and REPORT_SAVING_ENABLED. Without
+   Discord credentials, leave those flags false and report login/saving as
+   unavailable. For the Warmane cache and item tooltip services, configure
+   WARMANE_RELAY_URL / WARMANE_RELAY_SECRET and ITEM_TOOLTIP_RELAY_URL /
+   ITEM_TOOLTIP_RELAY_SECRET using development HTTPS services I can access;
+   their implementations are in workers/warmane-armory and workers/item-tooltips.
+   If these are not configured, explain the resulting feature limitations.
+   Use development resources throughout; this is a local setup.
+
+7. Start and keep these commands running in separate terminals or managed
+   background sessions, with accessible logs:
+     pnpm dev
+     pnpm trigger:dev
+     pnpm jobs:dispatch:watch
+   Confirm the Trigger runner registers the top-gear task and the dispatcher
+   connects successfully. Do not also run pnpm worker against this database:
+   it is the alternative to Trigger, not an additional process. If Trigger
+   access is blocked, finish independent setup and ask for the missing input;
+   offer pnpm worker as an explicit temporary fallback, not a completed
+   Trigger setup.
+
+8. Open http://127.0.0.1:3000/gear-lab and verify it loads. Run a small
+   simulation using a repository fixture or character data I provide, and
+   confirm dispatch, a completed Trigger Development task, and its report
+   in the app. Run pnpm typecheck. Report the app URL, running sessions,
+   verification results, any blocked integrations, and restart/stop commands.
+   Stop app/runner/dispatcher sessions with Ctrl+C and PostgreSQL with
+   docker compose down, preserving its volume. Do not claim full setup
+   success unless the Trigger-backed simulation completes.
+```
+
 ## Project structure
 
 - `src/` — app UI, server logic, and generated simulator types.
