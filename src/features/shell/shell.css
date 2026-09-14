@@ -191,6 +191,27 @@ a.workbench-nav-row:hover,
   font-size: 12px;
   color: var(--color-muted);
 }
+.workbench-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.workbench-github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+.workbench-github-link:hover {
+  color: var(--color-text);
+}
+.workbench-github-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
 .workbench-footer > :first-child {
   color: var(--color-text);
 }

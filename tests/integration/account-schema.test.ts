@@ -85,10 +85,16 @@ it("serializes session creation behind the account lifecycle lock", async () => 
     );
     const pid = (await session.query("SELECT pg_backend_pid() pid")).rows[0]
       .pid;
-    const insert = session.query(
-      "INSERT INTO auth_session(id,token,user_id,expires_at,created_at,updated_at) VALUES($1,$2,$3,now()+interval '1 day',now(),now())",
-      [randomUUID(), randomUUID(), account.id],
-    );
+    // Handle the rejection immediately: PostgreSQL may reject before COMMIT resolves.
+    const insert = session
+      .query(
+        "INSERT INTO auth_session(id,token,user_id,expires_at,created_at,updated_at) VALUES($1,$2,$3,now()+interval '1 day',now(),now())",
+        [randomUUID(), randomUUID(), account.id],
+      )
+      .then(
+        () => null,
+        (error: unknown) => error,
+      );
     // Observe the blocked backend instead of treating elapsed time as evidence.
     await expect
       .poll(async () => {
@@ -103,7 +109,9 @@ it("serializes session creation behind the account lifecycle lock", async () => 
       .toBe("Lock");
 
     await deletion.query("COMMIT");
-    await expect(insert).rejects.toThrow(/active account lifecycle/i);
+    expect(await insert).toMatchObject({
+      message: expect.stringMatching(/active account lifecycle/i),
+    });
   } finally {
     await deletion.query("ROLLBACK");
     deletion.release();
