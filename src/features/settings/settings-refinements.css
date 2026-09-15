@@ -487,7 +487,7 @@
     background: #101215;
     color: var(--color-muted);
   }
-  .settings-search:focus-within {
+  .settings-search:has(:focus-visible) {
     border-color: var(--color-control-border);
   }
   .simulation-dialog .settings-search input {
@@ -718,7 +718,7 @@
     color: var(--color-text);
   }
   .consume-toggle:hover,
-  .consume-toggle:focus-within {
+  .consume-toggle:has(:focus-visible) {
     border-color: var(--color-control-border);
   }
   .consume-pet-grid > .consume-control {

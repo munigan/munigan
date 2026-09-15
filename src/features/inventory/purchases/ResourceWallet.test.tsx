@@ -57,11 +57,12 @@ it("renders one localized wallet row per resource and reviews purchase candidate
   expect(screen.getAllByText("Emblems of Frost")).toHaveLength(1);
   expect(screen.getAllByText("Emblems of Triumph")).toHaveLength(1);
   expect(
-    screen.getByRole("spinbutton", { name: "Emblems of Frost quantity" }),
-  ).toHaveValue(100);
+    screen.getByRole("button", { name: "Edit Emblems of Frost" }),
+  ).toHaveTextContent("100");
   expect(
-    screen.getByRole("spinbutton", { name: "Emblems of Triumph quantity" }),
-  ).toHaveValue(30);
+    screen.getByRole("button", { name: "Edit Emblems of Triumph" }),
+  ).toHaveTextContent("30");
+  expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
   await userEvent.click(
     screen.getByRole("button", { name: "Review purchases" }),
   );
@@ -77,33 +78,38 @@ it("describes Trophy purchases separately from Mark upgrades", () => {
 
   const trophy = screen
     .getByText("Trophy of the Crusade")
-    .closest<HTMLElement>(".resource-wallet-row")!;
-  expect(trophy).toHaveTextContent(
-    "Also requires Emblems of Triumph · Buys T9 · Item level 245",
-  );
+    .closest<HTMLElement>(".resource-wallet-chip")!;
+  expect(trophy).toHaveTextContent("T9 · ilvl 245");
   const mark = screen
     .getByText("Vanquisher’s Mark of Sanctification")
-    .closest<HTMLElement>(".resource-wallet-row")!;
-  expect(mark).toHaveTextContent("Normal · Upgrades T10 251 → 264");
+    .closest<HTMLElement>(".resource-wallet-chip")!;
+  expect(mark).toHaveTextContent("T10 · ilvl 264");
   const regalia = screen
     .getByText("Regalia of the Grand Vanquisher")
-    .closest<HTMLElement>(".resource-wallet-row")!;
-  expect(regalia).toHaveTextContent(
-    "Heroic · Redeems directly for T9 · Item level 258",
-  );
+    .closest<HTMLElement>(".resource-wallet-chip")!;
+  expect(regalia).toHaveTextContent("T9 · ilvl 258");
 });
 
-it("updates inline quantities and removes a resource with accessible actions", async () => {
+it("removes a resource from its editor without changing other balances", async () => {
   const { onChange } = renderWallet({ frost: 2, triumph: 30 });
   await userEvent.click(
-    screen.getByRole("button", { name: "Increase Emblems of Frost quantity" }),
+    screen.getByRole("button", { name: "Edit Emblems of Triumph" }),
   );
-  expect(onChange.mock.calls[0][0].purchases.balances.frost).toBe(3);
-
   await userEvent.click(
     screen.getByRole("button", { name: "Remove Emblems of Triumph" }),
   );
-  expect(onChange.mock.calls[1][0].purchases.balances).toEqual({ frost: 3 });
+  expect(onChange.mock.calls[0][0].purchases.balances).toEqual({ frost: 2 });
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Add resource" })).toHaveFocus();
+});
+
+it("renders a compact empty state without a chip row or review footer", () => {
+  renderWallet({});
+  expect(
+    screen.getByText("Put your tokens & currencies to work"),
+  ).toBeVisible();
+  expect(document.querySelector(".resource-wallet-chips")).toBeNull();
+  expect(document.querySelector(".resource-wallet-review")).toBeNull();
 });
 
 it("edits an existing resource atomically without adding another wallet row", async () => {
@@ -219,23 +225,11 @@ it.each(["en-US", "pt-BR"] as const)(
   },
 );
 
-it("shows the token's five specialization rewards in the shared tooltip", async () => {
+it("shows a specialization image on token chips without nested interactive elements", () => {
   renderWallet({ "regalia:vanquisher": 1 });
-  const trigger = screen.getByRole("button", { name: "5 tier items" });
-  expect(trigger).toHaveTextContent("+5");
-  await userEvent.hover(trigger);
-  const tooltip = await screen.findByRole("tooltip");
-  expect(within(tooltip).getAllByRole("listitem")).toHaveLength(5);
-  expect(tooltip).toHaveTextContent("Koltira's Battleplate of Triumph");
-  expect(tooltip).not.toHaveTextContent("Chestguard");
-});
-
-it("omits an owned reward from the token badge and tooltip", async () => {
-  renderWallet({ "regalia:vanquisher": 1 }, 48493);
-  const trigger = screen.getByRole("button", { name: "4 tier items" });
-  expect(trigger).toHaveTextContent("+4");
-  await userEvent.hover(trigger);
-  const tooltip = await screen.findByRole("tooltip");
-  expect(within(tooltip).getAllByRole("listitem")).toHaveLength(4);
-  expect(tooltip).not.toHaveTextContent("Koltira's Helmet of Triumph");
+  const chip = screen.getByRole("button", {
+    name: "Edit Regalia of the Grand Vanquisher",
+  });
+  expect(chip.querySelector("img")).not.toBeNull();
+  expect(chip.querySelector("button, a, input")).toBeNull();
 });

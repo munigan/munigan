@@ -683,3 +683,10 @@ a.workbench-nav-row:hover,
   flex-shrink: 0;
   border-radius: 2px;
 }
+.workbench-pro-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-color: var(--color-action);
+}

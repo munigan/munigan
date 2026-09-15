@@ -42,7 +42,7 @@ it("carries profession-invalid enhancement repair identity across the real worke
   });
 });
 
-it("keeps the encoded prepared preview when enumeration later reaches its search limit", async () => {
+it("publishes prepared rows and finishes beyond the server search budget", async () => {
   const request = purchaseFixture({ frost: 100, "regalia:vanquisher": 1 });
   for (let index = 0; index < 100; index++) {
     const instanceId = `legs-${index}`;
@@ -75,8 +75,8 @@ it("keeps the encoded prepared preview when enumeration later reaches its search
   const reply = post.mock.calls.at(-1)![0];
   expect(reply.status).toBe("ready");
   expect(reply.analysis).toMatchObject({
-    status: "search-limit",
-    visitedNodes: 3000,
+    status: "complete",
+    plan: { allowance: { countKind: "exact", allowed: true } },
   });
   expect(reply.preview.candidates.length).toBeGreaterThan(0);
   expect(decodeSnapshot(reply.preview.snapshot).settings.player!.class).toBe(

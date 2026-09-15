@@ -29,17 +29,16 @@ function setup(
       />
     </NextIntlClientProvider>,
   );
+  fireEvent.click(screen.getByRole("checkbox", { name: "Show unavailable" }));
   return { preview, onChange, request };
 }
-it("shows unavailable exact prerequisites and excludes final rewards without changing inventory", () => {
+it("shows unavailable rewards and excludes them without changing inventory", () => {
   const { request, onChange } = setup();
   const row = document.querySelector<HTMLElement>(
     '[data-purchase-id="51125"]',
   )!;
   expect(row).toHaveTextContent(/Unavailable/);
-  expect(row).toHaveTextContent(/Mark of Sanctification/);
   expect(row).toHaveTextContent(/Scourgelord/);
-  expect(row).toHaveTextContent(/60 Emblems of Frost/);
   expect(
     screen.getByText(
       /Excluded items can still be used as upgrade prerequisites/,
@@ -70,49 +69,13 @@ it("re-includes an unaffordable excluded reward and preserves the other profile"
     51125,
   ]);
 });
-it("explains owned items consumed by an upgrade and shared balances", () => {
-  const request = purchaseFixture({ "mark:normal:vanquisher": 1 });
-  request.snapshot.inventory.push({
-    instanceId: "owned-shoulders",
-    itemId: 50098,
-    source: "bag",
-    gemIds: [],
-    enchantId: 0,
-  });
-  setup(request);
+it("keeps item selection and costs without details or enhancement editing", () => {
+  setup();
+  expect(document.querySelector(".purchase-item-details")).toBeNull();
   expect(
-    screen.getByText(/A complete set must fit all shared balances/),
-  ).toBeInTheDocument();
-  expect(screen.getAllByText(/Consumed owned item/).length).toBeGreaterThan(0);
-  expect(screen.getAllByText(/owned-shoulders/).length).toBeGreaterThan(0);
-});
-
-it("edits an unavailable reward through the purchase override in its current profile", async () => {
-  const request = purchaseFixture({ frost: 0 });
-  request.purchases!.itemEnhancements.classic = {
-    "50098": { enchantId: 3808 },
-  };
-  const { onChange } = setup(request);
-  const row = document.querySelector<HTMLElement>(
-    '[data-purchase-id="50098"]',
-  )!;
-  fireEvent.click(
-    within(row).getByRole("button", {
-      name: /Edit enhancements/,
-      hidden: true,
-    }),
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Enchant" }));
-  fireEvent.click(screen.getByRole("radio", { name: "No enchant" }));
-  fireEvent.click(screen.getByRole("button", { name: "Apply changes" }));
-  const next = onChange.mock.calls[0][0];
-  expect(next.purchases.itemEnhancements.original["50098"]).toEqual({
-    enchantId: 0,
-  });
-  expect(next.purchases.itemEnhancements.classic["50098"]).toEqual({
-    enchantId: 3808,
-  });
-  expect(next.snapshot).toEqual(request.snapshot);
+    screen.queryByRole("button", { name: /Edit enhancements/, hidden: true }),
+  ).toBeNull();
+  expect(document.querySelector(".purchase-review-cost")).toBeInTheDocument();
 });
 
 it("retains expanded review groups when a wallet edit invalidates the preview", () => {
@@ -182,4 +145,18 @@ it("shows only the detected Feral purchase variant", async () => {
   expect(preview.candidates.map((c) => c.instance.instanceId)).toEqual(
     original,
   );
+});
+
+it("hides unavailable purchases unless explicitly requested", () => {
+  setup(purchaseFixture({ frost: 0 }));
+  const toggle = screen.getByRole("checkbox", { name: "Show unavailable" });
+  fireEvent.click(toggle);
+  expect(document.querySelectorAll("[data-purchase-id]")).toHaveLength(0);
+  expect(
+    screen.getByText("No purchases are available with your current resources."),
+  ).toBeVisible();
+  fireEvent.click(toggle);
+  expect(
+    document.querySelectorAll("[data-purchase-id]").length,
+  ).toBeGreaterThan(0);
 });

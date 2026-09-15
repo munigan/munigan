@@ -39,9 +39,6 @@ export function RunIterations({
         <label className="run-iterations-heading" htmlFor={id}>
           {t("label")}
         </label>
-        <p id={`${id}-help`} className="run-iterations-help">
-          {t("help")}
-        </p>
         <Select
           id={id}
           aria-label={t("label")}
@@ -62,20 +59,18 @@ export function RunIterations({
             <SelectOption
               key={value}
               value={value}
-              description={t(`accuracy.${Math.min(value, 3000)}`)}
+              description={`${t(`accuracy.${Math.min(value, 3000)}`)} · ${editable ? t("localOption") : value <= selected ? t("free") : t("proSoon")}`}
             >
-              {t("option", {
-                count: value.toLocaleString(locale),
-                availability: editable
-                  ? t("localOption")
-                  : value <= selected
-                    ? t("free")
-                    : t("proSoon"),
-              })}
+              {value.toLocaleString(locale)} ·{" "}
+              {t(`quality.${Math.min(value, 3000)}`)}
             </SelectOption>
           ))}
         </Select>
-        <div id={`${id}-limit`} className="run-iterations-limit">
+        <p id={`${id}-help`} className="run-iterations-help">
+          {t("help")}
+        </p>
+
+        <div id={`${id}-limit`} className="sr-only">
           <span>{t(editable ? "localLimit" : "freeLimit")}</span>
           <span>{t("value", { count: limitFormatted })}</span>
         </div>

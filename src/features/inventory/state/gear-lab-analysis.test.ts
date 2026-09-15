@@ -52,12 +52,10 @@ it("does no serialization, worker work or snapshot publication for iterations-on
   const { store, controller, update, worker } = setup();
   const current = controller.getSnapshot();
   const encode = vi.spyOn(schema, "encodeRequest");
-  store
-    .getState()
-    .actions.setIterations(6000, {
-      ...purchasePolicy,
-      selectableIterations: { min: 500, max: 6000, step: 500 },
-    });
+  store.getState().actions.setIterations(6000, {
+    ...purchasePolicy,
+    selectableIterations: { min: 500, max: 6000, step: 500 },
+  });
   update();
   expect(controller.getSnapshot()).toBe(current);
   expect(worker.messages).toHaveLength(1);
@@ -196,4 +194,40 @@ it("disposes idempotently, removes all listeners, and ignores late callbacks and
   expect(worker.terminate).toHaveBeenCalledTimes(1);
   expect(worker.removeEventListener).toHaveBeenCalledTimes(3);
   expect(notify).not.toHaveBeenCalled();
+});
+
+it("cancels slow superseded work and completes the newest selection", () => {
+  vi.useFakeTimers();
+  const { store, controller, update, worker } = setup();
+  try {
+    const late = [...worker.listeners.get("message")!][0];
+    const oldReply = purchaseReply(worker.message);
+    store.getState().actions.setResourceQuantity("frost", 120);
+    update();
+    vi.advanceTimersByTime(100);
+    store.getState().actions.setResourceQuantity("frost", 140);
+    update();
+    vi.advanceTimersByTime(149);
+    expect(worker.terminate).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+    const next = ControlledWorker.instances[1];
+    expect(next.message.request.purchases!.balances.frost).toBe(140);
+    late({ data: oldReply } as MessageEvent);
+    expect(controller.getSnapshot().completedRevision).toBeNull();
+    next.emit(purchaseReply(next.message));
+    expect(controller.getSnapshot().completedRevision).toBe(
+      controller.getSnapshot().revision,
+    );
+    store.getState().actions.setResourceQuantity("frost", 160);
+    update();
+    store.getState().actions.setResourceQuantity("frost", 180);
+    update();
+    controller.dispose();
+    vi.runAllTimers();
+    expect(ControlledWorker.instances).toHaveLength(2);
+  } finally {
+    controller.dispose();
+    vi.useRealTimers();
+  }
 });

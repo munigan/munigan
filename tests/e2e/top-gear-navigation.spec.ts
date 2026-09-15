@@ -31,6 +31,7 @@ for (const mobile of [false, true]) {
     await expect(
       page.getByRole("heading", { name: /^Your equipment/ }),
     ).toBeVisible();
+    await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
     const before = await page.evaluate(() =>
       localStorage.getItem("wow-droptimizer.top-gear.v1"),
     );

@@ -1,6 +1,8 @@
 "use client";
-import { useRef, useState } from "react";
-import { ItemEnhancementEditor } from "../enhancements/ItemEnhancementEditor";
+import Image from "next/image";
+import { resourceIcon } from "./resource-icons";
+import { Select, SelectOption } from "@/components/ui/Select";
+import { useState } from "react";
 import type { GearLabActions } from "../state/gear-lab-store";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
@@ -12,11 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import type { TopGearRequest } from "@/domain/top-gear/model";
-import type {
-  PurchaseRecipe,
-  ResourceAmounts,
-  ResourceId,
-} from "@/domain/purchases/model";
+import type { ResourceAmounts, ResourceId } from "@/domain/purchases/model";
 import {
   getPurchaseCatalog,
   tokenFamilyForClass,
@@ -25,39 +23,82 @@ import {
 import { itemVersionOf } from "@/domain/top-gear/item-version";
 import { getCatalog } from "@/domain/equipment/catalog";
 import { ItemIcon, ItemName } from "../Item";
-import type { PurchasePreview } from "./purchase-worker-contract";
+import type {
+  PurchaseAnalysisState,
+  PurchasePreview,
+} from "./purchase-worker-contract";
 import { optionForResource } from "./resource-labels";
 import { orderPurchaseVariants } from "./presentation";
 import "./purchases.css";
 export function PurchasableItemsDialog({
   request,
   preview,
+  analysisState,
   open,
   onOpenChange,
   actions,
 }: {
   request: Pick<TopGearRequest, "snapshot" | "purchases">;
   preview: PurchasePreview | null;
+  analysisState?: PurchaseAnalysisState;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actions: GearLabActions;
 }) {
   const t = useTranslations("inventory.purchases");
-  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-  const [editing, setEditing] = useState<number | null>(null);
-  const returnFocus = useRef<HTMLElement | null>(null);
-  const editedItem = preview?.snapshot.inventory.find(
-    (item) => item.source === "purchase" && item.itemId === editing,
-  );
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [showUnavailable, setShowUnavailable] = useState(false);
+  const [tierFilter, setTierFilter] = useState<number | null>(null);
+  const [slotFilter, setSlotFilter] = useState("all");
   const profile = itemVersionOf(request.snapshot);
   const catalog = getPurchaseCatalog(profile);
   const equipment = getCatalog(profile);
+  const catalogChanged =
+    !!request.purchases &&
+    request.purchases.recipeRevision !== catalog.revision;
+  const analysisStatus =
+    analysisState?.status === "ready"
+      ? analysisState.analysis.status
+      : analysisState?.status;
+  const pendingMessage = catalogChanged
+    ? "catalogChanged"
+    : analysisStatus === "error"
+      ? "analysisError"
+      : analysisStatus === "search-limit"
+        ? "searchLimit"
+        : "reviewPending";
+
   const family = tokenFamilyForClass(request.snapshot.settings.player!.class);
   const orderedCandidates = orderPurchaseVariants(
     preview?.candidates ?? [],
     (candidate) => catalog.byItemId.get(candidate.instance.itemId),
     request.snapshot.specId,
     request.snapshot.settings.player!.class,
+  );
+  const groups = [
+    ...new Map(
+      orderedCandidates.map((c) => {
+        const r = catalog.byItemId.get(c.instance.itemId)!;
+        return [
+          `${r.tier}:${r.itemLevel}`,
+          { tier: r.tier, level: r.itemLevel },
+        ];
+      }),
+    ).values(),
+  ].sort((a, b) => b.tier - a.tier || a.level - b.level);
+  const visibleCandidates = orderedCandidates.filter(
+    (c) =>
+      (showUnavailable || c.available) &&
+      (tierFilter === null ||
+        catalog.byItemId.get(c.instance.itemId)?.tier === tierFilter) &&
+      (slotFilter === "all" ||
+        catalog.byItemId.get(c.instance.itemId)?.slot === slotFilter),
+  );
+  const firstGroup = groups.find((g) =>
+    visibleCandidates.some((c) => {
+      const r = catalog.byItemId.get(c.instance.itemId)!;
+      return r.tier === g.tier && r.itemLevel === g.level;
+    }),
   );
   const changeOpen = onOpenChange;
   const name = (id: number) => equipment.items.get(id)?.name ?? String(id);
@@ -67,12 +108,6 @@ export function PurchasableItemsDialog({
       ? t(option.labelKey, { family: t(`families.${family}`) })
       : id;
   };
-  function fullChain(recipe: PurchaseRecipe): PurchaseRecipe[] {
-    const previous =
-      recipe.prerequisiteItemId &&
-      catalog.byItemId.get(recipe.prerequisiteItemId);
-    return [...(previous ? fullChain(previous) : []), recipe];
-  }
   const cost = (amounts: ResourceAmounts) =>
     Object.entries(amounts)
       .filter(([, amount]) => amount > 0)
@@ -81,7 +116,7 @@ export function PurchasableItemsDialog({
   return (
     <DialogRoot open={open} onOpenChange={changeOpen}>
       {open && (
-        <DialogContent className="resource-dialog purchase-review-dialog max-w-[70rem] overflow-hidden p-0 sm:p-0 max-sm:w-full max-sm:max-h-dvh max-sm:rounded-none max-sm:border-0">
+        <DialogContent className="resource-dialog purchase-review-dialog max-w-[55rem] overflow-hidden p-0 sm:p-0 max-sm:w-full max-sm:max-h-dvh max-sm:rounded-none max-sm:border-0">
           <div className="resource-dialog-viewport">
             <header className="resource-dialog-header">
               <div>
@@ -89,43 +124,137 @@ export function PurchasableItemsDialog({
                   {t("reviewTitle")}
                 </DialogTitle>
                 <DialogDescription className="resource-dialog-description">
-                  {t("reviewHelp")}
+                  {t("reviewIntro")}
                 </DialogDescription>
               </div>
               <DialogDismiss />
             </header>
             <div className="resource-dialog-body purchase-review-body">
-              <p className="purchase-balances">
-                {cost(request.purchases?.balances ?? {})}
-              </p>
+              <div className="purchase-balances">
+                <span>{t("yourBalance")}</span>
+                {Object.entries(request.purchases?.balances ?? {})
+                  .filter(([, amount]) => amount > 0)
+                  .map(([id, amount]) => (
+                    <span className="purchase-resource-amount" key={id}>
+                      <Image
+                        unoptimized
+                        src={`https://wow.zamimg.com/images/wow/icons/large/${resourceIcon(id as ResourceId)}.jpg`}
+                        width={28}
+                        height={28}
+                        alt=""
+                      />
+                      <strong>{amount}</strong>
+                      {resourceName(id as ResourceId)}
+                    </span>
+                  ))}
+              </div>
+              <div className="purchase-review-toolbar">
+                <div className="purchase-tier-filter">
+                  <button
+                    type="button"
+                    aria-pressed={tierFilter === null}
+                    onClick={() => setTierFilter(null)}
+                  >
+                    {t("allTiers")}
+                  </button>
+                  {[
+                    ...new Set(
+                      orderedCandidates
+                        .filter((c) => showUnavailable || c.available)
+                        .map(
+                          (c) => catalog.byItemId.get(c.instance.itemId)!.tier,
+                        ),
+                    ),
+                  ]
+                    .sort((a, b) => b - a)
+                    .map((tier) => (
+                      <button
+                        type="button"
+                        key={tier}
+                        aria-pressed={tierFilter === tier}
+                        onClick={() => setTierFilter(tier)}
+                      >
+                        {t("tierValue", { tier })}
+                      </button>
+                    ))}
+                </div>
+                <Select
+                  aria-label={t("filterSlot")}
+                  value={slotFilter}
+                  onValueChange={(value) => setSlotFilter(value ?? "all")}
+                >
+                  <SelectOption value="all">{t("allSlots")}</SelectOption>
+                  {["head", "shoulder", "chest", "hands", "legs"].map(
+                    (slot) => (
+                      <SelectOption key={slot} value={slot}>
+                        {t(`reviewSlots.${slot}`)}
+                      </SelectOption>
+                    ),
+                  )}
+                </Select>
+                <label className="purchase-show-unavailable">
+                  <input
+                    type="checkbox"
+                    checked={showUnavailable}
+                    onChange={(event) =>
+                      setShowUnavailable(event.target.checked)
+                    }
+                  />
+                  {t("showUnavailable")}
+                </label>
+              </div>
+              {preview && !showUnavailable && !visibleCandidates.length && (
+                <p className="purchase-review-status" role="status">
+                  {t("noAvailablePurchases")}
+                </p>
+              )}
               {!preview ? (
-                <p role="status">{t("reviewPending")}</p>
+                <div
+                  className="purchase-review-status"
+                  role={catalogChanged ? "alert" : "status"}
+                >
+                  <p>{t(pendingMessage)}</p>
+                  {catalogChanged && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => actions.revalidatePurchases()}
+                    >
+                      {t("revalidate")}
+                    </Button>
+                  )}
+                </div>
               ) : (
-                [251, 264, 277, 232, 245, 258].map((level) => {
-                  const candidates = orderedCandidates.filter(
+                groups.map(({ tier, level }) => {
+                  const candidates = visibleCandidates.filter(
                     (c) =>
+                      (showUnavailable || c.available) &&
+                      catalog.byItemId.get(c.instance.itemId)?.tier === tier &&
                       catalog.byItemId.get(c.instance.itemId)?.itemLevel ===
-                      level,
+                        level,
                   );
                   if (!candidates.length) return null;
                   return (
                     <details
                       className="purchase-review-group"
-                      key={level}
-                      open={expanded[level] ?? false}
+                      key={`${tier}:${level}`}
+                      open={
+                        expanded[`${tier}:${level}`] ??
+                        (firstGroup?.tier === tier &&
+                          firstGroup?.level === level)
+                      }
                       onToggle={(event) => {
                         const next = event.currentTarget.open;
                         setExpanded((previous) =>
-                          previous[level] === next
+                          previous[`${tier}:${level}`] === next
                             ? previous
-                            : { ...previous, [level]: next },
+                            : { ...previous, [`${tier}:${level}`]: next },
                         );
                       }}
                     >
                       <summary>
                         <strong>
                           {t("tierValue", {
-                            tier: level < 250 || level === 258 ? 9 : 10,
+                            tier,
                           })}{" "}
                           · {level}
                         </strong>
@@ -155,138 +284,56 @@ export function PurchasableItemsDialog({
                             key={itemId}
                           >
                             <div className="purchase-review-item-heading">
+                              <input
+                                type="checkbox"
+                                checked={included}
+                                onChange={() =>
+                                  actions.setPurchaseIncluded(itemId, !included)
+                                }
+                                aria-label={t("includeItem", {
+                                  name: name(itemId),
+                                  level,
+                                })}
+                              />
                               <ItemIcon item={candidate.instance} />
-                              <div>
+                              <div className="purchase-review-name">
                                 <ItemName item={candidate.instance} />
                                 <p>
-                                  {level} ·{" "}
-                                  {t(
-                                    candidate.available
-                                      ? "available"
-                                      : "unavailable",
-                                  )}
+                                  {t(`reviewSlots.${recipe.slot}`)} · {level}
+                                  {!candidate.available &&
+                                    ` · ${t("unavailable")}`}
                                 </p>
                               </div>
-                              <label>
-                                <input
-                                  type="checkbox"
-                                  checked={included}
-                                  onChange={() =>
-                                    actions.setPurchaseIncluded(
-                                      itemId,
-                                      !included,
-                                    )
-                                  }
-                                  aria-label={t("includeItem", {
-                                    name: name(itemId),
-                                    level,
-                                  })}
-                                />
-                                {t(
-                                  included
-                                    ? candidate.available
-                                      ? "included"
-                                      : "includeWhenAvailable"
-                                    : "excluded",
-                                )}
-                              </label>
-                            </div>
-                            <Button
-                              className="purchase-enhancement-action"
-                              aria-label={t("editEnhancements", {
-                                name: name(itemId),
-                              })}
-                              variant="ghost"
-                              onClick={() => {
-                                returnFocus.current =
-                                  document.activeElement as HTMLElement;
-                                setEditing(itemId);
-                              }}
-                            >
-                              {t("editEnhancementsShort")}
-                            </Button>
-                            <p>
-                              {t("directCost", { cost: cost(recipe.cost) })}
-                            </p>
-                            {recipe.prerequisiteItemId && (
-                              <p>
-                                {t("requiresExact", {
-                                  name: name(recipe.prerequisiteItemId),
-                                  itemId: recipe.prerequisiteItemId,
+                              <div
+                                className="purchase-review-cost"
+                                aria-label={t("totalCost", {
+                                  cost: cost(
+                                    candidate.paths[0]?.spent ?? recipe.cost,
+                                  ),
                                 })}
-                              </p>
-                            )}
-                            {candidate.paths.map((path, index) => (
-                              <div className="purchase-review-path" key={index}>
-                                <ol>
-                                  {path.steps.map((step) => (
-                                    <li key={step.resultId}>
-                                      {name(step.itemId)} · {cost(step.cost)}
-                                      {step.prerequisite?.instanceId && (
-                                        <p>
-                                          {t("consumedOwned", {
-                                            name: name(
-                                              step.prerequisite.itemId,
-                                            ),
-                                            instanceId:
-                                              step.prerequisite.instanceId,
-                                          })}
-                                        </p>
-                                      )}
-                                    </li>
+                              >
+                                {Object.entries(
+                                  candidate.paths[0]?.spent ?? recipe.cost,
+                                )
+                                  .filter(([, amount]) => amount > 0)
+                                  .map(([id, amount]) => (
+                                    <span
+                                      className="purchase-resource-amount"
+                                      key={id}
+                                      title={resourceName(id as ResourceId)}
+                                    >
+                                      <Image
+                                        unoptimized
+                                        src={`https://wow.zamimg.com/images/wow/icons/large/${resourceIcon(id as ResourceId)}.jpg`}
+                                        width={24}
+                                        height={24}
+                                        alt={resourceName(id as ResourceId)}
+                                      />
+                                      <strong>{amount}</strong>
+                                    </span>
                                   ))}
-                                </ol>
-                                <strong>
-                                  {t("totalCost", { cost: cost(path.spent) })}
-                                </strong>
                               </div>
-                            ))}
-                            {!candidate.available &&
-                              recipe.prerequisiteItemId && (
-                                <div className="purchase-review-path">
-                                  <p>{t("fullChain")}</p>
-                                  <ol>
-                                    {fullChain(recipe).map((step) => (
-                                      <li key={step.id}>
-                                        {name(step.itemId)} · {cost(step.cost)}
-                                      </li>
-                                    ))}
-                                  </ol>
-                                  <strong>
-                                    {t("totalCost", {
-                                      cost: cost(
-                                        fullChain(
-                                          recipe,
-                                        ).reduce<ResourceAmounts>(
-                                          (total, step) => {
-                                            for (const [
-                                              id,
-                                              amount,
-                                            ] of Object.entries(step.cost))
-                                              total[id as ResourceId] =
-                                                (total[id as ResourceId] ?? 0) +
-                                                amount;
-                                            return total;
-                                          },
-                                          {},
-                                        ),
-                                      ),
-                                    })}
-                                  </strong>
-                                </div>
-                              )}
-                            {!candidate.available && (
-                              <p className="purchase-missing">
-                                {t("missing", {
-                                  amounts: candidate.missing
-                                    .map(
-                                      (m) =>
-                                        `${m.quantity} ${m.resourceId ? resourceName(m.resourceId) : name(m.itemId!)}`,
-                                    )
-                                    .join(" + "),
-                                })}
-                              </p>
-                            )}
+                            </div>
                           </article>
                         );
                       })}
@@ -294,32 +341,36 @@ export function PurchasableItemsDialog({
                   );
                 })
               )}
-              <p className="purchase-review-help">{t("consumedHelp")}</p>
-              <p className="purchase-review-help">{t("exclusionHelp")}</p>
+              <details className="purchase-review-explanation">
+                <summary>{t("purchaseRules")}</summary>
+                <p className="purchase-review-help">{t("reviewHelp")}</p>
+                <p className="purchase-review-help">{t("consumedHelp")}</p>
+                <p className="purchase-review-help">{t("exclusionHelp")}</p>
+              </details>
             </div>
             <footer className="resource-dialog-footer">
-              <Button variant="secondary" onClick={() => changeOpen(false)}>
+              <div className="purchase-review-footer-copy">
+                <strong>
+                  {preview
+                    ? t("walletIncludedCount", {
+                        count: orderedCandidates.filter(
+                          (c) =>
+                            c.available &&
+                            !request.purchases?.excludedItemIds[
+                              profile
+                            ]?.includes(c.instance.itemId),
+                        ).length,
+                      })
+                    : t("walletCountUnavailable")}
+                </strong>
+                <span>{t("sharedBalanceHint")}</span>
+              </div>
+              <Button variant="primary" onClick={() => changeOpen(false)}>
                 {t("done")}
               </Button>
             </footer>
           </div>
         </DialogContent>
-      )}
-      {open && editedItem && preview && (
-        <ItemEnhancementEditor
-          key={editedItem.instanceId}
-          item={editedItem}
-          request={{
-            ...request,
-            snapshot: preview.snapshot,
-          }}
-          initialField={0}
-          onApply={(value) =>
-            actions.setPurchaseEnhancements(editedItem.itemId, value)
-          }
-          onClose={() => setEditing(null)}
-          returnFocus={returnFocus}
-        />
       )}
     </DialogRoot>
   );

@@ -4,10 +4,13 @@ import { selectOption } from "./select-option";
 const player = JSON.parse(
   readFileSync("tests/fixtures/sim/warrior.request.json", "utf8"),
 ).raid.parties[0].players[0];
-const draft = (page: Page) =>
-  page.evaluate(() =>
+async function draft(page: Page) {
+  // Draft writes are coalesced; exercise the production pagehide flush.
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  return page.evaluate(() =>
     JSON.parse(localStorage.getItem("wow-droptimizer.top-gear.v1")!),
   );
+}
 test.beforeEach(async ({ page }) => {
   await page.goto("/gear-lab");
   await page.getByLabel("Character export", { exact: true }).fill(

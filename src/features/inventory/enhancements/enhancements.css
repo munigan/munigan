@@ -228,7 +228,7 @@
   line-height: 20px;
 }
 .enhancement-search:hover,
-.enhancement-search:focus-within,
+.enhancement-search:has(:focus-visible),
 .enhancement-filter-row .app-select-trigger:hover,
 .enhancement-filter-row .app-select-trigger:focus-visible,
 .enhancement-filter-row .app-select-trigger[data-popup-open] {
@@ -342,7 +342,7 @@
   border: 5px solid var(--color-action);
   background: var(--color-surface);
 }
-.enhancement-choice:focus-within {
+.enhancement-choice:has(:focus-visible) {
   outline: 1px solid var(--color-control-border);
   outline-offset: -3px;
 }

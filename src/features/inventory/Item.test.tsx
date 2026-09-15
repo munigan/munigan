@@ -13,7 +13,7 @@ import {
   act,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { ItemLink, ItemIcon } from "./Item";
+import { ItemLink, ItemIcon, ItemName } from "./Item";
 import { ItemVersionContext } from "./ItemVersionContext";
 import {
   tooltipSourceUrl,
@@ -552,3 +552,26 @@ it("keeps ownership when an open item's identity changes", () => {
   expect(screen.getAllByRole("tooltip")).toHaveLength(1);
   expect(screen.getByRole("tooltip")).toHaveTextContent("Bold Cardinal Ruby");
 });
+
+it.each(["original", "classic"] as const)(
+  "distinguishes heroic item names in %s",
+  (version) => {
+    render(
+      view(
+        <>
+          <ItemName item={{ ...item, itemId: 51127 }} />
+          <ItemName item={{ ...item, itemId: 51312 }} />
+        </>,
+        version,
+      ),
+    );
+    expect(
+      screen.getByText("Sanctified Scourgelord Helmet", { exact: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Sanctified Scourgelord Helmet (Heroic)", {
+        exact: true,
+      }),
+    ).toBeInTheDocument();
+  },
+);

@@ -1,3 +1,4 @@
+import { chooseItemVersion } from "./item-version";
 import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -32,8 +33,13 @@ test("switches item versions, preserves drafts and simulates their actual stats"
     label: "Fury (19/52/0)",
   });
   await page.getByRole("button", { name: "Select gear" }).click();
-  const version = page.getByLabel("Item version", { exact: true });
-  await expect(version).toHaveAttribute("data-select-value", "original");
+  const version = page.getByRole("group", {
+    name: "Item version",
+    exact: true,
+  });
+  await expect(
+    version.getByRole("button", { name: "Original 3.3.5a", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   const mjolnir = page
     .locator(".inventory-row")
     .filter({ hasText: "Mjolnir Runestone" })
@@ -53,13 +59,17 @@ test("switches item versions, preserves drafts and simulates their actual stats"
     name: /Select Mjolnir Runestone, Bags/,
   });
   await bagMjolnir.check();
-  await selectOption(version, "classic");
+  await chooseItemVersion(page, "classic");
   await expect(bagMjolnir).toBeChecked();
   await expect(mjolnir.locator(".item-level")).toHaveText("239");
-  await expect(mjolnir.locator("a[data-item-enhancements]").first()).toBeVisible();
+  await expect(
+    mjolnir.locator("a[data-item-enhancements]").first(),
+  ).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Restore draft" }).click();
-  await expect(version).toHaveAttribute("data-select-value", "classic");
+  await expect(
+    version.getByRole("button", { name: "Wrath Classic", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await expect(bagMjolnir).toBeChecked();
   await page.getByRole("button", { name: "Buffs & settings" }).click();
   await page.getByRole("tab", { name: "Encounter", exact: true }).click();
@@ -70,7 +80,7 @@ test("switches item versions, preserves drafts and simulates their actual stats"
   const crit: Record<string, number> = {};
   const urls: Record<string, string> = {};
   for (const profile of ["original", "classic"]) {
-    await selectOption(version, profile);
+    await chooseItemVersion(page, profile);
     await expect(bagMjolnir).toBeChecked();
     await page.getByRole("button", { name: "Run Gear Lab" }).click();
     await expect(page).toHaveURL(/\/reports\//);

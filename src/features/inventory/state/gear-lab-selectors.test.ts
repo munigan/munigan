@@ -159,7 +159,7 @@ it("overlays current owned selection and exclusions while purchase analysis is p
   expect(next.selectedCount).toBe(first.selectedCount);
 });
 
-it("never revives a converted custom selection and retains unavailable custom rewards", () => {
+it("hides unavailable custom purchase rewards without reviving the custom selection", () => {
   const store = createGearLabStore(purchaseFixture());
   store.getState().actions.addCustomItems("head", [48503]);
   const request = store.getState().draft!;
@@ -173,12 +173,13 @@ it("never revives a converted custom selection and retains unavailable custom re
   const reward = [...next.byId.values()].find(
     (r) => r.item.source === "purchase" && r.item.itemId === 48503,
   )!;
-  expect(reward).toMatchObject({
-    unavailable: true,
-    selected: false,
-    removable: true,
-    usesResources: true,
-  });
+  expect(reward.unavailable).toBe(true);
+  expect([...next.groups.values()].flat()).not.toContain(
+    reward.item.instanceId,
+  );
+  expect(request.snapshot.inventory.some((item) => item.itemId === 48503)).toBe(
+    true,
+  );
 });
 
 it("preserves physical duplicates, generated deduplication and variant ordering", () => {

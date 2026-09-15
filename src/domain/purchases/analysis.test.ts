@@ -44,7 +44,7 @@ it("counts exactly 31 affordable sets instead of the 243 raw combinations", () =
   });
   expect(over).toMatchObject({
     status: "over-limit",
-    allowance: { count: 31, countKind: "over-limit", allowed: false },
+    allowance: { count: 31, countKind: "exact", allowed: false },
   });
 });
 

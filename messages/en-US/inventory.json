@@ -34,7 +34,7 @@
     "oneSelected": "1 resource selected",
     "availableHelp": "Only the amount you own will be available.",
     "familyMatch": "{family} · Matched to your {class}",
-    "reviewTitle": "Eligible tier items use these balances",
+    "reviewTitle": "Review purchases",
     "reviewDescription": "Unused resources are kept.",
     "reviewPurchases": "Review purchases",
     "classes": {
@@ -65,7 +65,30 @@
       "trophy": "Trophy of the Crusade",
       "regalia": "Regalia of the Grand {family}",
       "markNormal": "{family}’s Mark of Sanctification",
-      "markHeroic": "Heroic {family}’s Mark of Sanctification"
+      "markHeroic": "Heroic {family}’s Mark of Sanctification",
+      "heroism": "Emblems of Heroism",
+      "valor": "Emblems of Valor",
+      "conquest": "Emblems of Conquest",
+      "t7_10_head": "T7 · 10-player · Head · {family}",
+      "t7_25_head": "T7 · 25-player · Head · {family}",
+      "t8_10_head": "T8 · 10-player · Head · {family}",
+      "t8_25_head": "T8 · 25-player · Head · {family}",
+      "t7_10_shoulder": "T7 · 10-player · Shoulders · {family}",
+      "t7_25_shoulder": "T7 · 25-player · Shoulders · {family}",
+      "t8_10_shoulder": "T8 · 10-player · Shoulders · {family}",
+      "t8_25_shoulder": "T8 · 25-player · Shoulders · {family}",
+      "t7_10_chest": "T7 · 10-player · Chest · {family}",
+      "t7_25_chest": "T7 · 25-player · Chest · {family}",
+      "t8_10_chest": "T8 · 10-player · Chest · {family}",
+      "t8_25_chest": "T8 · 25-player · Chest · {family}",
+      "t7_10_hands": "T7 · 10-player · Hands · {family}",
+      "t7_25_hands": "T7 · 25-player · Hands · {family}",
+      "t8_10_hands": "T8 · 10-player · Hands · {family}",
+      "t8_25_hands": "T8 · 25-player · Hands · {family}",
+      "t7_10_legs": "T7 · 10-player · Legs · {family}",
+      "t7_25_legs": "T7 · 25-player · Legs · {family}",
+      "t8_10_legs": "T8 · 10-player · Legs · {family}",
+      "t8_25_legs": "T8 · 25-player · Legs · {family}"
     },
     "descriptions": {
       "frost": "Buys a new base tier piece.",
@@ -73,7 +96,15 @@
       "trophy": "Also requires Emblems of Triumph.",
       "regalia": "Redeems directly for one tier piece.",
       "markNormal": "Upgrades the matching 251 piece.",
-      "markHeroic": "Upgrades the matching 264 piece."
+      "markHeroic": "Upgrades the matching 264 piece.",
+      "heroism": "T7 10-player: chest (80) or hands (60).",
+      "valor": "T7 25-player: legs (75) or shoulders (60).",
+      "conquest": "T8 25-player: head or chest, 58 emblems each.",
+      "token_head": "Redeems one head piece. Matches your class.",
+      "token_shoulder": "Redeems one shoulder piece. Matches your class.",
+      "token_chest": "Redeems one chest piece. Matches your class.",
+      "token_hands": "Redeems one hands piece. Matches your class.",
+      "token_legs": "Redeems one legs piece. Matches your class."
     },
     "walletDescriptions": {
       "frost": "Buys base T10 · Item level 251",
@@ -159,7 +190,39 @@
       "mage-dps": "Mage",
       "rogue-dps": "Rogue",
       "warlock-dps": "Warlock"
-    }
+    },
+    "walletEmptyTitle": "Put your tokens & currencies to work",
+    "walletEmptyDescription": "Include tier gear you can buy in your comparison.",
+    "walletEditHint": "Click a resource to edit",
+    "walletChipDetail": "T{tier} · ilvl {level}",
+    "remove": "Remove",
+    "showUnavailable": "Show unavailable",
+    "noAvailablePurchases": "No purchases are available with your current resources.",
+    "tierUnsupported": "This tier is not supported yet.",
+    "tierUnsupportedNote": "T7 and T8 are not supported yet. Purchases are available for T9 and T10.",
+    "raidICC": "Icecrown Citadel",
+    "raidTOC": "Trial of the Crusader",
+    "resourceOptionsCount": "{count} resource options · {family}",
+    "equipmentPreviewHelp": "{count} possible slots · Each set respects your balance.",
+    "raidUlduar": "Ulduar",
+    "raidNaxx": "Naxxramas",
+    "earlyTokenHelp": "Redeems one matching slot. No previous tier piece is required.",
+    "or": "or",
+    "yourBalance": "Your balance",
+    "allTiers": "All tiers",
+    "allSlots": "All slots",
+    "filterSlot": "Equipment slot",
+    "details": "Details",
+    "sharedBalanceHint": "Gear Lab compares purchases that fit the same balance.",
+    "reviewSlots": {
+      "head": "Head",
+      "shoulder": "Shoulders",
+      "chest": "Chest",
+      "hands": "Hands",
+      "legs": "Legs"
+    },
+    "reviewIntro": "Choose which equipment Gear Lab should compare.",
+    "purchaseRules": "About purchase rules"
   },
   "versions": {
     "original": {
@@ -189,7 +252,7 @@
   "iterations": {
     "localLimit": "Local maximum",
     "label": "Iterations per set",
-    "help": "More iterations reduce random variation but take longer. Close results may still be inconclusive.",
+    "help": "Each set is simulated multiple times. More iterations reduce variation in the results, but take longer.",
     "freeLimit": "Free plan limit",
     "value": "{count} iterations",
     "blocked": "Free is limited to {count} iterations. Your simulation will run with {count} per set.",
@@ -205,7 +268,15 @@
       "2500": "Finer comparison — more sampling for closely matched gear sets.",
       "3000": "Most stable estimate — lowest sampling noise here, with the longest run time."
     },
-    "localOption": "Local"
+    "localOption": "Local",
+    "quality": {
+      "500": "Quick estimate",
+      "1000": "Basic precision",
+      "1500": "Balanced precision",
+      "2000": "High precision",
+      "2500": "Higher precision",
+      "3000": "Maximum precision"
+    }
   },
   "proLimit": {
     "title": "Free limit reached",
@@ -623,5 +694,21 @@
     "inactive": "Inactive",
     "setInfo": "Set bonuses · source reference",
     "localEnchant": "Enchant · local game data"
+  },
+  "compact": {
+    "versionInfo": "Which version should I choose?",
+    "versionHelp": "Use your server’s version. It determines item stats in the simulation.",
+    "raidBuffs": "Raid buffs",
+    "noRaidBuffs": "No raid buffs",
+    "automatic": "Automatic",
+    "imported": "Imported",
+    "autoGemsOnly": "Auto gems",
+    "autoEnchantsOnly": "Auto enchants",
+    "proSoon": "PRO COMING SOON",
+    "proHeading": "More combinations with PRO.",
+    "proBody": "Join the list for launch updates and an extra launch discount.",
+    "reduceHelp": "Up to {count} combinations to simulate for free.",
+    "thisRun": "This simulation",
+    "limit": "Limit"
   }
 }

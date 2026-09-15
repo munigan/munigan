@@ -348,7 +348,7 @@ it("keeps visible rewards on worker error and retries through the shared seconda
 it("keeps the purchase dialog isolated from precision changes", async () => {
   await setup();
   const select = screen.getByRole("combobox", { name: "Iterations per set" });
-  fireEvent.click(screen.getByRole("button", { name: "Purchase resources" }));
+  fireEvent.click(screen.getByRole("button", { name: "Review purchases" }));
   await screen.findByRole("dialog");
   // Let the dialog opening/focus effects settle before measuring precision work.
   await act(async () => {
@@ -362,7 +362,7 @@ it("keeps the purchase dialog isolated from precision changes", async () => {
 
 it("updates tier counts from current exclusions while analysis is held or fails", async () => {
   await setup();
-  fireEvent.click(screen.getByRole("button", { name: "Purchase resources" }));
+  fireEvent.click(screen.getByRole("button", { name: "Review purchases" }));
   await screen.findByRole("dialog");
   const row = document.querySelector<HTMLElement>(
     '[data-purchase-id="50096"]',

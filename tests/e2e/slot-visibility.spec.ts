@@ -66,14 +66,17 @@ test("restored drafts show all slots while editing alternatives and enhancements
     name: /Select Valorous Dreadnaught Helmet, Bags/,
   });
   await candidate.check();
-  await page.evaluate(() => {
-    const key = "wow-droptimizer.top-gear.v1";
-    const draft = JSON.parse(localStorage.getItem(key)!);
-    draft.snapshot.itemEnhancements = {
-      [draft.snapshot.equipped.chest]: { enchantId: 0 },
-    };
-    localStorage.setItem(key, JSON.stringify(draft));
-  });
+  await page
+    .locator(".slot-group")
+    .filter({ has: page.getByRole("heading", { name: "Chest", exact: true }) })
+    .locator('[data-enhancement-field="enchant"]')
+    .first()
+    .click();
+  const editor = page.getByRole("dialog", { name: "Gems & enchants" });
+  await editor.getByRole("radio", { name: /No enchant/ }).click();
+  await editor
+    .getByRole("button", { name: "Apply changes", exact: true })
+    .click();
   await page.reload();
   await page
     .getByRole("button", { name: "Restore draft", exact: true })

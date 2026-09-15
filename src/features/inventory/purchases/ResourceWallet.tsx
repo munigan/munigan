@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { NumberInput } from "@/components/ui/NumberInput";
+import { useLocale } from "next-intl";
 import { tokenFamilyForClass } from "@/domain/purchases/catalog";
 import type { ResourceId } from "@/domain/purchases/model";
 import { useGearLabSelector } from "../state/GearLabProvider";
@@ -84,51 +84,92 @@ export function ResourceWalletView({
   const presentation = selectPresentation(request);
   function changeOpen(next: boolean) {
     setOpen(next);
-    if (!next) queueMicrotask(() => opener.current?.focus());
   }
 
   return (
     <section
       className="resource-wallet"
+      data-populated={ids.length > 0}
       aria-labelledby="resource-wallet-title"
     >
       <div className="resource-wallet-header">
-        <div>
-          <h2 id="resource-wallet-title">{t("walletTitle")}</h2>
-          <p>{t("walletDescription")}</p>
+        {ids.length === 0 && (
+          <div className="resource-wallet-empty-images" aria-hidden="true">
+            <ResourceImage
+              request={presentation}
+              resourceId="frost"
+              decorative
+            />
+            <ResourceImage
+              request={presentation}
+              resourceId="triumph"
+              decorative
+            />
+          </div>
+        )}
+        <div className="resource-wallet-heading">
+          <h2 id="resource-wallet-title">
+            {t(ids.length ? "walletTitle" : "walletEmptyTitle")}
+          </h2>
+          {ids.length === 0 && <p>{t("walletEmptyDescription")}</p>}
         </div>
-        <Button type="button" variant="secondary" onClick={() => show()}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => show()}
+        >
           <PickerIcon name="plus" />
           {t("addResource")}
         </Button>
       </div>
-
-      {ids.map((id) => (
-        <ResourceWalletRow
-          key={id}
-          id={id}
-          request={presentation}
-          quantity={balances[id] ?? 0}
-          actions={actions}
-          show={show}
-        />
-      ))}
+      {ids.length > 0 && (
+        <div className="resource-wallet-chips">
+          {ids.map((id) => (
+            <ResourceWalletRow
+              key={id}
+              id={id}
+              request={presentation}
+              quantity={balances[id] ?? 0}
+              show={show}
+            />
+          ))}
+        </div>
+      )}
 
       {ids.length > 0 &&
         (summary ?? (
           <div className="resource-wallet-review">
-            <strong role="status">
-              {includedCount !== undefined
-                ? t("walletIncludedCount", { count: includedCount })
-                : t(
-                    analysis?.status === "loading"
-                      ? "walletCalculating"
-                      : "walletCountUnavailable",
-                  )}
-            </strong>
-            <span>{t("reviewDescription")}</span>
-            <Button type="button" variant="secondary" onClick={onReview}>
+            <div className="resource-wallet-summary-copy">
+              <strong role="status">
+                {includedCount !== undefined
+                  ? t("walletIncludedCount", { count: includedCount })
+                  : t(
+                      analysis?.status === "loading"
+                        ? "walletCalculating"
+                        : "walletCountUnavailable",
+                    )}
+              </strong>
+              <span>{t("reviewDescription")}</span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              className="resource-wallet-review-link text-action px-3 py-0 min-h-8"
+              onClick={onReview}
+            >
               {t("reviewPurchases")}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                aria-hidden="true"
+              >
+                <path d="m7 17 10-10M7 7h10v10" />
+              </svg>
             </Button>
           </div>
         ))}
@@ -139,6 +180,17 @@ export function ResourceWalletView({
         open={open}
         onOpenChange={changeOpen}
         onSave={actions.saveResource}
+        onRemove={actions.removeResource}
+        onRemoved={() => {
+          opener.current = null;
+        }}
+        finalFocus={() =>
+          opener.current?.isConnected
+            ? opener.current
+            : document.querySelector<HTMLElement>(
+                ".resource-wallet-header button",
+              )
+        }
       />
     </section>
   );
@@ -148,58 +200,55 @@ const ResourceWalletRow = memo(function ResourceWalletRow({
   id,
   request,
   quantity,
-  actions,
   show,
 }: {
   id: ResourceId;
   request: TopGearRequest;
   quantity: number;
-  actions: GearLabActions;
   show: (id?: ResourceId) => void;
 }) {
   const t = useTranslations("inventory.purchases") as unknown as Translator;
+  const locale = useLocale();
   const family = tokenFamilyForClass(request.snapshot.settings.player!.class);
-  const familyLabel = t(`families.${family}`);
   const option = optionForResource(id, family)!;
-  const name = t(option.labelKey, { family: familyLabel });
+  const name = t(option.labelKey, { family: t(`families.${family}`) });
   return (
-    <div className="resource-wallet-row" key={id}>
+    <button
+      type="button"
+      className="resource-wallet-chip"
+      aria-label={t("editResource", { name })}
+      onClick={() => show(id)}
+    >
       <span className="resource-wallet-image">
-        <ResourceImage request={request} resourceId={id} />
+        <ResourceImage request={request} resourceId={id} decorative />
       </span>
-      <div className="resource-wallet-copy">
-        <strong>{name}</strong>
-        <span>{t(option.walletDescriptionKey)}</span>
-      </div>
-      <NumberInput
-        label={t("walletQuantity", { name })}
-        value={quantity}
-        onValueChange={(quantity) => actions.setResourceQuantity(id, quantity)}
-        min={0}
-        max={1_000_000}
-        step={1}
-        minDigits={3}
-      />
-      <div className="resource-wallet-actions">
-        <Button
-          type="button"
-          variant="secondary"
-          aria-label={t("editResource", { name })}
-          onClick={() => show(id)}
-        >
-          {t("edit")}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="item-remove size-8 min-h-8 p-0 text-muted"
-          aria-label={t("removeResource", { name })}
-          onClick={() => actions.removeResource(id)}
-        >
-          <PickerIcon name="trash" />
-        </Button>
-      </div>
-    </div>
+      <span className="resource-wallet-copy">
+        <strong title={name}>{name}</strong>
+        <span>
+          {t("walletChipDetail", {
+            tier: option.tier,
+            level:
+              option.tier === 8 && request.snapshot.itemVersion === "classic"
+                ? option.itemLevel + 6
+                : option.itemLevel,
+          })}
+        </span>
+      </span>
+      <span className="resource-wallet-quantity">
+        {quantity.toLocaleString(locale)}
+      </span>
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        aria-hidden="true"
+      >
+        <path d="m15 5 4 4M4 20l4-1L20 7l-4-4L4 15z" />
+      </svg>
+    </button>
   );
 });
 function WalletSummary({ onReview }: { onReview: () => void }) {
@@ -216,18 +265,36 @@ function WalletSummary({ onReview }: { onReview: () => void }) {
   ).length;
   return (
     <div className="resource-wallet-review">
-      <strong role="status">
-        {count !== undefined
-          ? t("walletIncludedCount", { count })
-          : t(
-              view.state.status === "loading"
-                ? "walletCalculating"
-                : "walletCountUnavailable",
-            )}
-      </strong>
-      <span>{t("reviewDescription")}</span>
-      <Button type="button" variant="secondary" onClick={onReview}>
+      <div className="resource-wallet-summary-copy">
+        <strong role="status">
+          {count !== undefined
+            ? t("walletIncludedCount", { count })
+            : t(
+                view.state.status === "loading"
+                  ? "walletCalculating"
+                  : "walletCountUnavailable",
+              )}
+        </strong>
+        <span>{t("reviewDescription")}</span>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        className="resource-wallet-review-link text-action px-3 py-0 min-h-8"
+        onClick={onReview}
+      >
         {t("reviewPurchases")}
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          aria-hidden="true"
+        >
+          <path d="m7 17 10-10M7 7h10v10" />
+        </svg>
       </Button>
     </div>
   );

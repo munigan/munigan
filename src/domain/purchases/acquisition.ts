@@ -101,9 +101,19 @@ export function acquisitionPaths(
     resultId: string,
     state: State,
   ): Generator<State> {
+    for (const cost of [recipe.cost, ...(recipe.alternativeCosts ?? [])]) {
+      yield* acquireAtCost(recipe, cost, resultId, state);
+    }
+  }
+  function* acquireAtCost(
+    recipe: PurchaseRecipe,
+    cost: ResourceAmounts,
+    resultId: string,
+    state: State,
+  ): Generator<State> {
     budget.visit();
     const spent = { ...state.spent };
-    for (const [key, amount] of Object.entries(recipe.cost)) {
+    for (const [key, amount] of Object.entries(cost)) {
       const resource = key as ResourceId;
       spent[resource] = (spent[resource] ?? 0) + amount;
       if (spent[resource]! > (prepared.inputs.balances[resource] ?? 0)) return;
@@ -113,7 +123,7 @@ export function acquisitionPaths(
       recipeId: recipe.id,
       itemId: recipe.itemId,
       resultId,
-      cost: { ...recipe.cost },
+      cost: { ...cost },
     };
     if (recipe.prerequisiteItemId === undefined) {
       yield { ...charged, steps: [...charged.steps, step] };
@@ -228,6 +238,7 @@ export function createAcquisitionSolver(prepared: PreparedPurchases) {
     prepared.catalog.recipes.map((r) => r.prerequisiteItemId),
   );
   const plans = new Map<string, { plan: PurchasePlan | null; nodes: number }>();
+  const chargedByBudget = new WeakMap<SearchBudget, Set<string>>();
   return (loadout: Loadout, budget: SearchBudget): PurchasePlan | null => {
     const ids = Object.values(loadout).filter(
       (id): id is string => id !== null,
@@ -249,16 +260,27 @@ export function createAcquisitionSolver(prepared: PreparedPurchases) {
       );
     });
     const key = JSON.stringify(relevant.sort());
+    let charged = chargedByBudget.get(budget);
+    if (!charged) {
+      charged = new Set();
+      chargedByBudget.set(budget, charged);
+    }
     const cached = plans.get(key);
     if (cached) {
-      // Preserve the cold server's logical budget even when computation is reused.
-      for (let node = 0; node < cached.nodes; node++) budget.visit();
+      // Charge each unique acquisition search once per analysis, independent of
+      // cache warmth. Other gear combinations pay only for the cache lookup.
+      if (charged.has(key)) budget.visit();
+      else {
+        for (let node = 0; node < cached.nodes; node++) budget.visit();
+        charged.add(key);
+      }
       return cached.plan;
     }
     const before = budget.visitedNodes;
     const plan = solveAcquisition(prepared, loadout, budget);
     if (plans.size >= 4096) plans.clear();
     plans.set(key, { plan, nodes: budget.visitedNodes - before });
+    charged.add(key);
     return plan;
   };
 }

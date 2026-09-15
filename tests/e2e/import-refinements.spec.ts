@@ -87,6 +87,7 @@ test("corrects a malformed bag export without losing character data and imports 
   await expect(
     page.getByRole("heading", { name: "Your equipment" }),
   ).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
   const stored = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("wow-droptimizer.top-gear.v1")!),
   );
@@ -157,8 +158,8 @@ test("replacement alert keeps the current character on desktop and mobile", asyn
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await page
-      .getByRole("button", { name: "Import character" })
-      .first()
+      .locator(".gear-character-heading")
+      .getByRole("button", { name: "Edit", exact: true })
       .click();
     const notice = page
       .getByRole("status")

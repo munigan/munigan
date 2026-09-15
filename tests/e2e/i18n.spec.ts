@@ -123,6 +123,7 @@ test("switching a restored selection preserves exact request and scroll", async 
     .getByRole("button", { name: "Restore draft", exact: true })
     .click();
   await expect(page.locator(".slot-group").first()).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
   const before = await page.evaluate(
     (key) => localStorage.getItem(key),
     draftKey,

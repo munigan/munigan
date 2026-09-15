@@ -145,11 +145,10 @@ test("approved guided states, frozen pause, failed result and exact replay check
   });
   await capture(page, "targeted");
   await page.clock.runFor(2500);
-  // A damage tick has landed by this point, so the exposure warning takes
-  // precedence over the initial pool-under-you instruction.
-  await expect(page.locator(".rt-instruction")).toContainText("Defile hit you");
+  // Immediate danger takes priority while the player remains inside the pool.
+  await expect(page.locator(".rt-instruction")).toContainText("Pool under you");
   await expect(page.locator(".rt-instruction")).toContainText(
-    "Move into clear ground",
+    "Get out of the pool",
   );
   await capture(page, "missed");
   await page.clock.runFor(20000);

@@ -26,6 +26,7 @@ import { PresetPanel } from "@/features/settings/PresetPanel";
 import { ItemVersionContext } from "./ItemVersionContext";
 import { GemmingPanel } from "./GemmingPanel";
 import { itemVersionOf } from "@/domain/top-gear/item-version";
+import { GearLabHeader } from "./GearLabHeader";
 import { RunSetup } from "./RunSetup";
 import "./inventory-design.css";
 import { SignInDialog } from "../auth/SignInDialog";
@@ -139,19 +140,21 @@ function TopGearShell({ autoRestore }: { autoRestore: boolean }) {
     <ItemVersionContext.Provider value={itemVersion}>
       <section id="content" className="gear-lab-page">
         {!replace && <CharacterBackground specId={specId} />}
-        <PageHeading className="page-heading">
-          <h1>GEAR LAB</h1>
-          <p>{hasRequest ? t("selectIntro") : t("importIntro")}</p>
-          {hasRequest && (
-            <Button
-              variant="ghost"
-              className="text-button heading-action"
-              onClick={openImport}
-            >
-              {t("importCharacter")}
-            </Button>
-          )}
-        </PageHeading>
+        {(!hasRequest || replace) && (
+          <PageHeading className="page-heading">
+            <h1>GEAR LAB</h1>
+            <p>{hasRequest ? t("selectIntro") : t("importIntro")}</p>
+            {hasRequest && (
+              <Button
+                variant="ghost"
+                className="text-button heading-action"
+                onClick={openImport}
+              >
+                {t("importCharacter")}
+              </Button>
+            )}
+          </PageHeading>
+        )}
         {!hasRequest ? (
           <>
             {hasDraft && (
@@ -186,6 +189,11 @@ function TopGearShell({ autoRestore }: { autoRestore: boolean }) {
         ) : (
           <div className="gear-layout">
             <div className="inventory-with-wallet">
+              <GearLabHeader
+                onImport={openImport}
+                onSettings={openSettings}
+                onEnhancements={openEnhancements}
+              />
               <ResourceWallet onReview={openPurchases} />
               <PurchaseRepair />
               <InventorySelector
@@ -389,6 +397,7 @@ function ConnectedPurchases(
       request={request}
       actions={actions}
       preview={analysis.view.preview}
+      analysisState={analysis.view.state}
     />
   );
 }

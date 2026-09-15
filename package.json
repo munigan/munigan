@@ -15,7 +15,7 @@
     "test": "vitest run --project unit --project ui",
     "test:integration": "vitest run --project integration",
     "test:sim": "vitest run --project simulator",
-    "test:e2e": "playwright test && playwright test --config playwright.oauth.config.ts && playwright test --config playwright.oauth-rollback.config.ts",
+    "test:e2e": "playwright test && playwright test --config playwright.oauth.config.ts && playwright test --config playwright.oauth-rollback.config.ts && playwright test --config playwright.pro-launch.config.ts",
     "test:e2e:auth": "playwright test --config playwright.auth-controls.config.ts",
     "sim:build": "bash tools/simulator/build.sh",
     "data:settings": "tsx tools/data/settings-ui.ts",

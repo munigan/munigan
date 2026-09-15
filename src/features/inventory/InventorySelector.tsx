@@ -212,13 +212,13 @@ export const InventorySelector = memo(function InventorySelector({
         </h2>
       </SectionHeading>
       <div className="filter-bar">
-        <div className="segmented">
+        <div className="segmented equipment-filter-segments">
           {(["All slots", "Armor", "Weapons", "Rings & trinkets"] as const).map(
             (f) => (
               <Button
                 variant="secondary"
                 key={f}
-                className="aria-pressed:bg-selected-surface aria-pressed:border-control-border"
+                className="border-transparent bg-transparent text-muted aria-pressed:text-text aria-pressed:bg-selected-surface aria-pressed:border-transparent"
                 aria-pressed={filter === f}
                 onClick={() => setFilter(f)}
               >

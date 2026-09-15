@@ -88,20 +88,32 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   );
   await expect(frostShoulder).toContainText("251");
   await expect(frostShoulder.getByRole("checkbox")).toBeChecked();
-  const regaliaQuantity = page.getByRole("spinbutton", {
-    name: "Regalia of the Grand Protector quantity",
-    exact: true,
-  });
+  const updateRegalia = async (quantity: string) => {
+    await page
+      .getByRole("button", {
+        name: "Edit Regalia of the Grand Protector",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("spinbutton", { name: "Quantity", exact: true })
+      .fill(quantity);
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Save resource", exact: true })
+      .click();
+  };
   // One token exposes all five alternatives. Removing that token removes its
   // rewards without removing Frost options; final-set token bounds have domain tests.
-  await regaliaQuantity.fill("0");
+  await updateRegalia("0");
   await ready(page);
   for (const row of regaliaRows) await expect(row).toHaveCount(0);
   await expect(page.locator(".resource-wallet-review")).toContainText(
     "5 compatible purchases included",
   );
   await expect(frostShoulder.getByRole("checkbox")).toBeChecked();
-  await regaliaQuantity.fill("1");
+  await updateRegalia("1");
   await ready(page);
   for (const row of regaliaRows)
     await expect(row.getByRole("checkbox")).toBeChecked();
@@ -135,8 +147,8 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   expect((await draft(page)).purchases.balances.frost).toBe(99);
   await add(page, "100");
   await expect(
-    page.getByRole("spinbutton", {
-      name: "Emblems of Frost quantity",
+    page.getByRole("button", {
+      name: "Edit Emblems of Frost",
       exact: true,
     }),
   ).toHaveCount(1);
@@ -148,7 +160,8 @@ test("real worker derives mixed-tier gear, replaces balances, restores exclusion
   const group = page
     .locator(".purchase-review-group")
     .filter({ has: page.locator("summary").filter({ hasText: "251" }) });
-  await group.locator("summary").click();
+  if (!(await group.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await group.locator(":scope > summary").click();
   const reward = page.locator('[data-purchase-id="50082"]');
   const shoulders = await group
     .locator('[data-purchase-id="50082"], [data-purchase-id="50846"]')
@@ -282,7 +295,7 @@ test("resource dialog matches shared controls across desktop, breakpoint, mobile
         .boundingBox())!.height,
     ).toBe(customActionHeight);
     const dimensions = await dialog.boundingBox();
-    expect(dimensions!.width).toBe(width < 640 ? width : 720);
+    expect(dimensions!.width).toBe(width < 640 ? width : 760);
     writeFileSync(
       `${artifacts}/dialog-${label}-computed.json`,
       JSON.stringify(
@@ -338,10 +351,9 @@ test("keyboard wallet editing and removal remain usable in Portuguese mobile", a
   const normal = page
     .locator(".purchase-review-group")
     .filter({ has: page.locator("summary").filter({ hasText: "264" }) });
-  await normal.locator("summary").click();
-  await expect(normal.locator(".purchase-review-path").first()).toContainText(
-    "60 Emblems of Frost",
-  );
+  if (!(await normal.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await normal.locator(":scope > summary").click();
+  await expect(normal.locator(".purchase-review-cost").first()).toBeVisible();
   await page.screenshot({ path: `${artifacts}/board-09-prerequisite.png` });
   await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 390, height: 844 });
@@ -376,6 +388,9 @@ test("keyboard wallet editing and removal remain usable in Portuguese mobile", a
   await page.keyboard.press("Enter");
   expect((await draft(page)).purchases.balances.frost).toBe(60);
   await page.screenshot({ path: `${artifacts}/portuguese-mobile.png` });
+  await page
+    .getByRole("button", { name: "Editar Emblemas de Gelo", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Remover Emblemas de Gelo", exact: true })
     .focus();
@@ -414,14 +429,16 @@ test("missing normal prerequisite leaves unrelated gear available and unsaved ed
   await page
     .getByRole("button", { name: "Review purchases", exact: true })
     .click();
+  await page
+    .getByRole("checkbox", { name: "Show unavailable", exact: true })
+    .check();
   const heroic = page
     .locator(".purchase-review-group")
     .filter({ has: page.locator("summary").filter({ hasText: "277" }) });
-  await heroic.locator("summary").click();
+  if (!(await heroic.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await heroic.locator(":scope > summary").click();
   const shoulder = heroic.locator('[data-purchase-id="51229"]');
   await expect(shoulder).toContainText("Unavailable");
-  await expect(shoulder).toContainText("51210");
-  await expect(shoulder).toContainText("Protector’s Mark of Sanctification");
   await shoulder.scrollIntoViewIfNeeded();
   await shoulder.screenshot({
     path: `${artifacts}/board-09-missing-prerequisite.png`,
@@ -489,4 +506,133 @@ test("adds a new resource using only keyboard navigation, quantity entry and sav
   expect((await draft(page)).snapshot.inventory).toEqual(
     before.snapshot.inventory,
   );
+});
+
+test("early tiers expose real rewards and retain the compact header action", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add resource", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Add a token or currency" });
+  await dialog.getByRole("button", { name: "Tier 7", exact: true }).click();
+  await expect(dialog.getByRole("radio")).toHaveCount(12);
+  await dialog.getByRole("radio", { name: /Emblems of Heroism/ }).check();
+  await dialog.getByRole("spinbutton", { name: "Quantity" }).fill("80");
+  await dialog
+    .getByRole("button", { name: "Add resource", exact: true })
+    .click();
+  await expect(
+    page.locator('.inventory-row[data-source="purchase"]'),
+  ).toHaveCount(2);
+  const add = page
+    .locator(".resource-wallet-header")
+    .getByRole("button", { name: "Add resource", exact: true });
+  const chip = page.locator(".resource-wallet-chip").first();
+  const addBox = await add.boundingBox();
+  const chipBox = await chip.boundingBox();
+  expect(addBox!.height).toBe(36);
+  expect(addBox!.y).toBeLessThan(chipBox!.y);
+  expect(await add.evaluate((el) => getComputedStyle(el).borderTopStyle)).toBe(
+    "solid",
+  );
+  await add.click();
+  await dialog.getByRole("button", { name: "Tier 8", exact: true }).click();
+  await expect(dialog.getByRole("radio")).toHaveCount(11);
+  await dialog.getByRole("radio", { name: /Emblems of Conquest/ }).check();
+  await dialog.getByRole("spinbutton", { name: "Quantity" }).fill("58");
+  await dialog
+    .getByRole("button", { name: "Add resource", exact: true })
+    .click();
+  await expect(
+    page.locator('.inventory-row[data-source="purchase"]'),
+  ).toHaveCount(4);
+  await expect(page.locator(".workbench-pro-button svg")).toHaveCount(1);
+  await page.screenshot({
+    path: `${artifacts}/early-tier-wallet.png`,
+    fullPage: true,
+  });
+  await page.reload();
+  await page.getByRole("button", { name: /Restore draft/ }).click();
+  await expect(page.locator(".resource-wallet")).toContainText(
+    "Emblems of Heroism",
+  );
+  await expect(page.locator(".resource-wallet")).toContainText(
+    "Emblems of Conquest",
+  );
+});
+
+test("compact purchase review filters slots and stays usable on mobile", async ({
+  page,
+}) => {
+  await add(page, "100");
+  await ready(page);
+  const headerBottom = await page
+    .locator("header.workbench-header")
+    .evaluate((el) => el.getBoundingClientRect().bottom);
+  const contentTop = await page
+    .locator(".gear-character-heading")
+    .evaluate((el) => el.getBoundingClientRect().top);
+  expect(contentTop - headerBottom).toBeGreaterThanOrEqual(35);
+  await page
+    .getByRole("button", { name: "Review purchases", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Review purchases",
+    exact: true,
+  });
+  await selectOption(dialog.getByRole("combobox", { name: "Equipment slot" }), {
+    label: "Hands",
+  });
+  await expect(dialog.locator(".purchase-review-item")).toHaveCount(1);
+  await expect(dialog.locator(".purchase-review-name")).toContainText(
+    "Gauntlets",
+  );
+  await expect(dialog.locator(".purchase-item-details")).toHaveCount(0);
+  await selectOption(dialog.getByRole("combobox", { name: "Equipment slot" }), {
+    label: "All slots",
+  });
+  await dialog.screenshot({ path: `${artifacts}/review-option01-desktop.png` });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    dialog.getByRole("button", { name: "Done", exact: true }),
+  ).toBeInViewport();
+  expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
+    true,
+  );
+  await dialog.screenshot({ path: `${artifacts}/review-option01-mobile.png` });
+  await dialog.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+});
+
+test("purchase review recovers a stale catalog inside the modal", async ({
+  page,
+}) => {
+  await add(page, "100");
+  await ready(page);
+  const saved = await draft(page);
+  saved.purchases.recipeRevision = "retired-catalog";
+  await page.evaluate(
+    (value) =>
+      localStorage.setItem(
+        "wow-droptimizer.top-gear.v1",
+        JSON.stringify(value),
+      ),
+    saved,
+  );
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Restore draft", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Review purchases", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Review purchases",
+    exact: true,
+  });
+  await expect(
+    dialog.getByRole("button", { name: "Review updated catalog" }),
+  ).toBeVisible();
+  await expect(dialog).not.toContainText("0 compatible purchases included");
+  await dialog.getByRole("button", { name: "Review updated catalog" }).click();
+  await expect(dialog.locator(".purchase-review-item")).toHaveCount(5);
 });

@@ -140,7 +140,7 @@ test.describe("touch source hints", () => {
     await expect(page.locator(".app-tooltip-popup")).toHaveText("Bags");
     await expect(bag.getByRole("checkbox")).not.toBeChecked();
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.getByRole("heading", { name: "GEAR LAB", exact: true }).tap();
+    await page.getByRole("heading", { name: /^Your equipment/ }).tap();
     await expect(page.locator(".app-tooltip-popup")).toHaveCount(0);
   });
 });

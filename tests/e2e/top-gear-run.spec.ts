@@ -1,3 +1,4 @@
+import { chooseItemVersion } from "./item-version";
 import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -47,10 +48,7 @@ test("runs real local DPS and compares complete owned sets", async ({
     "40111",
   );
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await selectOption(
-    page.getByLabel("Item version", { exact: true }),
-    "classic",
-  );
+  await chooseItemVersion(page, "classic");
   await page
     .getByRole("checkbox", { name: /Select Valorous Dreadnaught Helmet, Bags/ })
     .check();

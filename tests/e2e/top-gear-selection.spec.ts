@@ -91,7 +91,7 @@ test("mobile run action stays reachable and shows submission errors beside the a
   await run.scrollIntoViewIfNeeded();
   await expect(run).toBeInViewport({ ratio: 1 });
   const action = page.locator(".run-action");
-  await expect(action).toContainText("sets");
+  await expect(action).toContainText("combinations");
   // Exercise the real submission path without scheduling simulator work.
   await page.route("**/api/top-gear/jobs", async (route) => {
     expect(route.request().postDataJSON().tool).toBe("top-gear");
@@ -114,17 +114,24 @@ test("mobile run action stays reachable and shows submission errors beside the a
 });
 
 test("restoring a legacy draft clears retired slot locks", async ({ page }) => {
-  await page.evaluate(() => {
-    const key = "wow-droptimizer.top-gear.v1";
-    const draft = JSON.parse(localStorage.getItem(key)!);
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  const legacy = await page.evaluate(() => {
+    const draft = JSON.parse(
+      localStorage.getItem("wow-droptimizer.top-gear.v1")!,
+    );
     draft.selection.lockedSlots = { head: draft.snapshot.equipped.head };
-    localStorage.setItem(key, JSON.stringify(draft));
+    return JSON.stringify(draft);
   });
+  await page.addInitScript(
+    (value) => localStorage.setItem("wow-droptimizer.top-gear.v1", value),
+    legacy,
+  );
   await page.reload();
   await page.getByRole("button", { name: /Restore draft/ }).click();
   await expect(
     page.getByRole("heading", { name: /Your equipment/ }),
   ).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
   expect(
     await page.evaluate(
       () =>
@@ -142,21 +149,21 @@ test("restoring a legacy draft clears retired slot locks", async ({ page }) => {
 test("shared selects keep their chevron inset and their popup inside narrow viewports", async ({
   page,
 }) => {
-  const version = page.getByRole("combobox", {
-    name: "Item version",
+  const precision = page.getByRole("combobox", {
+    name: "Iterations per set",
     exact: true,
   });
-  await expect(version).toContainText("Original WotLK 3.3.5a");
+  await expect(precision).toContainText("500");
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 700 });
-    await version.scrollIntoViewIfNeeded();
-    const inset = await version.evaluate(
+    await precision.scrollIntoViewIfNeeded();
+    const inset = await precision.evaluate(
       (el) =>
         el.getBoundingClientRect().right -
         el.querySelector(".app-select-chevron")!.getBoundingClientRect().right,
     );
     expect(inset).toBeGreaterThanOrEqual(12);
-    await version.click();
+    await precision.click();
     await expect(page.getByRole("listbox")).toBeVisible();
     const popup = page.locator(".app-select-popup");
     await expect
@@ -172,7 +179,7 @@ test("shared selects keep their chevron inset and their popup inside narrow view
       })
       .toBe(true);
     await page.keyboard.press("Escape");
-    await expect(version).toBeFocused();
+    await expect(precision).toBeFocused();
   }
   await page
     .getByRole("button", { name: "Gems, enchants & sockets", exact: true })

@@ -80,7 +80,7 @@
     appearance: none;
     margin: 0;
   }
-  .app-number-input:focus-within {
+  .app-number-input:has(:focus-visible) {
     border-color: var(--color-control-border);
   }
   .app-number-input > button:focus-visible {

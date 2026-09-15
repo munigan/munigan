@@ -13,7 +13,7 @@ export type PurchaseManifest = {
   revision: string;
   checkedAt: string;
   sets: Array<{
-    tier: 9 | 10;
+    tier: 7 | 8 | 9 | 10;
     setVariant: string;
     classId: number;
     faction: PurchaseRecipe["faction"];
@@ -78,6 +78,10 @@ const slotTypes = {
 function expectedCost(recipe: PurchaseRecipe): ResourceAmounts {
   const small = recipe.slot === "hands" || recipe.slot === "shoulder";
   const family = tokenFamilyForClass(recipe.classId);
+  if (recipe.tier <= 8)
+    return {
+      [`tier:${recipe.tier}:${recipe.itemLevel === 200 || recipe.itemLevel === 219 ? 10 : 25}:${recipe.slot}:${family}`]: 1,
+    };
   switch (recipe.itemLevel) {
     case 232:
       return { triumph: small ? 30 : 50 };
@@ -139,15 +143,40 @@ export function createPurchaseCatalog(
       recipe.profiles.some((p) => !profiles.includes(p))
     )
       throw new Error(`Invalid profile membership for ${recipe.id}`);
+    const emblemCost =
+      recipe.tier === 7 &&
+      recipe.itemLevel === 200 &&
+      ["chest", "hands"].includes(recipe.slot)
+        ? { heroism: recipe.slot === "chest" ? 80 : 60 }
+        : recipe.tier === 7 &&
+            recipe.itemLevel === 213 &&
+            ["legs", "shoulder"].includes(recipe.slot)
+          ? { valor: recipe.slot === "legs" ? 75 : 60 }
+          : recipe.tier === 8 &&
+              recipe.itemLevel === 226 &&
+              ["head", "chest"].includes(recipe.slot)
+            ? { conquest: 58 }
+            : undefined;
+    if (
+      emblemCost
+        ? recipe.alternativeCosts?.length !== 1 ||
+          !equalCost(recipe.alternativeCosts[0], emblemCost as ResourceAmounts)
+        : !!recipe.alternativeCosts?.length
+    )
+      throw new Error(`Invalid alternative costs for ${recipe.id}`);
     if (!equalCost(recipe.cost, expectedCost(recipe)))
       throw new Error(`Invalid cost for ${recipe.id}`);
     if (
       !(
-        recipe.tier === 9
-          ? [232, 245, 258]
-          : recipe.tier === 10
-            ? [251, 264, 277]
-            : []
+        recipe.tier === 7
+          ? [200, 213]
+          : recipe.tier === 8
+            ? [219, 226]
+            : recipe.tier === 9
+              ? [232, 245, 258]
+              : recipe.tier === 10
+                ? [251, 264, 277]
+                : []
       ).includes(recipe.itemLevel)
     )
       throw new Error(`Invalid tier for ${recipe.id}`);
@@ -166,9 +195,16 @@ export function createPurchaseCatalog(
         r.setVariant === group.setVariant &&
         r.faction === group.faction,
     );
-    const levels = group.tier === 9 ? [232, 245, 258] : [251, 264, 277];
+    const levels =
+      group.tier === 7
+        ? [200, 213]
+        : group.tier === 8
+          ? [219, 226]
+          : group.tier === 9
+            ? [232, 245, 258]
+            : [251, 264, 277];
     if (
-      members.length !== 15 ||
+      members.length !== levels.length * 5 ||
       levels.some((level) =>
         Object.keys(slotTypes).some(
           (slot) =>
@@ -198,9 +234,13 @@ export function createPurchaseCatalog(
     if (
       !group ||
       group.classId !== recipe.classId ||
-      group.setName !== item.setName ||
+      group.setName.replace("Kirin'dor", "Kirin Tor") !==
+        item.setName.replace("Kirin'dor", "Kirin Tor") ||
       !item.classAllowlist.includes(recipe.classId) ||
-      item.ilvl !== recipe.itemLevel ||
+      item.ilvl !==
+        (recipe.tier === 8 && profile === "classic"
+          ? recipe.itemLevel + 6
+          : recipe.itemLevel) ||
       item.type !== slotTypes[recipe.slot] ||
       faction !== recipe.faction
     )
@@ -233,7 +273,19 @@ export function createPurchaseCatalog(
       }
     }
   }
-  return { revision: manifest.revision, recipes, byItemId };
+  const effectiveRecipes = recipes.map((recipe) =>
+    recipe.tier === 8 && profile === "classic"
+      ? {
+          ...recipe,
+          itemLevel: (recipe.itemLevel + 6) as PurchaseRecipe["itemLevel"],
+        }
+      : recipe,
+  );
+  return {
+    revision: manifest.revision,
+    recipes: effectiveRecipes,
+    byItemId: new Map(effectiveRecipes.map((r) => [r.itemId, r])),
+  };
 }
 const cached: Partial<Record<ItemVersion, PurchaseCatalog>> = {};
 export function getPurchaseCatalog(version: ItemVersion): PurchaseCatalog {

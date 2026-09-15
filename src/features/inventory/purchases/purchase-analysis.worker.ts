@@ -1,4 +1,4 @@
-import { createPurchaseAnalyzer } from "@/domain/purchases/analysis";
+import { createPurchasePreviewAnalyzer } from "@/domain/purchases/analysis";
 import { PurchaseEnhancementError } from "@/domain/purchases/enhancements";
 import { decodeDraft, encodeSnapshot } from "@/domain/top-gear/request-schema";
 import { describeError } from "@/i18n/error";
@@ -6,7 +6,7 @@ import type {
   PurchaseWorkerRequest,
   PurchaseWorkerReply,
 } from "./purchase-worker-contract";
-const analyzePurchaseSelection = createPurchaseAnalyzer();
+const analyzePurchaseSelection = createPurchasePreviewAnalyzer();
 self.onmessage = (event: MessageEvent<PurchaseWorkerRequest>) => {
   const { revision, request, policy } = event.data;
   let reply: PurchaseWorkerReply;

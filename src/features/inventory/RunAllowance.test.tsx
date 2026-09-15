@@ -112,24 +112,19 @@ it("offers PRO for a known exact excess and never starts a run", () => {
   fireEvent.click(addCredits);
   expect(open).toHaveBeenCalledWith("gear_limit", addCredits);
   expect(onRun).not.toHaveBeenCalled();
-  expect(screen.getByText(/144 combinations/)).toBeInTheDocument();
-  expect(
-    screen.getByText("24 combinations above the free limit."),
-  ).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: /Reduce selection/ }));
-  expect(onReduceSelection).toHaveBeenCalledOnce();
+  expect(screen.getByLabelText("144 combinations")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /Reduce selection/ })).toBeNull();
+  expect(onReduceSelection).not.toHaveBeenCalled();
 });
 
 it("qualifies an upper-bound excess without claiming an exact paid requirement", () => {
   setup({
     suppliedAllowance: allowanceForCount(144, policy, "upper-bound"),
   });
-  expect(screen.getByText("Up to 144 combinations")).toBeInTheDocument();
-  expect(
-    screen.getByText("This selection may exceed the free limit."),
-  ).toBeInTheDocument();
-  expect(screen.getByText("May exceed free limit")).toBeInTheDocument();
-  expect(screen.queryByText("Free limit reached")).toBeNull();
+  expect(screen.getByLabelText("Up to 144 combinations")).toHaveTextContent(
+    "≤ 144",
+  );
+  expect(screen.getByText("Limit")).toBeInTheDocument();
 });
 
 it.each([
@@ -224,7 +219,7 @@ it.each([
   },
 );
 
-it("marks an early stopped purchase count as a lower bound rather than exact", async () => {
+it("shows the exact purchase count even above the free limit", async () => {
   const { purchaseFixture, purchasePolicy } =
     await import("../../../tests/support/purchase-fixtures");
   const { analyzePurchaseSelection } =
@@ -248,7 +243,7 @@ it("marks an early stopped purchase count as a lower bound rather than exact", a
     </NextIntlClientProvider>,
   );
   expect(document.querySelector(".set-count")).toHaveTextContent(
-    "≥ 2 combinations",
+    `${analysis.status === "over-limit" ? analysis.allowance.count : 0} / 1 combinations`,
   );
   expect(screen.getByRole("button", { name: /Add credits/ })).toBeEnabled();
   expect(screen.queryByRole("button", { name: /Run Gear Lab/ })).toBeNull();
@@ -282,12 +277,44 @@ it("shows uncapped local allowance and sends the chosen 6000 iterations to the d
       />
     </NextIntlClientProvider>,
   );
-  expect(screen.getByText("Local")).toBeInTheDocument();
+  expect(screen.getAllByText("Local").length).toBeGreaterThan(0);
   expect(screen.queryByRole("progressbar")).toBeNull();
   await userEvent.click(
     screen.getByRole("combobox", { name: "Iterations per set" }),
   );
   await userEvent.click((await screen.findAllByRole("option"))[11]);
   expect(onIterationsChange).toHaveBeenCalledWith(6000);
+  expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeEnabled();
+});
+
+it("preserves the count and panels while recalculating but blocks submission", () => {
+  const request = fixtureRequest();
+  const allowance = allowanceForCount(24, policy, "exact");
+  const view = (loading: boolean) => (
+    <NextIntlClientProvider locale="en-US" messages={{ inventory }}>
+      <RunAllowance
+        request={request}
+        policy={policy}
+        allowance={loading ? null : allowance}
+        purchaseAnalysis={loading ? { status: "loading" } : undefined}
+        error=""
+        readinessError=""
+        pending={false}
+        onRun={vi.fn()}
+      />
+    </NextIntlClientProvider>
+  );
+  const { rerender } = render(view(false));
+  const count = document.querySelector(".set-count")!.textContent;
+  const price = document.querySelector(".run-price")!;
+  rerender(view(true));
+  expect(document.querySelector(".set-count")).toHaveTextContent(count!);
+  expect(document.querySelector(".run-price")).toBe(price);
+  expect(document.querySelector(".run-budget")).toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
+  expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeDisabled();
+  rerender(view(false));
   expect(screen.getByRole("button", { name: /Run Gear Lab/ })).toBeEnabled();
 });

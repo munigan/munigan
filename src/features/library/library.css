@@ -316,7 +316,7 @@
     background-color 160ms;
 }
 .library-row:has(.library-open:hover),
-.library-row:focus-within {
+.library-row:has(:focus-visible) {
   border-color: #3a3d44;
   background: #14171b;
 }

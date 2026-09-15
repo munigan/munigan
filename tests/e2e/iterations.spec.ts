@@ -58,6 +58,7 @@ test("precision select describes all values and preserves the free request", asy
   await select.press("Escape");
   await select.focus();
   await select.press("ArrowDown");
+  await expect(options).toHaveCount(6);
   await page.keyboard.press("End");
   await expect(page.getByRole("option").last()).toBeFocused();
   await page.keyboard.press("Enter");

@@ -424,10 +424,7 @@ test("a locked precision choice leaves the free 500 request runnable", async ({
   await expect(select).toHaveAttribute("data-select-value", "500");
   await select.click();
   await expect(page.getByRole("option")).toHaveCount(6);
-  await page
-    .getByRole("option")
-    .filter({ hasText: "1,000 iterations" })
-    .click();
+  await page.locator('[role="option"][data-select-value="1000"]').click();
   await expect(select).toHaveAttribute("data-select-value", "500");
   await expect(
     page.getByText(
@@ -471,7 +468,7 @@ for (const touchCase of [
     await expect(page.getByRole("tooltip")).toBeHidden();
     await trigger.tap();
     await expect(page.getByRole("tooltip")).toBeVisible();
-    await page.getByRole("heading", { name: "GEAR LAB", exact: true }).tap();
+    await page.getByRole("heading", { name: /^Your equipment/ }).tap();
     await expect(page.getByRole("tooltip")).toBeHidden();
     await trigger.tap();
     await expect(page.getByRole("tooltip")).toBeVisible();
@@ -570,9 +567,14 @@ test("an over-limit Add credits entry opens the shared dialog without a simulati
       simulationPosts++;
   });
   await restoreDraft(page);
-  await expect(page.getByText(/Up to 256 combinations/)).toBeVisible();
   await expect(
-    page.getByText("This selection may exceed the free limit."),
+    page.getByLabel("Up to 256 combinations", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "More combinations with PRO.",
+      exact: true,
+    }),
   ).toBeVisible();
   await page.screenshot({ path: `${evidenceDir}/over-limit-sidebar.png` });
   await page.getByRole("button", { name: "Add credits", exact: true }).click();

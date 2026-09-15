@@ -306,8 +306,7 @@ export function createInventorySelector(): (
         result.valid &&
         !(purchasePreview && isConvertedCustom(item)) &&
         (item.source !== "purchase" ||
-          candidateById.get(item.instanceId)?.available ||
-          customRewardIds.has(item.itemId))
+          candidateById.get(item.instanceId)?.available)
       )
         valid.push(item);
     }

@@ -66,13 +66,28 @@ export function preparePurchases(
   );
   function missing(recipe: PurchaseRecipe): PurchaseCandidate["missing"] {
     budget.visit();
-    const reasons: PurchaseCandidate["missing"] = Object.entries(
-      recipe.cost,
-    ).flatMap(([id, amount]) => {
-      const quantity =
-        amount - (prepared.inputs.balances[id as ResourceId] ?? 0);
-      return quantity > 0 ? [{ resourceId: id as ResourceId, quantity }] : [];
-    });
+    const cost = [recipe.cost, ...(recipe.alternativeCosts ?? [])].sort(
+      (a, b) => {
+        const deficit = (cost: typeof recipe.cost) =>
+          Object.entries(cost).reduce(
+            (sum, [id, amount]) =>
+              sum +
+              Math.max(
+                0,
+                amount - (prepared.inputs.balances[id as ResourceId] ?? 0),
+              ),
+            0,
+          );
+        return deficit(a) - deficit(b);
+      },
+    )[0];
+    const reasons: PurchaseCandidate["missing"] = Object.entries(cost).flatMap(
+      ([id, amount]) => {
+        const quantity =
+          amount - (prepared.inputs.balances[id as ResourceId] ?? 0);
+        return quantity > 0 ? [{ resourceId: id as ResourceId, quantity }] : [];
+      },
+    );
     if (
       recipe.prerequisiteItemId !== undefined &&
       !ownedIds.has(recipe.prerequisiteItemId)

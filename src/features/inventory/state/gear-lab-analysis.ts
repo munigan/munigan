@@ -61,12 +61,18 @@ export function createAnalysisController(
   let worker: Worker | null = null;
   let detach: (() => void) | null = null;
   let disposed = false;
+  let supersededTimer: ReturnType<typeof setTimeout> | null = null;
+  const clearSuperseded = () => {
+    if (supersededTimer !== null) clearTimeout(supersededTimer);
+    supersededTimer = null;
+  };
   const listeners = new Set<() => void>();
   const publish = (next: AnalysisView) => {
     view = next;
     for (const listener of listeners) listener();
   };
   const release = () => {
+    clearSuperseded();
     const previous = worker;
     worker = null;
     activeRevision = null;
@@ -93,6 +99,7 @@ export function createAnalysisController(
   };
   const dispatch = () => {
     if (disposed || activeRevision !== null || !pending) return;
+    clearSuperseded();
     const input = pending;
     pending = null;
     try {
@@ -185,6 +192,13 @@ export function createAnalysisController(
       });
       if (!input?.request.purchases) return;
       pending = input;
+      if (activeRevision !== null) {
+        clearSuperseded();
+        supersededTimer = setTimeout(() => {
+          release();
+          dispatch();
+        }, 150);
+      }
       dispatch();
     },
     retry() {

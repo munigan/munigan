@@ -98,6 +98,7 @@ export function ItemName({ item }: { item: ItemInstance }) {
         catalog.gems.get(item.itemId)?.name ??
         catalog.icons?.get(item.itemId)?.name ??
         t("item.unknown", { id: item.itemId })}
+      {catalog.items.get(item.itemId)?.heroic && ` (${t("tooltip.heroic")})`}
     </span>
   );
 }

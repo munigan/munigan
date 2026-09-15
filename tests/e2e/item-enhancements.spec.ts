@@ -5,10 +5,13 @@ import { selectOption } from "./select-option";
 const player = JSON.parse(
   readFileSync("tests/fixtures/sim/warrior.request.json", "utf8"),
 ).raid.parties[0].players[0];
-const saved = (page: Page) =>
-  page.evaluate(() =>
+async function saved(page: Page) {
+  // Draft writes are coalesced; exercise the production pagehide flush.
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  return page.evaluate(() =>
     JSON.parse(localStorage.getItem("wow-droptimizer.top-gear.v1")!),
   );
+}
 async function setup(
   page: Page,
   enchantOverrides: Record<number, number> = {},

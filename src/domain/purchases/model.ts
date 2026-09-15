@@ -10,6 +10,10 @@ import type {
 } from "@/domain/top-gear/model";
 export type TokenFamily = "vanquisher" | "protector" | "conqueror";
 export type ResourceId =
+  | "heroism"
+  | "valor"
+  | "conquest"
+  | `tier:${7 | 8}:${10 | 25}:${"head" | "shoulder" | "chest" | "hands" | "legs"}:${TokenFamily}`
   | "frost"
   | "triumph"
   | "trophy"
@@ -30,14 +34,15 @@ export type PurchaseInputs = {
 export type PurchaseRecipe = {
   id: string; // e.g. t10-dk-dps-shoulder-264
   itemId: number;
-  tier: 9 | 10;
-  itemLevel: 232 | 245 | 258 | 251 | 264 | 277;
+  tier: 7 | 8 | 9 | 10;
+  itemLevel: 200 | 213 | 219 | 225 | 226 | 232 | 245 | 258 | 251 | 264 | 277;
   setVariant: string; // stable class + variant, never a translated name
   slot: "head" | "shoulder" | "chest" | "hands" | "legs";
   classId: number;
   faction: "alliance" | "horde" | "both";
   profiles: ItemVersion[];
   cost: ResourceAmounts;
+  alternativeCosts?: ResourceAmounts[];
   prerequisiteItemId?: number;
   sourceUrls: string[];
 };

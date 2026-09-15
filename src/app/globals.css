@@ -226,7 +226,7 @@
     padding: 12px;
     z-index: 10;
   }
-  .skip-link:focus {
+  .skip-link:focus-visible {
     top: 12px;
   }
   @media (max-width: 767px) {
@@ -468,7 +468,7 @@
     background: var(--color-selected-surface);
     box-shadow: inset 2px 0 var(--color-action);
   }
-  .inventory-row:focus-within {
+  .inventory-row:has(:focus-visible) {
     outline: 1px solid var(--color-control-border);
     outline-offset: -1px;
   }

@@ -19,17 +19,25 @@ export const ResourceImage = memo(
   function ResourceImage({
     request,
     resourceId,
+    decorative = false,
   }: {
     request: TopGearRequest;
     resourceId: ResourceId;
+    decorative?: boolean;
   }) {
     const t = useTranslations("inventory.purchases");
     const emblem =
-      resourceId === "frost"
-        ? "inv_misc_frostemblem_01"
-        : resourceId === "triumph"
-          ? "spell_holy_summonchampion"
-          : undefined;
+      resourceId === "heroism"
+        ? "spell_holy_proclaimchampion"
+        : resourceId === "valor"
+          ? "spell_holy_proclaimchampion_02"
+          : resourceId === "conquest"
+            ? "spell_holy_championsgrace"
+            : resourceId === "frost"
+              ? "inv_misc_frostemblem_01"
+              : resourceId === "triumph"
+                ? "spell_holy_summonchampion"
+                : undefined;
     if (emblem)
       return (
         <Image
@@ -50,7 +58,9 @@ export const ResourceImage = memo(
       (r) =>
         r.classId === request.snapshot.settings.player!.class &&
         (!variant || r.setVariant === variant) &&
-        r.cost[resourceId] &&
+        [r.cost, ...(r.alternativeCosts ?? [])].some(
+          (cost) => cost[resourceId],
+        ) &&
         !validateItem(request.snapshot, {
           instanceId: "resource-image",
           itemId: r.itemId,
@@ -59,8 +69,9 @@ export const ResourceImage = memo(
           enchantId: 0,
         }).length,
     );
-    const recipe = recipes.find((item) => item.slot === "chest");
+    const recipe = recipes.find((item) => item.slot === "chest") ?? recipes[0];
     if (!recipe) return null;
+    if (decorative) return <ItemImage itemId={recipe.itemId} size={32} />;
     const ownedIds = new Set(
       request.snapshot.inventory
         .filter((item) => item.source === "bag" || item.source === "equipped")
@@ -96,6 +107,7 @@ export const ResourceImage = memo(
     );
   },
   (a, b) =>
+    a.decorative === b.decorative &&
     a.resourceId === b.resourceId &&
     a.request.purchases?.gearVariant === b.request.purchases?.gearVariant &&
     a.request.snapshot.itemVersion === b.request.snapshot.itemVersion &&

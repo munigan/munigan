@@ -405,3 +405,215 @@
     line-height: 16px;
   }
 }
+
+@layer components {
+  /* Compact workspace: equipment rows retain their existing presentation. */
+  .gear-layout {
+    grid-template-columns: minmax(0, 1fr) 336px;
+  }
+  .gear-layout .inventory-with-wallet {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+  .gear-layout .run-summary {
+    padding: 0 0 16px;
+    border-left: 0;
+    gap: 16px;
+    scrollbar-gutter: auto;
+  }
+  .run-summary .run-action {
+    display: flex;
+    gap: 16px;
+  }
+  .run-summary .run-budget .section-top {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .run-summary .run-budget .set-count {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .run-summary .run-budget .set-count strong {
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+  .run-count-denominator {
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+  .run-summary .run-budget .badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: color-mix(
+      in srgb,
+      var(--color-action) 10%,
+      var(--color-surface)
+    );
+    color: var(--color-action);
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .run-summary [data-over-limit="true"] .run-budget .badge {
+    color: #d9ba79;
+    background: #302a20;
+  }
+  .run-summary .run-budget progress {
+    margin: 16px 0;
+  }
+  .run-summary .run-iterations {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+  .run-summary .run-iterations-content {
+    gap: 8px;
+  }
+  .run-summary .run-iterations-heading {
+    font-weight: 600;
+  }
+  .run-summary .run-iterations-help {
+    font-size: 13px;
+    line-height: 19px;
+  }
+  .run-summary .app-select-trigger {
+    border-color: var(--color-control-border);
+    border-radius: 4px;
+    padding: 12px;
+  }
+  .run-summary .app-select-chevron {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+  }
+  .run-summary .app-select-chevron svg {
+    width: 16px;
+    height: 16px;
+    aspect-ratio: 1;
+  }
+  .run-summary .run-action-panel {
+    gap: 16px;
+    text-align: left;
+  }
+  .run-summary .run-action-panel h3 {
+    font: 600 20px/26px var(--font-body);
+  }
+  .run-summary .run-action-panel p {
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 20px;
+    text-align: left;
+  }
+  .run-summary .run-action-panel .pro-coming-soon,
+  .run-summary .run-action-panel .run-caption {
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .run-summary .run-action-panel > .run-button {
+    margin: 0;
+    min-height: 48px;
+    justify-content: center;
+    text-align: center;
+  }
+  .run-price {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .run-price strong {
+    color: var(--color-action);
+    font-weight: 600;
+  }
+  @media (max-width: 900px) {
+    .gear-layout,
+    .gear-layout:has(.run-feedback) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+@layer components {
+  .gear-layout {
+    padding-top: 36px;
+  }
+  .inventory .equipment-filter-segments {
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-gear-row);
+  }
+  .inventory .equipment-filter-segments button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: var(--color-muted);
+    gap: 10px;
+  }
+  .inventory .equipment-filter-segments button[aria-pressed="true"] {
+    color: var(--color-text);
+    background: #25282e;
+  }
+  @media (max-width: 639px) {
+    .gear-layout {
+      padding-top: 24px;
+    }
+    .inventory .filter-bar .equipment-filter-segments {
+      gap: 4px;
+    }
+  }
+}
+
+@layer components {
+  .run-count-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .run-summary .run-budget .run-count-status .badge {
+    margin: 0;
+  }
+
+  .run-count-spinner {
+    display: block;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    opacity: 0;
+  }
+  .run-count-spinner[data-active="true"] {
+    opacity: 1;
+    animation: run-count-spin 800ms linear infinite;
+  }
+  @keyframes run-count-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .run-count-spinner[data-active="true"] {
+      animation: none;
+    }
+  }
+}
+@layer components {
+  .run-summary .run-budget .section-top { flex-wrap: nowrap; }
+  .run-summary .run-budget .set-count { flex: 1; min-width: 0; }
+}

@@ -52,6 +52,7 @@ test("Warmane imports by name and realm into review, preserving optional bags an
   await expect(
     page.getByRole("heading", { name: /^Your equipment/ }),
   ).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
   const stored = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("wow-droptimizer.top-gear.v1")!),
   );

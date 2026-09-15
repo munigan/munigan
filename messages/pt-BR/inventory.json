@@ -34,7 +34,7 @@
     "oneSelected": "1 recurso selecionado",
     "availableHelp": "Somente a quantidade que você possui estará disponível.",
     "familyMatch": "{family} · Compatível com seu {class}",
-    "reviewTitle": "Itens de tier elegíveis usam estes saldos",
+    "reviewTitle": "Revisar compras",
     "reviewDescription": "Os recursos não usados são mantidos.",
     "reviewPurchases": "Revisar compras",
     "classes": {
@@ -65,7 +65,30 @@
       "trophy": "Troféu da Cruzada",
       "regalia": "Insígnia do Grande {family}",
       "markNormal": "Marca de Santificação do {family}",
-      "markHeroic": "Marca Heroica de Santificação do {family}"
+      "markHeroic": "Marca Heroica de Santificação do {family}",
+      "heroism": "Emblemas de Heroísmo",
+      "valor": "Emblemas de Bravura",
+      "conquest": "Emblemas de Conquista",
+      "t7_10_head": "T7 · 10 jogadores · Cabeça · {family}",
+      "t7_25_head": "T7 · 25 jogadores · Cabeça · {family}",
+      "t8_10_head": "T8 · 10 jogadores · Cabeça · {family}",
+      "t8_25_head": "T8 · 25 jogadores · Cabeça · {family}",
+      "t7_10_shoulder": "T7 · 10 jogadores · Ombros · {family}",
+      "t7_25_shoulder": "T7 · 25 jogadores · Ombros · {family}",
+      "t8_10_shoulder": "T8 · 10 jogadores · Ombros · {family}",
+      "t8_25_shoulder": "T8 · 25 jogadores · Ombros · {family}",
+      "t7_10_chest": "T7 · 10 jogadores · Torso · {family}",
+      "t7_25_chest": "T7 · 25 jogadores · Torso · {family}",
+      "t8_10_chest": "T8 · 10 jogadores · Torso · {family}",
+      "t8_25_chest": "T8 · 25 jogadores · Torso · {family}",
+      "t7_10_hands": "T7 · 10 jogadores · Mãos · {family}",
+      "t7_25_hands": "T7 · 25 jogadores · Mãos · {family}",
+      "t8_10_hands": "T8 · 10 jogadores · Mãos · {family}",
+      "t8_25_hands": "T8 · 25 jogadores · Mãos · {family}",
+      "t7_10_legs": "T7 · 10 jogadores · Pernas · {family}",
+      "t7_25_legs": "T7 · 25 jogadores · Pernas · {family}",
+      "t8_10_legs": "T8 · 10 jogadores · Pernas · {family}",
+      "t8_25_legs": "T8 · 25 jogadores · Pernas · {family}"
     },
     "descriptions": {
       "frost": "Compra uma nova peça base de tier.",
@@ -73,7 +96,15 @@
       "trophy": "Também requer Emblemas do Triunfo.",
       "regalia": "Pode ser trocada diretamente por uma peça de tier.",
       "markNormal": "Melhora a peça 251 correspondente.",
-      "markHeroic": "Melhora a peça 264 correspondente."
+      "markHeroic": "Melhora a peça 264 correspondente.",
+      "heroism": "T7 de 10 jogadores: torso (80) ou mãos (60).",
+      "valor": "T7 de 25 jogadores: pernas (75) ou ombros (60).",
+      "conquest": "T8 de 25 jogadores: cabeça ou torso, 58 emblemas cada.",
+      "token_head": "Troca por uma peça: cabeça. Compatível com sua classe.",
+      "token_shoulder": "Troca por uma peça: ombros. Compatível com sua classe.",
+      "token_chest": "Troca por uma peça: torso. Compatível com sua classe.",
+      "token_hands": "Troca por uma peça: mãos. Compatível com sua classe.",
+      "token_legs": "Troca por uma peça: pernas. Compatível com sua classe."
     },
     "walletDescriptions": {
       "frost": "Compra T10 base · Nível do item 251",
@@ -159,7 +190,39 @@
       "mage-dps": "Mago",
       "rogue-dps": "Ladino",
       "warlock-dps": "Bruxo"
-    }
+    },
+    "walletEmptyTitle": "Use seus tokens e emblemas",
+    "walletEmptyDescription": "Compare também os equipamentos de tier que você pode comprar.",
+    "walletEditHint": "Clique em um recurso para editar",
+    "walletChipDetail": "T{tier} · ilvl {level}",
+    "remove": "Remover",
+    "showUnavailable": "Mostrar indisponíveis",
+    "noAvailablePurchases": "Nenhuma compra disponível com seus recursos atuais.",
+    "tierUnsupported": "Este tier ainda não tem suporte.",
+    "tierUnsupportedNote": "T7 e T8 ainda não têm suporte. Compras disponíveis para T9 e T10.",
+    "raidICC": "Icecrown Citadel",
+    "raidTOC": "Trial of the Crusader",
+    "resourceOptionsCount": "{count} opções de recursos · {family}",
+    "equipmentPreviewHelp": "{count} espaços possíveis · Cada conjunto respeita seu saldo.",
+    "raidUlduar": "Ulduar",
+    "raidNaxx": "Naxxramas",
+    "earlyTokenHelp": "Troca por uma peça do espaço correspondente. Não exige peça anterior.",
+    "or": "ou",
+    "yourBalance": "Seu saldo",
+    "allTiers": "Todos os tiers",
+    "allSlots": "Todos os espaços",
+    "filterSlot": "Espaço de equipamento",
+    "details": "Detalhes",
+    "sharedBalanceHint": "O Gear Lab compara compras que cabem no mesmo saldo.",
+    "reviewSlots": {
+      "head": "Cabeça",
+      "shoulder": "Ombros",
+      "chest": "Torso",
+      "hands": "Mãos",
+      "legs": "Pernas"
+    },
+    "reviewIntro": "Escolha quais equipamentos o Gear Lab deve comparar.",
+    "purchaseRules": "Sobre as regras de compra"
   },
   "versions": {
     "original": {
@@ -189,7 +252,7 @@
   "iterations": {
     "localLimit": "Máximo local",
     "label": "Iterações por conjunto",
-    "help": "Mais iterações reduzem a variação aleatória, mas levam mais tempo. Resultados próximos ainda podem ser inconclusivos.",
+    "help": "Cada conjunto é simulado várias vezes. Mais iterações reduzem a variação dos resultados, mas levam mais tempo.",
     "freeLimit": "Limite do plano grátis",
     "value": "{count} iterações",
     "blocked": "O plano grátis permite {count} iterações. Sua simulação usará {count} por conjunto.",
@@ -205,7 +268,15 @@
       "2500": "Comparação mais refinada — mais amostras para conjuntos com desempenho próximo.",
       "3000": "Estimativa mais estável — menor ruído amostral entre estas opções, com maior tempo de execução."
     },
-    "localOption": "Local"
+    "localOption": "Local",
+    "quality": {
+      "500": "Estimativa rápida",
+      "1000": "Precisão básica",
+      "1500": "Precisão equilibrada",
+      "2000": "Precisão alta",
+      "2500": "Precisão maior",
+      "3000": "Precisão máxima"
+    }
   },
   "proLimit": {
     "title": "Limite gratuito atingido",
@@ -623,5 +694,21 @@
     "inactive": "Inativo",
     "setInfo": "Bônus de conjunto · referência da fonte",
     "localEnchant": "Encantamento · dados locais do jogo"
+  },
+  "compact": {
+    "versionInfo": "Qual versão escolher?",
+    "versionHelp": "Use a versão do seu servidor. Ela define os atributos dos itens na simulação.",
+    "raidBuffs": "Buffs de raide",
+    "noRaidBuffs": "Sem buffs de raide",
+    "automatic": "Automáticos",
+    "imported": "Importados",
+    "autoGemsOnly": "Gemas automáticas",
+    "autoEnchantsOnly": "Encantamentos automáticos",
+    "proSoon": "PRO EM BREVE",
+    "proHeading": "Mais combinações com o PRO.",
+    "proBody": "Entre na lista e receba novidades e um desconto no lançamento.",
+    "reduceHelp": "Até {count} combinações para simular grátis.",
+    "thisRun": "Esta simulação",
+    "limit": "Limite"
   }
 }

@@ -21,7 +21,6 @@ export function RunAllowance({
   readinessError,
   pending,
   onRun,
-  onReduceSelection = () => {},
   purchaseAnalysis,
   onIterationsChange,
 }: {
@@ -39,6 +38,18 @@ export function RunAllowance({
   const t = useTranslations("inventory");
   const locale = useLocale();
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!error) return;
+    const frame = requestAnimationFrame(() => {
+      const feedback = feedbackRef.current;
+      if (!feedback) return;
+      const bounds = feedback.getBoundingClientRect();
+      if (bounds.top < 0 || bounds.bottom > window.innerHeight)
+        feedback.scrollIntoView({ block: "nearest", behavior: "instant" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [error]);
   const pointerType = useRef("");
   const touchIntent = useRef<boolean | null>(null);
   const purchaseStatus =
@@ -60,7 +71,13 @@ export function RunAllowance({
         ? purchaseAnalysis.analysis.allowance
         : null
     : allowance;
-  allowance = currentAllowance;
+  const updating =
+    purchaseAnalysis?.status === "loading" ||
+    (purchaseAnalysis?.status === "ready" && !!purchaseAnalysis.refreshing);
+  const [lastAllowance, setLastAllowance] = useState(currentAllowance);
+  if (!updating && lastAllowance !== currentAllowance)
+    setLastAllowance(currentAllowance);
+  allowance = currentAllowance ?? (updating ? lastAllowance : null);
   const selectedIterations = policy?.selectableIterations
     ? (request.iterations ?? policy.iterationsPerSet)
     : (policy?.iterationsPerSet ?? null);
@@ -85,34 +102,56 @@ export function RunAllowance({
   return (
     <div className="run-action" data-over-limit={overLimit}>
       <div className="run-budget-panel">
-        <div className="run-budget" aria-live="polite" aria-atomic="true">
+        <div
+          className="run-budget"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-busy={updating}
+        >
           <div className="section-top">
             <span className="set-count">
               {allowance ? (
                 <>
-                  {allowance.countKind === "upper-bound" ? (
-                    <strong>
-                      {t("allowance.upTo", { count: allowance.count })}
-                    </strong>
-                  ) : (
-                    <strong>
-                      {allowance.countKind === "over-limit" ? "≥ " : ""}
-                      {t("allowance.exact", {
-                        count: Math.min(allowance.count, 999999),
-                      })}
-                    </strong>
-                  )}
+                  <strong
+                    aria-label={t(
+                      allowance.countKind === "upper-bound"
+                        ? "allowance.upTo"
+                        : "allowance.exact",
+                      { count: allowance.count },
+                    )}
+                  >
+                    {allowance.countKind === "upper-bound"
+                      ? "≤ "
+                      : allowance.countKind === "over-limit"
+                        ? "≥ "
+                        : ""}
+                    {allowance.count.toLocaleString(locale)}
+                  </strong>
+                  <span className="run-count-denominator">
+                    {" "}
+                    / {unlimited ? "∞" : freeLimit.toLocaleString(locale)}{" "}
+                    {t("allowance.combinations")}
+                  </span>
                 </>
               ) : (
                 purchaseMessage || t("allowance.loading")
               )}
             </span>
-            <span className="badge">
-              {unlimited
-                ? t("allowance.local")
-                : policy
-                  ? t("allowance.combinationLimit", { count: freeLimit })
-                  : t("allowance.free")}
+            <span className="run-count-status">
+              <span
+                className="run-count-spinner"
+                data-active={updating}
+                aria-hidden="true"
+              />
+              <span className="badge run-count-badge">
+                {t(
+                  unlimited
+                    ? "allowance.local"
+                    : overLimit
+                      ? "compact.limit"
+                      : "allowance.free",
+                )}
+              </span>
             </span>
           </div>
           {!unlimited && (
@@ -178,16 +217,6 @@ export function RunAllowance({
             </p>
           </TooltipContent>
         </TooltipRoot>
-        {allowance?.countKind === "upper-bound" && overLimit && (
-          <p className="run-count-note">{t("allowance.mayExceed")}</p>
-        )}
-        {allowance?.countKind === "exact" && overLimit && (
-          <p className="run-count-note">
-            {t("allowance.exactExcess", {
-              count: allowance.count - freeLimit,
-            })}
-          </p>
-        )}
         <RunIterations
           iterations={selectedIterations}
           range={policy?.selectableIterations}
@@ -195,16 +224,23 @@ export function RunAllowance({
         />
       </div>
       {showPro && policy ? (
-        <ProRunNotice
-          freeLimit={freeLimit}
-          freeIterations={policy.iterationsPerSet}
-          limitIsUpperBound={allowance?.countKind === "upper-bound"}
-          onReduceSelection={onReduceSelection}
-        />
+        <ProRunNotice freeLimit={freeLimit} />
       ) : (
         <section className="run-action-panel">
+          {allowance?.allowed && !error && !readinessError && (
+            <div className="run-price">
+              <span>{t("compact.thisRun")}</span>
+              <strong>
+                {t(unlimited ? "allowance.local" : "allowance.free")}
+              </strong>
+            </div>
+          )}
           {(error || readinessError || (allowance && !allowance.allowed)) && (
-            <AlertMessage className="run-feedback" tone="error">
+            <AlertMessage
+              ref={feedbackRef}
+              className="run-feedback"
+              tone="error"
+            >
               {error || readinessError || t("allowance.reduce")}
             </AlertMessage>
           )}
@@ -213,6 +249,7 @@ export function RunAllowance({
             className="primary run-button"
             disabled={
               pending ||
+              updating ||
               !allowance?.allowed ||
               !!readinessError ||
               (purchaseAnalysis?.status === "ready" &&

@@ -1,3 +1,4 @@
+import { chooseItemVersion } from "./item-version";
 import { selectOption } from "./select-option";
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -85,10 +86,7 @@ test("Classic Compact enriches both versions and stays scrollable inside short a
 }) => {
   await setup(page);
   for (const version of ["original", "classic"]) {
-    await selectOption(
-      page.getByLabel("Item version", { exact: true }),
-      version,
-    );
+    await chooseItemVersion(page, version);
     for (const id of [44006, 47528, 47475, 45931]) {
       const link = page
         .locator(`.inventory-row a[data-item-id="${id}"]`)
@@ -317,10 +315,7 @@ test("local chest layout matches enriched sections without rearranging base stat
   page,
 }) => {
   await setup(page);
-  await selectOption(
-    page.getByLabel("Item version", { exact: true }),
-    "classic",
-  );
+  await chooseItemVersion(page, "classic");
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {
     release = resolve;

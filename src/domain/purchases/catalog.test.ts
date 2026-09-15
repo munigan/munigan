@@ -33,7 +33,7 @@ it.each(["original", "classic"] as const)(
   "covers every registered variant, faction, slot and quality in %s",
   (profile) => {
     const catalog = getPurchaseCatalog(profile);
-    expect(catalog.recipes).toHaveLength(855);
+    expect(catalog.recipes).toHaveLength(1235);
     expect(new Set(catalog.recipes.map((r) => r.setVariant)).size).toBe(19);
     for (const group of manifest.sets) {
       const recipes = catalog.recipes.filter(
@@ -42,7 +42,16 @@ it.each(["original", "classic"] as const)(
           r.setVariant === group.setVariant &&
           r.faction === group.faction,
       );
-      const levels = group.tier === 9 ? [232, 245, 258] : [251, 264, 277];
+      const levels =
+        group.tier === 7
+          ? [200, 213]
+          : group.tier === 8
+            ? profile === "classic"
+              ? [225, 232]
+              : [219, 226]
+            : group.tier === 9
+              ? [232, 245, 258]
+              : [251, 264, 277];
       for (const level of levels) {
         expect(
           recipes

@@ -1,3 +1,4 @@
+import { chooseItemVersion } from "./item-version";
 import { selectOption } from "./select-option";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -36,10 +37,7 @@ test("imports owned bags, exposes exclusions and preserves a free anonymous gear
     label: "Fury (19/52/0)",
   });
   await page.getByRole("button", { name: "Select gear" }).click();
-  await selectOption(
-    page.getByLabel("Item version", { exact: true }),
-    "classic",
-  );
+  await chooseItemVersion(page, "classic");
   await expect(page.locator(".unsupported-bag .bag-grid")).toBeHidden();
   await page.locator(".unsupported-bag > summary").click();
   await expect(

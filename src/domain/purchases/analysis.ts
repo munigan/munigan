@@ -72,7 +72,10 @@ function analyzeSelection(
     const rewardCosts = new Map(
       prepared.candidates.map((candidate) => [
         candidate.instance.instanceId,
-        catalog.byItemId.get(candidate.instance.itemId)!.cost,
+        catalog.byItemId.get(candidate.instance.itemId)!.alternativeCosts
+          ?.length
+          ? {}
+          : catalog.byItemId.get(candidate.instance.itemId)!.cost,
       ]),
     );
     let acquisition: PurchasePlan | null = null;
@@ -142,13 +145,13 @@ function analyzeSelection(
           comparePurchasePlans(acquisition!, previous.plan) < 0)
       )
         keyed.set(key, { loadout, plan: acquisition! });
-      if (maxSets !== null && keyed.size > maxSets)
-        return {
-          status: "over-limit",
-          allowance: allowanceForCount(keyed.size, policy, "over-limit"),
-          visitedNodes: budget.visitedNodes,
-        };
     }
+    if (maxSets !== null && keyed.size > maxSets)
+      return {
+        status: "over-limit",
+        allowance: allowanceForCount(keyed.size, policy, "exact"),
+        visitedNodes: budget.visitedNodes,
+      };
     if (!candidates.size)
       return {
         status: "no-legal-sets",
@@ -284,4 +287,16 @@ export function createPurchaseAnalyzer() {
       };
       return { prepared, solve: previous.solve, evaluator: previous.evaluator };
     });
+}
+
+/** Interactive previews run in a cancellable worker, outside server admission.
+ * Keep simulation limits; only the computational search budget is independent.
+ */
+export function createPurchasePreviewAnalyzer() {
+  const analyze = createPurchaseAnalyzer();
+  return (
+    request: TopGearRequest,
+    policy: WorkPolicy,
+    onPrepared?: (prepared: PreparedPurchases) => void,
+  ) => analyze(request, { ...policy, maxSearchNodes: null }, onPrepared);
 }

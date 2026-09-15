@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { getPurchaseCatalog } from "@/domain/purchases/catalog";
+import { getCatalog } from "@/domain/equipment/catalog";
+import { itemVersionOf } from "@/domain/top-gear/item-version";
+import { validateItem } from "@/domain/equipment/validate";
+import { resourceIcon } from "./resource-icons";
+import { useLocale, useTranslations } from "next-intl";
 import { Select, SelectOption } from "@/components/ui/Select";
 import {
   defaultPurchaseVariant,
@@ -34,6 +40,9 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: GearLabActions["saveResource"];
+  onRemove?: GearLabActions["removeResource"];
+  onRemoved?: () => void;
+  finalFocus?: () => HTMLElement | null;
 };
 
 type Translator = (
@@ -47,8 +56,12 @@ export function ResourceDialog({
   open,
   onOpenChange,
   onSave,
+  onRemove,
+  onRemoved,
+  finalFocus,
 }: Props) {
   const t = useTranslations("inventory.purchases") as unknown as Translator;
+  const locale = useLocale();
   const family = tokenFamilyForClass(request.snapshot.settings.player!.class);
   const className = getSpec(request.snapshot.specId).className;
   const initialOption = optionForResource(resourceId ?? "frost", family);
@@ -87,10 +100,30 @@ export function ResourceDialog({
 
   const familyLabel = t(`families.${family}`);
   const localizedClass = t(`classes.${className}`);
-  const options = optionsForTier(tier, family);
+  const options = optionsForTier(tier, family, itemVersionOf(request.snapshot));
   const selected =
     options.find((option) => option.resourceId === selectedResource) ??
     options[0];
+
+  const equipment = getCatalog(itemVersionOf(request.snapshot));
+  const rewardRecipes = getPurchaseCatalog(
+    itemVersionOf(request.snapshot),
+  ).recipes.filter(
+    (recipe) =>
+      recipe.classId === request.snapshot.settings.player!.class &&
+      recipe.setVariant === gearVariant &&
+      [recipe.cost, ...(recipe.alternativeCosts ?? [])].some(
+        (cost) => cost[selectedResource],
+      ) &&
+      !validateItem(request.snapshot, {
+        instanceId: "resource-preview",
+        itemId: recipe.itemId,
+        source: "purchase",
+        gemIds: [],
+        enchantId: 0,
+      }).length,
+  );
+  const selectedName = t(selected.labelKey, { family: familyLabel });
 
   function selectTier(nextTier: ResourceTier) {
     const next = optionsForTier(nextTier, family)[0];
@@ -117,7 +150,10 @@ export function ResourceDialog({
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       {open && (
-        <DialogContent className="resource-dialog max-w-[45rem] overflow-hidden p-0 sm:p-0 max-sm:w-full max-sm:max-h-dvh max-sm:rounded-none max-sm:border-0">
+        <DialogContent
+          finalFocus={finalFocus}
+          className="resource-dialog resource-dialog-illustrated max-w-[47.5rem] overflow-hidden p-0 sm:p-0 max-sm:w-full max-sm:max-h-dvh max-sm:rounded-none max-sm:border-0"
+        >
           <div className="resource-dialog-viewport">
             <header className="resource-dialog-header">
               <div>
@@ -149,12 +185,14 @@ export function ResourceDialog({
               <fieldset className="resource-tier-fieldset">
                 <legend>{t("tier")}</legend>
                 <div className="resource-tier-buttons">
-                  {([9, 10] as const).map((value) => (
+                  {([7, 8, 9, 10] as const).map((value) => (
                     <button
                       key={value}
                       type="button"
                       aria-pressed={tier === value}
-                      onClick={() => selectTier(value)}
+                      onClick={() => {
+                        selectTier(value);
+                      }}
                     >
                       {t("tierValue", { tier: value })}
                     </button>
@@ -162,6 +200,25 @@ export function ResourceDialog({
                 </div>
               </fieldset>
 
+              <div className="resource-raid-summary">
+                <span>
+                  {t(
+                    tier === 10
+                      ? "raidICC"
+                      : tier === 9
+                        ? "raidTOC"
+                        : tier === 8
+                          ? "raidUlduar"
+                          : "raidNaxx",
+                  )}
+                </span>
+                <span>
+                  {t("resourceOptionsCount", {
+                    count: options.length,
+                    family: familyLabel,
+                  })}
+                </span>
+              </div>
               <fieldset className="resource-options">
                 <legend className="sr-only">{t("quality")}</legend>
                 {options.map((option) => {
@@ -175,20 +232,29 @@ export function ResourceDialog({
                       <input
                         type="radio"
                         name="resource"
+                        aria-label={`${t(`qualities.${option.quality}`, { level: option.itemLevel })} ${t(option.labelKey, { family: familyLabel })} ${t(option.descriptionKey)}`}
                         checked={checked}
                         onChange={() => selectResource(option.resourceId)}
                       />
-                      <strong className="resource-option-quality">
-                        {t(`qualities.${option.quality}`, {
-                          level: option.itemLevel,
-                        })}
-                      </strong>
+                      <Image
+                        unoptimized
+                        src={`https://wow.zamimg.com/images/wow/icons/large/${resourceIcon(option.resourceId)}.jpg`}
+                        width={40}
+                        height={40}
+                        alt=""
+                        className="resource-option-image"
+                      />
                       <span className="resource-option-copy">
                         <span className="resource-option-name">
                           {t(option.labelKey, { family: familyLabel })}
                         </span>
                         <span>{t(option.descriptionKey)}</span>
                       </span>
+                      <strong className="resource-option-quality">
+                        {t(`qualities.${option.quality}`, {
+                          level: option.itemLevel,
+                        })}
+                      </strong>
                     </label>
                   );
                 })}
@@ -196,7 +262,7 @@ export function ResourceDialog({
 
               <div className="resource-quantity-row">
                 <div>
-                  <strong>{t(`quantityLabels.${selected.quality}`)}</strong>
+                  <strong>{t("quantity")}</strong>
                   <span>
                     {t("familyMatch", {
                       family: familyLabel,
@@ -215,6 +281,36 @@ export function ResourceDialog({
                 />
               </div>
 
+              {rewardRecipes.length > 0 && (
+                <div className="resource-equipment-preview">
+                  <div className="resource-equipment-images">
+                    {rewardRecipes.slice(0, 3).map((recipe) => {
+                      const item = equipment.items.get(recipe.itemId);
+                      return item?.icon ? (
+                        <Image
+                          unoptimized
+                          key={recipe.id}
+                          src={`https://wow.zamimg.com/images/wow/icons/large/${item.icon}.jpg`}
+                          width={32}
+                          height={32}
+                          alt={item.name}
+                          title={item.name}
+                        />
+                      ) : null;
+                    })}
+                  </div>
+                  <div>
+                    <span>
+                      {equipment.items.get(rewardRecipes[0].itemId)?.setName}
+                    </span>
+                    <span>
+                      {t("equipmentPreviewHelp", {
+                        count: rewardRecipes.length,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              )}
               <div className="resource-prerequisite">
                 <strong>{t(selected.prerequisiteTitleKey)}</strong>
                 <span>{t(selected.prerequisiteKey)}</span>
@@ -223,13 +319,32 @@ export function ResourceDialog({
 
             <footer className="resource-dialog-footer">
               <div className="resource-dialog-selection">
-                <strong>{t("oneSelected")}</strong>
-                <span>{t("availableHelp")}</span>
+                <strong>
+                  {quantity.toLocaleString(locale)} {selectedName}
+                </strong>
+                <span>{t("reviewDescription")}</span>
               </div>
+              {resourceId && onRemove && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="resource-remove text-danger hover:bg-danger/10"
+                  aria-label={t("removeResource", {
+                    name: t(initialOption!.labelKey, { family: familyLabel }),
+                  })}
+                  onClick={() => {
+                    onRemove(resourceId);
+                    onRemoved?.();
+                    onOpenChange(false);
+                  }}
+                >
+                  {t("remove")}
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="ghost"
-                className="resource-cancel"
+                className="resource-cancel hover:bg-selected-surface"
                 onClick={() => onOpenChange(false)}
               >
                 {t("cancel")}

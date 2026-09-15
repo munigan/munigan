@@ -101,7 +101,10 @@ it("reuses purchase decisions for ordinary slots but distinguishes reserved upgr
   const spent = budget.visitedNodes;
   const next = solve({ ...loadout, trinket1: "trinket" }, budget);
   expect(next).toEqual(first);
-  expect(budget.visitedNodes - spent).toBe(spent);
+  expect(budget.visitedNodes - spent).toBe(1);
+  const freshBudget = createSearchBudget(null);
+  expect(solve(loadout, freshBudget)).toEqual(first);
+  expect(freshBudget.visitedNodes).toBe(spent);
   const reserved = { ...loadout, head: "base" };
   expect(solve(reserved, createSearchBudget(null))).toEqual(
     solveAcquisition(prepared, reserved, createSearchBudget(null)),
