@@ -24,6 +24,7 @@ export async function captureServer(
   distinctId: string,
   key: string,
   properties: Record<string, unknown>,
+  timestamp: Date = new Date(),
 ) {
   if (!enabled()) return;
   try {
@@ -39,13 +40,14 @@ export async function captureServer(
       distinctId,
       event,
       uuid: eventUuid(event, key),
+      timestamp,
       properties: {
         ...sanitizeEvent(event, properties),
         environment: "production",
         $geoip_disable: true,
       },
     });
-    await client.shutdown();
+    await client.shutdown(2500);
   } catch {
     /* Analytics failure cannot change the outcome of a committed action. */
   }
@@ -55,12 +57,21 @@ export function trackAfterResponse(
   event: AnalyticsEvent,
   key: string,
   properties: Record<string, unknown>,
+  timestamp: Date | (() => Promise<Date>),
 ) {
   if (!enabled()) return;
   const id = requestAnalyticsId(request);
   if (!id) return;
   try {
-    after(() => captureServer(event, id, key, properties));
+    after(async () => {
+      try {
+        const occurredAt =
+          typeof timestamp === "function" ? await timestamp() : timestamp;
+        await captureServer(event, id, key, properties, occurredAt);
+      } catch {
+        /* Timestamp lookup must also fail open. */
+      }
+    });
   } catch {
     /* no request lifecycle available */
   }

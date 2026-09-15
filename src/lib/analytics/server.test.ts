@@ -44,3 +44,13 @@ it("swallows network failures and strips unknown fields", async () => {
   ).resolves.toBeUndefined();
   expect(mocks.capture.mock.calls[0][0].properties.character).toBeUndefined();
 });
+
+it("preserves the original event timestamp across retries", async () => {
+  vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "phc_test");
+  vi.stubEnv("VERCEL_ENV", "production");
+  const timestamp = new Date("2026-09-15T13:00:00.000Z");
+  await captureServer("gear_run_accepted", "anon", "job", {}, timestamp);
+  await captureServer("gear_run_accepted", "anon", "job", {}, timestamp);
+  expect(mocks.capture.mock.calls[0][0].timestamp).toEqual(timestamp);
+  expect(mocks.capture.mock.calls[1][0].timestamp).toEqual(timestamp);
+});

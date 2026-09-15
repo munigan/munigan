@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
         locale: input.locale,
         offer_version: membership.offerVersion,
       },
+      new Date(membership.joinedAt),
     );
     return NextResponse.json(membership, {
       headers: privateHeaders,

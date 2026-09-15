@@ -1,3 +1,4 @@
+import { pool } from "@/server/db/client";
 import { trackAfterResponse } from "@/lib/analytics/server";
 import { getIdentity, requireAccount } from "@/server/auth/identity";
 import { authFlags } from "@/server/auth/config";
@@ -44,13 +45,26 @@ export async function POST(request: NextRequest) {
       idempotencyKey: request.headers.get("idempotency-key") ?? "",
     });
     wakeDispatcher();
-    trackAfterResponse(request, "gear_run_accepted", result.jobId, {
-      auth_mode: identity.account ? "account" : "anonymous",
-      iterations:
-        typeof simulationRequest.iterations === "number"
-          ? simulationRequest.iterations
-          : 500,
-    });
+    trackAfterResponse(
+      request,
+      "gear_run_accepted",
+      result.jobId,
+      {
+        auth_mode: identity.account ? "account" : "anonymous",
+        iterations:
+          typeof simulationRequest.iterations === "number"
+            ? simulationRequest.iterations
+            : 500,
+      },
+      async () => {
+        const row = await pool.query<{ created_at: Date }>(
+          "SELECT created_at FROM tg_jobs WHERE id=$1",
+          [result.jobId],
+        );
+        if (!row.rows[0]) throw new Error("Job unavailable");
+        return row.rows[0].created_at;
+      },
+    );
     return NextResponse.json(
       { ...result, reportUrl: `/reports/${result.reportToken}` },
       { status: 202, headers: privateHeaders },

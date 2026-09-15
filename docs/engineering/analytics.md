@@ -9,10 +9,10 @@ PostHog US Cloud project 610630 measures production usage of munigan.app. The or
 | `$pageview` | Initial page and completed pathname changes; report URLs normalized to `/reports/:token`. |
 | `gear_import_completed` | User accepts the character import review. Includes spec and item version. |
 | `gear_run_requested` | A new simulation submission is attempted. |
-| `gear_run_accepted` | The API successfully admits the job; this does not mean simulation completed. Stable event UUID derives from job ID for retries. |
+| `gear_run_accepted` | The API successfully admits the job; this does not mean simulation completed. Stable event UUID derives from job ID; the database creation timestamp is reused for retries. |
 | `pro_dialog_opened` | PRO dialog explicitly opened; `source` is `header`, `gear_limit`, or `iterations_limit`. |
 | `pro_discord_signin_clicked` | User starts Discord authentication from the PRO dialog. |
-| `pro_launch_joined` | API confirms membership. Stable event UUID derives from membership identity and creation date. |
+| `pro_launch_joined` | API confirms membership. Stable event UUID derives from membership identity and creation date; the original membership timestamp is reused. |
 
 Successful API events run using Next.js `after`, with bounded SDK transport and swallowed analytics failures. Delivery is best-effort, not an accounting ledger; the jobs and membership tables remain authoritative. Browser blocking or Do Not Track also excludes server analytics because those requests omit the analytics header. Completion/failure of background simulation workers is not tracked in this first release.
 
