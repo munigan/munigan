@@ -1,3 +1,4 @@
+import { trackAfterResponse } from "@/lib/analytics/server";
 import { getIdentity, requireAccount } from "@/server/auth/identity";
 import { authFlags } from "@/server/auth/config";
 import { AccountError } from "@/server/auth/errors";
@@ -43,6 +44,13 @@ export async function POST(request: NextRequest) {
       idempotencyKey: request.headers.get("idempotency-key") ?? "",
     });
     wakeDispatcher();
+    trackAfterResponse(request, "gear_run_accepted", result.jobId, {
+      auth_mode: identity.account ? "account" : "anonymous",
+      iterations:
+        typeof simulationRequest.iterations === "number"
+          ? simulationRequest.iterations
+          : 500,
+    });
     return NextResponse.json(
       { ...result, reportUrl: `/reports/${result.reportToken}` },
       { status: 202, headers: privateHeaders },

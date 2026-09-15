@@ -1,4 +1,5 @@
 "use client";
+import { track } from "@/lib/analytics/client";
 import { describeError, type ErrorDescriptor } from "@/i18n/error";
 import { localizeDiagnostic } from "@/i18n/diagnostics";
 import { useTranslations } from "next-intl";
@@ -540,7 +541,13 @@ export function ImportPanel({
                 setSavedProfile(null);
                 setRefreshError(null);
               }}
-              onResolved={onResolved}
+              onResolved={(snapshot) => {
+                track("gear_import_completed", {
+                  spec_id: snapshot.specId,
+                  item_version: snapshot.itemVersion ?? "original",
+                });
+                onResolved(snapshot);
+              }}
             />
           </>
         )}

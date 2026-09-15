@@ -108,9 +108,10 @@ test("explicit Discord consent returns to an unjoined draft and joining persists
   await seedDraft(page);
   await startDiscordHarness(page, "phone_only");
   await restoreDraft(page);
-  const draftBefore = await page.evaluate(() =>
-    localStorage.getItem("wow-droptimizer.top-gear.v1"),
-  );
+  const draftBefore = await page.evaluate(() => {
+    window.dispatchEvent(new Event("pagehide"));
+    return localStorage.getItem("wow-droptimizer.top-gear.v1");
+  });
   await expect(
     page.getByRole("heading", { name: /17 \/ 17 selected/ }),
   ).toBeVisible();

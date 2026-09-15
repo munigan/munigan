@@ -28,6 +28,7 @@ import {
 import { consumeProLaunchResume, hasProLaunchResume } from "./resume";
 import { ProLaunchDialog, type ProDialogState } from "./ProLaunchDialog";
 
+import { track } from "@/lib/analytics/client";
 export const proBeforeSignInEvent = "munigan:pro-before-sign-in";
 type ProLaunchController = {
   open(source: ProLaunchSource, trigger?: HTMLElement): void;
@@ -178,6 +179,7 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
 
   const openDialog = useCallback(
     (nextSource: ProLaunchSource, nextTrigger?: HTMLElement) => {
+      track("pro_dialog_opened", { source: nextSource });
       trigger.current = nextTrigger ?? null;
       setSource(nextSource);
       setOpen(true);
@@ -270,8 +272,9 @@ export function ProLaunchProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
+    track("pro_discord_signin_clicked", { source });
     await signIn.beginSignIn();
-  }, [signIn, t]);
+  }, [signIn, t, source]);
 
   const controller = useMemo(() => ({ open: openDialog }), [openDialog]);
   const renderedState: ProDialogState =

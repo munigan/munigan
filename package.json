@@ -51,6 +51,8 @@
     "next": "16.3.4",
     "next-intl": "4.14.2",
     "pg": "8.23.0",
+    "posthog-js": "1.433.4",
+    "posthog-node": "5.52.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "3.6.0",

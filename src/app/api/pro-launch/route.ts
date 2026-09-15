@@ -1,3 +1,4 @@
+import { trackAfterResponse } from "@/lib/analytics/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getIdentity, requireAccount } from "@/server/auth/identity";
 import {
@@ -28,7 +29,18 @@ export async function POST(request: NextRequest) {
   try {
     const input = parseJoinProLaunchInput(await accountMutationBody(request));
     const account = requireAccount(await getIdentity(request));
-    return NextResponse.json(await joinProLaunchList(account, input), {
+    const membership = await joinProLaunchList(account, input);
+    trackAfterResponse(
+      request,
+      "pro_launch_joined",
+      `${account.id}:${membership.joinedAt}`,
+      {
+        source: input.source,
+        locale: input.locale,
+        offer_version: membership.offerVersion,
+      },
+    );
+    return NextResponse.json(membership, {
       headers: privateHeaders,
     });
   } catch (error) {

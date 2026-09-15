@@ -1,3 +1,4 @@
+import { analyticsHeaders } from "@/lib/analytics/client";
 import type { AccountErrorCode } from "@/domain/accounts/contracts";
 import {
   PRO_OFFER_VERSION,
@@ -97,7 +98,7 @@ export async function joinProLaunch(
   const result = await readResponse(
     await fetch("/api/pro-launch", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...analyticsHeaders() },
       body: JSON.stringify(input),
       cache: "no-store",
       credentials: "same-origin",

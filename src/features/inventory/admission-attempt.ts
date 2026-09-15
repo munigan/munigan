@@ -1,3 +1,4 @@
+import { analyticsHeaders, track } from "@/lib/analytics/client";
 import type { AuthMode } from "@/domain/accounts/contracts";
 import { describeError } from "@/i18n/error";
 export type AdmissionAttempt = {
@@ -49,6 +50,8 @@ export const canSwitchMode = (attempt: AdmissionAttempt) =>
 export async function submitAttempt(
   attempt: AdmissionAttempt,
 ): Promise<string> {
+  if (attempt.status === "ready")
+    track("gear_run_requested", { auth_mode: attempt.mode });
   const wasUncertain = attempt.status === "uncertain";
   // Persist BEFORE the network call. Reload must retry precisely this request.
   attempt.status = "uncertain";
@@ -58,6 +61,7 @@ export async function submitAttempt(
     headers: {
       "content-type": "application/json",
       "idempotency-key": attempt.key,
+      ...analyticsHeaders(),
     },
     body: attempt.body,
   });

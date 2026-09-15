@@ -19,6 +19,7 @@ import { AuthProvider } from "@/features/auth/AuthProvider";
 import "@/features/auth/auth.css";
 import { DeleteAccountDialogHost } from "@/features/auth/DeleteAccountDialog";
 import { ProLaunchProvider } from "@/features/pro-launch/ProLaunchProvider";
+import { Analytics } from "@/lib/analytics/Analytics";
 export async function AppDocument({
   children,
   locale,
@@ -41,6 +42,7 @@ export async function AppDocument({
           <TooltipProvider delay={250}>
             <ToastProvider>
               <AuthProvider>
+                <Analytics />
                 <ProLaunchProvider>
                   <AppShell>{children}</AppShell>
                   <DeleteAccountDialogHost />
